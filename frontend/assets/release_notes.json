@@ -1,5 +1,20 @@
 [
   {
+    "version": "0.2.1",
+    "da": {
+      "features": [
+        "Ved opdateringer bliver appen nu automatisk kontrolleret med tests og build, før den kan lægges på serveren."
+      ],
+      "fixes": []
+    },
+    "en": {
+      "features": [
+        "When updating the app, tests and build checks now run automatically before it can be deployed to the server."
+      ],
+      "fixes": []
+    }
+  },
+  {
     "version": "0.2.0",
     "da": {
       "features": [

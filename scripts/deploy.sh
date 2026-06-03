@@ -1,8 +1,16 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 SERVER="root@192.168.50.5" # Your docker server
 REMOTE_DIR="/root/spiir-alternative"
+
+cd "$ROOT_DIR"
+
+if [[ "${SKIP_CHECKS:-0}" != "1" ]]; then
+    ./scripts/check.sh
+fi
 
 echo "Deploying spiir-alternative to $SERVER..."
 
