@@ -1,0 +1,19 @@
+[
+  {
+    "version": "0.2.0",
+    "da": {
+      "features": [
+        "På bankoverblikket bruger appen nu den nye lokale ledger, så importerede bankposter vises direkte fra den opdaterede database.",
+        "På bankoverblikket er visning, filtre, synkronisering og postlisten ryddet op, så siden er lettere at vedligeholde fremover."
+      ],
+      "fixes": []
+    },
+    "en": {
+      "features": [
+        "In the bank overview, the app now uses the new local ledger so imported bank transactions are shown directly from the updated database.",
+        "In the bank overview, display, filters, sync, and the transaction list have been cleaned up so the page is easier to maintain going forward."
+      ],
+      "fixes": []
+    }
+  }
+]

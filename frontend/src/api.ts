@@ -15,6 +15,7 @@ import type {
     BankRetrieveJobStatus,
     BankRetrieveResponse,
     BankTaxonomyResponse,
+    BankTransaction,
     BankTransactionsResponse,
     SpiirIncomeExpenseSeriesResponse,
     SpiirOverviewResponse,
@@ -51,6 +52,8 @@ const localLedgerCache = {
     full: { value: null, promise: null } as CacheSlot<BankTransactionsResponse>,
     pages: new Map<string, CacheSlot<BankTransactionsResponse>>()
 };
+
+let categoryLookup = new Map<string, BankTaxonomyResponse["categories"][number]>();
 
 function cachedRequest<T>(slot: CacheSlot<T>, loader: () => Promise<T>): Promise<T> {
     if (slot.value !== null) {
@@ -130,6 +133,197 @@ function sliceLocalLedgerResponse(payload: BankTransactionsResponse, options?: {
     };
 }
 
+function rebuildCategoryLookup(taxonomy: BankTaxonomyResponse): BankTaxonomyResponse {
+    categoryLookup = new Map(taxonomy.categories.map((category) => [String(category.categoryId), category]));
+    return taxonomy;
+}
+
+function defaultCategory(categoryId: string | number | null | undefined): BankTaxonomyResponse["categories"][number] {
+    return {
+        categoryType: "Expense",
+        mainCategoryId: "diverse",
+        mainCategoryName: "Diverse",
+        categoryId: categoryId || "diverse|ikke-kategoriseret",
+        categoryName: "Ikke kategoriseret",
+        usage_count: 0,
+        search_aliases: []
+    };
+}
+
+function normalizeTransaction(input: BankTransaction & { category_id?: string | null; custom_note?: string | null; is_excluded?: boolean }): BankTransaction {
+    const categoryId = input.categoryId ?? input.category_id ?? null;
+    const category = categoryId ? categoryLookup.get(String(categoryId)) : null;
+    return {
+        ...input,
+        transaction_date: input.transaction_date ?? input.booking_date,
+        description: input.description ?? "",
+        categoryType: input.categoryType ?? category?.categoryType ?? defaultCategory(categoryId).categoryType,
+        mainCategoryId: input.mainCategoryId ?? category?.mainCategoryId ?? defaultCategory(categoryId).mainCategoryId,
+        mainCategoryName: input.mainCategoryName ?? category?.mainCategoryName ?? defaultCategory(categoryId).mainCategoryName,
+        categoryId: input.categoryId ?? category?.categoryId ?? defaultCategory(categoryId).categoryId,
+        categoryName: input.categoryName ?? category?.categoryName ?? defaultCategory(categoryId).categoryName,
+        note: input.note ?? input.custom_note ?? "",
+        hashtags: input.hashtags ?? [],
+        pending_review: input.pending_review ?? false,
+        splits: input.splits ?? [],
+        source: input.source ?? "enablebanking"
+    };
+}
+
+function normalizeTransactionsResponse(payload: BankTransactionsResponse): BankTransactionsResponse {
+    const transactions = (payload.transactions ?? []).map(normalizeTransaction);
+    const loadedCount = payload.loaded_count ?? transactions.length;
+    const offset = payload.offset ?? 0;
+    const transactionCount = payload.transaction_count ?? transactions.length;
+    return {
+        ...payload,
+        accounts: payload.accounts ?? [],
+        transactions,
+        loaded_count: loadedCount,
+        offset,
+        limit: payload.limit,
+        has_more: payload.has_more ?? offset + loadedCount < transactionCount,
+        pending_review_count: payload.pending_review_count ?? transactions.filter((transaction) => transaction.pending_review).length,
+    };
+}
+
+function normalizeOverridePatch(patch: BankOverridePatch): Record<string, unknown> {
+    const next: Record<string, unknown> = { ...patch };
+    if ("category" in patch) {
+        next.category_id = patch.category?.categoryId ?? null;
+        delete next.category;
+    }
+    if ("note" in patch) {
+        next.custom_note = patch.note ?? "";
+        delete next.note;
+    }
+    return next;
+}
+
+function normalizeIncomeExpenseSeries(payload: any): SpiirIncomeExpenseSeriesResponse {
+    if (Array.isArray(payload?.months) && Array.isArray(payload?.periods)) {
+        return payload as SpiirIncomeExpenseSeriesResponse;
+    }
+    const months = (payload?.series ?? []).map((month: any) => ({
+        month: String(month.month),
+        income: Number(month.income ?? 0),
+        expense: Math.abs(Number(month.expense ?? 0)),
+        net: Number(month.net ?? 0),
+        is_current_month: String(month.month) === new Date().toISOString().slice(0, 7),
+        source: payload?.source ?? "v2"
+    }));
+    const monthKeys = months.map((month: SpiirIncomeExpenseSeriesResponse["months"][number]) => month.month);
+    const years = Array.from(new Set(monthKeys.map((month: string) => Number(month.slice(0, 4)))))
+        .filter((year): year is number => Number.isFinite(year));
+    return {
+        generated_at: payload?.generated_at ?? new Date().toISOString(),
+        source: payload?.source ?? "v2",
+        months,
+        years,
+        periods: [
+            {
+                label: "12 mdr.",
+                totals_title: "Seneste 12 måneder",
+                start_month: monthKeys.slice(-12)[0] ?? "",
+                end_month: monthKeys[monthKeys.length - 1] ?? "",
+                months: monthKeys.slice(-12),
+            },
+            {
+                label: "Alle",
+                totals_title: "Hele perioden",
+                start_month: monthKeys[0] ?? "",
+                end_month: monthKeys[monthKeys.length - 1] ?? "",
+                months: monthKeys,
+            }
+        ]
+    };
+}
+
+function toSpiirTransaction(transaction: BankTransaction): SpiirTransaction {
+    const ymd = transaction.booking_date || transaction.transaction_date || "";
+    return {
+        yyyymm: ymd.slice(0, 7),
+        year: ymd.slice(0, 4),
+        ymd,
+        amount: transaction.amount,
+        categoryType: transaction.categoryType,
+        mainCategoryName: transaction.mainCategoryName,
+        categoryName: transaction.categoryName,
+        categoryId: transaction.categoryId,
+        mainCategoryId: transaction.mainCategoryId,
+        description: transaction.description,
+        comment: transaction.note,
+        hashtags: transaction.hashtags ?? [],
+    };
+}
+
+function buildOverviewSection(transactions: SpiirTransaction[], periodOf: (transaction: SpiirTransaction) => string): SpiirOverviewResponse["monthly"] {
+    const periods = [...new Set(transactions.map(periodOf).filter(Boolean))].sort();
+    const rowsByKey = new Map<string, SpiirOverviewResponse["monthly"]["rows"][number]>();
+
+    function touchRow(key: string, label: string, level: number, parent: string | null, transaction: SpiirTransaction): SpiirOverviewResponse["monthly"]["rows"][number] {
+        const existing = rowsByKey.get(key);
+        if (existing) {
+            return existing;
+        }
+        const row = {
+            key,
+            label,
+            level,
+            parent,
+            values: {},
+            total: 0,
+            avg: 0,
+            kind: transaction.categoryType,
+            categoryType: transaction.categoryType,
+            mainCategoryName: transaction.mainCategoryName,
+            mainCategoryId: transaction.mainCategoryId,
+            categoryName: level > 1 ? transaction.categoryName : null,
+            categoryId: level > 1 ? transaction.categoryId : null,
+            hashtag: null,
+        };
+        rowsByKey.set(key, row);
+        return row;
+    }
+
+    for (const transaction of transactions) {
+        const period = periodOf(transaction);
+        if (!period) {
+            continue;
+        }
+        const main = transaction.mainCategoryName || "Diverse";
+        const category = transaction.categoryName || "Ikke kategoriseret";
+        const mainKey = `main:${transaction.categoryType ?? "Expense"}:${main}`;
+        const subKey = `${mainKey}:${category}`;
+        for (const row of [
+            touchRow(mainKey, main, 1, null, transaction),
+            touchRow(subKey, category, 2, mainKey, transaction),
+        ]) {
+            row.values[period] = Number(row.values[period] ?? 0) + transaction.amount;
+            row.total += transaction.amount;
+        }
+    }
+
+    const rows = [...rowsByKey.values()].map((row) => ({
+        ...row,
+        total: Math.round(row.total * 100) / 100,
+        avg: periods.length ? Math.round((row.total / periods.length) * 100) / 100 : 0,
+    }));
+    return { periods, rows };
+}
+
+function buildSpiirOverview(transactions: SpiirTransaction[]): SpiirOverviewResponse {
+    return {
+        generated_at: new Date().toISOString(),
+        monthly: buildOverviewSection(transactions, (transaction) => transaction.yyyymm),
+        yearly: buildOverviewSection(transactions, (transaction) => transaction.year),
+        shopping_extras: {
+            unknownTop: [],
+            suspects: [],
+        },
+    };
+}
+
 function patchLocalLedgerCache(result: BankOverrideResponse): void {
     localLedgerCache.full.value = mergeUpdatedTransactions(
         localLedgerCache.full.value,
@@ -201,41 +395,56 @@ function kvitteringerQueryString(query?: KvitteringerQuery & { search?: string; 
 }
 
 export async function getSpiirStatus(): Promise<SpiirStatusResponse> {
-    return cachedRequest(spiirCache.status, () => request<SpiirStatusResponse>("/api/spiir/status"));
+    return cachedRequest(spiirCache.status, async () => {
+        const transactions = await request<BankTransactionsResponse>("/api/transactions?limit=1");
+        return {
+            raw_exists: true,
+            processed_exists: true,
+            raw_file: "",
+            processed_dir: "",
+            generated_at: transactions.generated_at ?? null,
+            transaction_count: transactions.transaction_count,
+            rebuild_required: false,
+        };
+    });
 }
 
 export async function getSpiirOverview(): Promise<SpiirOverviewResponse> {
-    return cachedRequest(spiirCache.overview, () => request<SpiirOverviewResponse>("/api/spiir/overview"));
+    return cachedRequest(spiirCache.overview, async () => buildSpiirOverview(await getSpiirTransactions()));
 }
 
 export async function getSpiirTransactions(): Promise<SpiirTransaction[]> {
-    return cachedRequest(spiirCache.transactions, () => request<SpiirTransaction[]>("/api/spiir/transactions"));
+    return cachedRequest(spiirCache.transactions, async () => {
+        const response = normalizeTransactionsResponse(await request<BankTransactionsResponse>("/api/transactions"));
+        return response.transactions.map(toSpiirTransaction);
+    });
 }
 
 export async function getSpiirIncomeExpenseSeries(): Promise<SpiirIncomeExpenseSeriesResponse> {
-    return cachedRequest(spiirCache.incomeExpenseSeries, () => request<SpiirIncomeExpenseSeriesResponse>("/api/spiir/local-ledger/income-expense-series"));
+    return cachedRequest(spiirCache.incomeExpenseSeries, async () => normalizeIncomeExpenseSeries(await request("/api/insights/income-expense-series")));
 }
 
 export async function rebuildSpiirFromLocal(): Promise<{ generated_at: string; transaction_count: number; source: string }> {
-    const result = await request<{ generated_at: string; transaction_count: number; source: string }>("/api/spiir/rebuild-from-local", {
-        method: "POST"
-    });
     invalidateSpiirCache();
-    return result;
+    const response = await request<BankTransactionsResponse>("/api/transactions?limit=1");
+    return {
+        generated_at: response.generated_at ?? new Date().toISOString(),
+        transaction_count: response.transaction_count,
+        source: "v2",
+    };
 }
 
 export async function scheduleSpiirRebuildFromLocal(delaySeconds = 10): Promise<{ scheduled: boolean; running: boolean; rebuild_required: boolean; delay_seconds?: number }> {
-    return request<{ scheduled: boolean; running: boolean; rebuild_required: boolean; delay_seconds?: number }>(`/api/spiir/rebuild-from-local/schedule?delay_seconds=${delaySeconds}`, {
-        method: "POST"
-    });
+    invalidateSpiirCache();
+    return { scheduled: true, running: false, rebuild_required: false, delay_seconds: delaySeconds };
 }
 
 export async function getBankTransactions(): Promise<BankTransactionsResponse> {
-    return request<BankTransactionsResponse>("/api/bank/transactions");
+    return normalizeTransactionsResponse(await request<BankTransactionsResponse>("/api/transactions"));
 }
 
 export async function getSpiirLocalLedgerTransactions(): Promise<BankTransactionsResponse> {
-    return cachedRequest(localLedgerCache.full, () => request<BankTransactionsResponse>("/api/spiir/local-ledger/transactions"));
+    return cachedRequest(localLedgerCache.full, async () => normalizeTransactionsResponse(await request<BankTransactionsResponse>("/api/transactions")));
 }
 
 export async function getSpiirLocalLedgerTransactionsPage(options?: { limit?: number; offset?: number }): Promise<BankTransactionsResponse> {
@@ -253,29 +462,35 @@ export async function getSpiirLocalLedgerTransactionsPage(options?: { limit?: nu
         params.set("offset", String(options.offset));
     }
     const suffix = params.toString() ? `?${params.toString()}` : "";
-    return cachedRequest(localLedgerPageSlot(options), () => request<BankTransactionsResponse>(`/api/spiir/local-ledger/transactions${suffix}`));
+    return cachedRequest(localLedgerPageSlot(options), async () => normalizeTransactionsResponse(await request<BankTransactionsResponse>(`/api/transactions${suffix}`)));
 }
 
 export async function saveSpiirLocalLedgerOverrides(transactionIds: string[], patch: BankOverridePatch): Promise<BankOverrideResponse> {
-    const result = await request<BankOverrideResponse>("/api/spiir/local-ledger/overrides", {
-        method: "POST",
+    const result = await request<BankOverrideResponse>("/api/transactions", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transaction_ids: transactionIds, patch })
+        body: JSON.stringify({ transaction_ids: transactionIds, patch: normalizeOverridePatch(patch) })
     });
     patchLocalLedgerCache(result);
     return result;
 }
 
 export async function retrieveBankTransactions(): Promise<BankRetrieveResponse> {
-    return request<BankRetrieveResponse>("/api/bank/retrieve", { method: "POST" });
+    const status = await startBankRetrieveJob();
+    return {
+        retrieved_count: status.result?.retrieved_count ?? 0,
+        transaction_count: status.result?.transaction_count ?? 0,
+        raw_files: [],
+        last_retrieved_at: status.completed_at ?? status.started_at ?? null,
+    };
 }
 
 export async function startBankRetrieveJob(): Promise<BankRetrieveJobStatus> {
-    return request<BankRetrieveJobStatus>("/api/bank/retrieve/start", { method: "POST" });
+    return request<BankRetrieveJobStatus>("/api/sync/start", { method: "POST" });
 }
 
 export async function getBankRetrieveStatus(): Promise<BankRetrieveJobStatus> {
-    return request<BankRetrieveJobStatus>("/api/bank/retrieve/status");
+    return request<BankRetrieveJobStatus>("/api/sync/status");
 }
 
 export async function syncBankIntoSpiirLocalLedger(): Promise<{
@@ -290,31 +505,31 @@ export async function syncBankIntoSpiirLocalLedger(): Promise<{
     ledger_row_count: number;
     import_run_count: number;
 }> {
-    const result = await request<{
-        applied_at: string;
-        cutover_date: string;
-        source_row_count: number;
-        created_count: number;
-        updated_count: number;
-        autocategorized_count: number;
-        skipped_before_cutover_count: number;
-        skipped_missing_booking_date_count: number;
-        ledger_row_count: number;
-        import_run_count: number;
-    }>("/api/spiir/local-ledger/bank-sync/apply", { method: "POST" });
     invalidateLocalLedgerCache();
-    return result;
+    const response = await request<BankTransactionsResponse>("/api/transactions?limit=1");
+    return {
+        applied_at: response.generated_at ?? new Date().toISOString(),
+        cutover_date: "",
+        source_row_count: response.transaction_count,
+        created_count: 0,
+        updated_count: 0,
+        autocategorized_count: 0,
+        skipped_before_cutover_count: 0,
+        skipped_missing_booking_date_count: 0,
+        ledger_row_count: response.transaction_count,
+        import_run_count: 0,
+    };
 }
 
 export async function getBankTaxonomy(): Promise<BankTaxonomyResponse> {
-    return request<BankTaxonomyResponse>("/api/bank/taxonomy");
+    return rebuildCategoryLookup(await request<BankTaxonomyResponse>("/api/categories"));
 }
 
 export async function saveBankOverrides(transactionIds: string[], patch: BankOverridePatch): Promise<BankOverrideResponse> {
-    return request<BankOverrideResponse>("/api/bank/overrides", {
-        method: "POST",
+    return request<BankOverrideResponse>("/api/transactions", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transaction_ids: transactionIds, patch })
+        body: JSON.stringify({ transaction_ids: transactionIds, patch: normalizeOverridePatch(patch) })
     });
 }
 

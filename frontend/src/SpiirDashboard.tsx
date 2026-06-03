@@ -11,7 +11,7 @@ import {
     scheduleSpiirRebuildFromLocal
 } from "./api";
 import BankDashboard, { type BankDrilldownFilter } from "./BankDashboard";
-import SpiirSunburstModal, { expenseMainColorFromHue, expenseSubColorFromHue, incomePartColorFromHue, type SunburstMode, type SunburstState } from "./SpiirSunburstModal";
+import SpiirSunburstModal, { expenseMainColorFromHue, expenseSubColorFromHue, incomePartColorFromHue, type SunburstMode, type SunburstState } from "./components/charts/SunburstChart";
 import type {
     BankCategoryOption,
     SpiirOverviewResponse,
