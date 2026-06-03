@@ -1,5 +1,20 @@
 [
   {
+    "version": "0.2.3",
+    "da": {
+      "features": [],
+      "fixes": [
+        "På bankoverblikket fylder grafen nu mindre på desktop, så filtre og transaktioner kommer hurtigere i fokus uden vandret scroll."
+      ]
+    },
+    "en": {
+      "features": [],
+      "fixes": [
+        "In the bank overview, the chart now takes less space on desktop so filters and transactions come into focus faster without horizontal scrolling."
+      ]
+    }
+  },
+  {
     "version": "0.2.2",
     "da": {
       "features": [
