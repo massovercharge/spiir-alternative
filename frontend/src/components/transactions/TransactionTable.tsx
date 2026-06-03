@@ -39,6 +39,14 @@ function SortHeader({
     );
 }
 
+function RowMarker({ label, children }: { label: string; children: ReactNode }) {
+    return (
+        <span className="bank-row-marker" title={label} aria-label={label}>
+            {children}
+        </span>
+    );
+}
+
 export function TransactionTable({
     tableContainerRef,
     visibleTransactions,
@@ -120,6 +128,8 @@ export function TransactionTable({
                     {visibleTransactions.map((row) => {
                         const selected = selectedIds.includes(row.rowId);
                         const note = row.note.trim();
+                        const pending = isPendingReview(row.transaction);
+                        const uncategorized = isUncategorized(row.category);
                         return (
                             <tr
                                 key={row.rowId}
@@ -140,19 +150,19 @@ export function TransactionTable({
                                 <td className="bank-description-cell">
                                     <span>{row.transaction.description}</span>
                                     {note ? <span className="bank-description-note"> ({note})</span> : null}
-                                    {isPendingReview(row.transaction) ? <span className="bank-pending-pill">Pending</span> : null}
+                                    {pending ? <span className="bank-pending-pill">Pending</span> : null}
                                 </td>
                                 <td className="bank-category-cell" onClick={selected ? (event) => event.stopPropagation() : undefined}>
                                     <div className="bank-category-wrapper">
                                         {selected && selectedIds.length === 1 && categoryCount > 0 ? (
                                             renderCategoryPicker(row)
                                         ) : (
-                                            <span className="bank-category-text">{isUncategorized(row.category) ? "" : categoryLabel(row)}</span>
+                                            <span className={uncategorized ? "bank-category-text bank-category-text-empty" : "bank-category-text"}>{uncategorized ? "" : categoryLabel(row)}</span>
                                         )}
                                     </div>
                                 </td>
-                                <td className="bank-icon-cell">{row.isSplitChild ? <span>S</span> : null}</td>
-                                <td className="bank-icon-cell">{row.transaction.is_extraordinary ? <span>E</span> : null}</td>
+                                <td className="bank-icon-cell">{row.isSplitChild ? <RowMarker label="Split">S</RowMarker> : null}</td>
+                                <td className="bank-icon-cell">{row.transaction.is_extraordinary ? <RowMarker label="Ekstraordinær">E</RowMarker> : null}</td>
                                 <td className={row.amount < 0 ? "spiir-negative bank-amount-cell" : row.amount > 0 ? "spiir-positive bank-amount-cell" : "spiir-neutral bank-amount-cell"}>
                                     {formatAmount(row.amount)}
                                 </td>

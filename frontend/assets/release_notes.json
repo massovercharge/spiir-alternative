@@ -1,5 +1,20 @@
 [
   {
+    "version": "0.2.2",
+    "da": {
+      "features": [
+        "På bankoverblikket har appen fået et roligere mørkeblåt og indigo udtryk med en blød baggrund, tydeligere navigation og bedre visuelle markører i transaktionslisten."
+      ],
+      "fixes": []
+    },
+    "en": {
+      "features": [
+        "In the bank overview, the app now has a calmer dark blue and indigo look with a soft background, clearer navigation, and improved visual markers in the transaction list."
+      ],
+      "fixes": []
+    }
+  },
+  {
     "version": "0.2.1",
     "da": {
       "features": [

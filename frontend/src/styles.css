@@ -4850,6 +4850,7 @@ html[data-density="compact"] .kvitteringer-price-chart-foot {
         padding-right: 0.35rem;
     }
 
+
     html[data-density="compact"] .year-sheet-label-text {
         max-width: 16ch;
         overflow: hidden;
@@ -4904,5 +4905,545 @@ html[data-density="compact"] .kvitteringer-price-chart-foot {
 
     html[data-density="compact"] .spiir-label-text {
         max-width: 13ch;
+    }
+}
+
+/* Indigo interface refresh */
+:root {
+    color-scheme: dark;
+    --bg: #061226;
+    --panel: rgba(11, 24, 52, 0.84);
+    --panel-strong: rgba(14, 28, 62, 0.96);
+    --surface: rgba(15, 31, 68, 0.9);
+    --surface-raised: rgba(22, 42, 88, 0.92);
+    --ink: #edf4ff;
+    --muted: #a7b6d7;
+    --line: rgba(177, 195, 235, 0.18);
+    --accent: #7c8cff;
+    --accent-strong: #aab6ff;
+    --accent-soft: rgba(124, 140, 255, 0.16);
+    --warning: #f0a268;
+    --success: #5ee6b4;
+    background:
+        radial-gradient(130% 90% at 12% 0%, rgba(79, 70, 229, 0.34), transparent 56%),
+        radial-gradient(110% 90% at 92% 12%, rgba(14, 165, 233, 0.2), transparent 52%),
+        linear-gradient(145deg, #061226 0%, #0b1b3d 36%, #1c2363 68%, #090f22 100%);
+}
+
+body {
+    background:
+        radial-gradient(125% 85% at 8% -5%, rgba(67, 56, 202, 0.38), transparent 58%),
+        radial-gradient(100% 85% at 88% 8%, rgba(56, 189, 248, 0.16), transparent 54%),
+        linear-gradient(145deg, #061226 0%, #0b1835 38%, #1a2259 67%, #060b1b 100%);
+    color: var(--ink);
+}
+
+.login-card,
+.panel,
+.hero-panel,
+.top-nav-panel,
+.bank-poster,
+.bank-poster-embedded,
+.bank-poster-controls,
+.bank-income-mobile-head div,
+.bank-mobile-row,
+.bank-edit-panel,
+.bank-split-modal,
+.spiir-transactions-modal,
+.bank-drilldown-modal {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--ink);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+}
+
+button,
+.primary-button,
+.secondary-button,
+.nav-pill,
+.bank-poster-actions button,
+.bank-poster-controls button,
+.bank-edit-panel button,
+.bank-mobile-load-more,
+.bank-mobile-row-actions button {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(21, 39, 84, 0.86);
+    color: var(--ink);
+}
+
+button:hover:not(:disabled),
+.nav-pill:hover,
+.secondary-button:hover {
+    background: rgba(42, 66, 132, 0.96);
+}
+
+.primary-button,
+.nav-pill.active,
+.bank-spiir-filter-actions button,
+.bank-split-save {
+    border-color: rgba(170, 182, 255, 0.38);
+    background: linear-gradient(135deg, #4f46e5 0%, #2563eb 58%, #0ea5e9 100%);
+    color: #ffffff;
+}
+
+input,
+select,
+textarea,
+.year-picker-group,
+.scope-switcher {
+    border-color: var(--line);
+    background: rgba(8, 19, 43, 0.74);
+    color: var(--ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(199, 211, 237, 0.56);
+}
+
+.eyebrow,
+.year-picker-group span,
+.scope-mode-label,
+.intro,
+.bank-poster-header span,
+.bank-poster-stats span,
+.bank-description-note,
+.bank-origin-text,
+.bank-edit-panel small,
+.bank-edit-panel > span,
+.bank-pagination-bar,
+.bank-mobile-row-text span,
+.bank-mobile-row-meta span,
+.bank-mobile-row-editor label {
+    color: var(--muted);
+}
+
+.app-shell,
+.login-shell {
+    color: var(--ink);
+}
+
+.app-mode-bank {
+    --bank-page-left: clamp(18px, 4vw, 72px);
+    --bank-page-width: min(1440px, calc(100vw - var(--bank-page-left)));
+    background:
+        radial-gradient(118% 88% at 8% -4%, rgba(99, 102, 241, 0.33), transparent 58%),
+        radial-gradient(105% 90% at 95% 5%, rgba(14, 165, 233, 0.16), transparent 54%),
+        linear-gradient(145deg, #050b1d 0%, #0a1835 34%, #18215d 68%, #050a19 100%);
+}
+
+.app-mode-bank::before {
+    display: none;
+}
+
+.app-mode-bank .top-nav-panel {
+    width: min(1440px, calc(100vw - 2rem));
+    margin: 0 auto 18px;
+    min-height: 58px;
+    padding: 8px 14px;
+    border: 1px solid rgba(177, 195, 235, 0.16);
+    border-radius: 8px;
+    background: rgba(5, 12, 29, 0.72);
+    color: var(--ink);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+}
+
+.app-mode-bank .top-nav-panel .top-nav-controls {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.app-mode-bank .top-nav-panel .top-nav-start strong {
+    color: #ffffff;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+}
+
+.app-mode-bank .top-nav-panel .nav-pill,
+.app-mode-bank .top-nav-panel .secondary-button {
+    border-radius: 8px;
+    color: var(--ink);
+}
+
+.app-mode-bank .top-nav-panel .nav-pill.active,
+.app-mode-bank .top-nav-panel .nav-pill:hover,
+.app-mode-bank .top-nav-panel .secondary-button:hover {
+    background: rgba(124, 140, 255, 0.2);
+    color: #ffffff;
+}
+
+.bank-poster {
+    width: min(1320px, calc(100vw - 2rem));
+    margin: 0 auto;
+    padding: 16px;
+    background: rgba(7, 15, 34, 0.7);
+    color: var(--ink);
+    backdrop-filter: blur(18px);
+}
+
+.bank-poster-header h2,
+.bank-poster-stats strong,
+.bank-edit-panel h3,
+.bank-edit-panel h5,
+.bank-bulk-amount,
+.bank-mobile-row-text strong,
+.bank-mobile-row-meta strong,
+.bank-income-mobile-head strong {
+    color: var(--ink);
+}
+
+.bank-income-overview {
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(8, 19, 43, 0.64);
+    color: var(--ink);
+}
+
+.bank-income-chart-head select {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(12, 27, 60, 0.95);
+    color: var(--ink);
+}
+
+.bank-income-grid {
+    stroke: rgba(199, 211, 237, 0.14);
+}
+
+.bank-income-axis-label {
+    fill: rgba(199, 211, 237, 0.72);
+}
+
+.bank-income-bar,
+.bank-income-mobile-bar-stack .income {
+    fill: #5ee6b4;
+    background: #5ee6b4;
+}
+
+.bank-expense-bar,
+.bank-income-mobile-bar-stack .expense {
+    fill: #f0a268;
+    background: #f0a268;
+}
+
+.bank-net-line,
+.bank-net-point {
+    stroke: #aab6ff;
+}
+
+.bank-income-tooltip {
+    border-color: var(--line);
+    border-radius: 8px;
+    background: rgba(8, 19, 43, 0.96);
+    color: var(--ink);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.bank-income-tooltip::after {
+    border-top-color: rgba(8, 19, 43, 0.96);
+}
+
+.bank-income-tooltip small,
+.bank-income-tooltip span {
+    color: var(--muted);
+}
+
+.bank-income-tooltip > div:first-child strong,
+.bank-income-tooltip p strong {
+    color: var(--ink);
+}
+
+.bank-poster-controls {
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.bank-spiir-filter-strip {
+    gap: 0.7rem;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(8, 19, 43, 0.82);
+    color: var(--ink);
+}
+
+.bank-spiir-filter-strip > span,
+.bank-save-indicator {
+    color: var(--muted);
+}
+
+.bank-spiir-filter-button,
+.bank-spiir-filter-select,
+.bank-spiir-search-wrap input {
+    border: 1px solid rgba(177, 195, 235, 0.2);
+    border-radius: 8px;
+    background: rgba(14, 29, 63, 0.92);
+    color: var(--ink);
+}
+
+.bank-spiir-search-wrap input::placeholder {
+    color: rgba(199, 211, 237, 0.54);
+}
+
+.bank-spiir-reset-link,
+.bank-spiir-close-link,
+.bank-poster-controls .bank-search-clear,
+.bank-split-add {
+    color: var(--accent-strong);
+}
+
+.bank-spiir-visibility-panel,
+.bank-category-options,
+.bank-category-sub-list,
+.bank-note-suggest-list {
+    border-color: var(--line);
+    border-radius: 8px;
+    background: rgba(8, 19, 43, 0.98);
+    color: var(--ink);
+    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
+}
+
+.bank-spiir-visibility-panel h3,
+.bank-spiir-radio-row,
+.bank-spiir-visibility-footer label,
+.bank-category-options button,
+.bank-note-suggest-list button {
+    color: var(--ink);
+}
+
+.bank-spiir-category-row .bank-category-picker,
+.bank-spiir-category-row .bank-category-picker input,
+.bank-spiir-category-row .bank-category-picker > button,
+.bank-category-picker,
+.bank-category-picker input,
+.bank-category-picker > button,
+.bank-edit-panel input,
+.bank-edit-panel textarea,
+.bank-split-line > input {
+    border-color: var(--line);
+    background: rgba(12, 27, 60, 0.92);
+    color: var(--ink);
+}
+
+.bank-category-picker,
+.bank-category-picker input,
+.bank-category-picker > button {
+    border-radius: 8px;
+}
+
+.bank-category-picker > button {
+    border-left: 1px solid var(--line);
+}
+
+.bank-category-options button:hover,
+.bank-category-options button:focus,
+.bank-category-options button.active,
+.bank-note-suggest-list button.active,
+.bank-note-suggest-list button:hover,
+.bank-note-suggest-list button:focus {
+    background: rgba(124, 140, 255, 0.22);
+    color: #ffffff;
+}
+
+.bank-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.bank-posting-table-container {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(5, 12, 29, 0.44);
+}
+
+.bank-table thead tr {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(37, 99, 235, 0.86));
+    color: #ffffff;
+}
+
+.bank-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+.bank-table th,
+.bank-table th.bank-date-cell,
+.bank-sort-header.active {
+    color: #ffffff;
+}
+
+.bank-table td {
+    border-bottom: 1px solid rgba(177, 195, 235, 0.08);
+}
+
+.bank-table tbody tr td,
+.bank-table tbody tr:nth-child(even) td {
+    background: rgba(8, 19, 43, 0.66);
+    color: var(--ink);
+}
+
+.bank-table tbody tr:hover td,
+.bank-selected-row td {
+    background: rgba(72, 88, 177, 0.34) !important;
+}
+
+.bank-pending-row td,
+.bank-mobile-row.pending {
+    background: rgba(240, 162, 104, 0.12) !important;
+}
+
+.bank-transfer-row .bank-description-cell,
+.bank-transfer-row .bank-category-cell,
+.bank-transfer-row .bank-amount-cell,
+.bank-mobile-row.transfer .bank-mobile-row-text strong,
+.bank-mobile-row.transfer .bank-mobile-row-text span,
+.bank-mobile-row.transfer .bank-mobile-row-text em,
+.bank-mobile-row.transfer .bank-mobile-row-meta strong {
+    color: rgba(167, 182, 215, 0.58);
+}
+
+.bank-category-text {
+    min-height: 23px;
+    border-radius: 8px;
+}
+
+.bank-category-text-empty {
+    width: 100%;
+    border: 1px dashed rgba(240, 162, 104, 0.38);
+    background: rgba(240, 162, 104, 0.08);
+}
+
+.bank-date-cell,
+.bank-category-options button small,
+.bank-category-options small,
+.bank-category-empty {
+    color: var(--muted);
+}
+
+.bank-pending-pill,
+.bank-mobile-markers small {
+    background: rgba(240, 162, 104, 0.16);
+    color: #ffd1a7;
+}
+
+.bank-icon-cell span,
+.bank-row-marker {
+    border: 1px solid rgba(170, 182, 255, 0.28);
+    background: rgba(124, 140, 255, 0.18);
+    color: #dfe6ff;
+}
+
+.spiir-positive,
+.bank-mobile-row-meta strong.positive {
+    color: var(--success) !important;
+}
+
+.spiir-negative {
+    color: #ffb4a5 !important;
+}
+
+.bank-edit-panel {
+    padding: 12px;
+    background: rgba(8, 19, 43, 0.68);
+    box-shadow: none;
+}
+
+.bank-split-line,
+.bank-split-line-locked {
+    border-color: var(--line);
+    background: rgba(13, 29, 63, 0.86);
+}
+
+.modal-backdrop {
+    background: rgba(2, 6, 18, 0.66);
+}
+
+@media (max-width: 760px) {
+    .app-mode-bank {
+        background:
+            radial-gradient(130% 80% at 0% -8%, rgba(99, 102, 241, 0.32), transparent 56%),
+            linear-gradient(150deg, #061226 0%, #101a45 58%, #060b1b 100%);
+    }
+
+    .app-mode-bank .top-nav-panel {
+        width: 100%;
+        border-radius: 0;
+        background: rgba(5, 12, 29, 0.88);
+    }
+
+    .app-mode-bank .top-nav-panel .top-nav-controls {
+        justify-content: flex-end;
+        overflow-x: auto;
+    }
+
+    .bank-poster {
+        width: 100%;
+        padding: 0 10px 16px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .bank-income-overview,
+    .bank-poster-controls,
+    .bank-mobile-row,
+    .bank-poster-stats div,
+    .bank-mobile-review-list {
+        border-color: var(--line);
+        background: rgba(8, 19, 43, 0.72);
+        color: var(--ink);
+    }
+
+    .bank-spiir-filter-strip {
+        background: transparent;
+    }
+
+    .bank-spiir-filter-strip > span,
+    .bank-spiir-reset-link,
+    .bank-pagination-bar,
+    .bank-posting-table-container,
+    .bank-poster-content > .bank-edit-panel {
+        display: none;
+    }
+
+    .bank-spiir-filter-button,
+    .bank-spiir-filter-select,
+    .bank-spiir-search-wrap input,
+    .bank-spiir-filter-actions button,
+    .bank-mobile-review-bar button,
+    .bank-mobile-load-more,
+    .bank-mobile-row-actions button {
+        border-color: var(--line);
+        background: rgba(14, 29, 63, 0.92);
+        color: var(--ink);
+    }
+
+    .bank-mobile-review-bar button.active,
+    .bank-income-mobile-bars button.active {
+        border-color: rgba(170, 182, 255, 0.55);
+        background: rgba(124, 140, 255, 0.16);
+        color: #ffffff;
+    }
+
+    .bank-mobile-row.expanded {
+        background: rgba(15, 31, 68, 0.92);
+    }
+
+    .bank-mobile-row-text em,
+    .bank-mobile-row-editor textarea {
+        color: var(--ink);
     }
 }
