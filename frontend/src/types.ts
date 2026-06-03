@@ -104,7 +104,7 @@ export interface SpiirIncomeExpenseSeriesResponse {
     periods: SpiirIncomeExpensePeriod[];
 }
 
-export interface NordeaTransaction {
+export interface BankTransaction {
     id: string;
     entry_reference: string;
     booking_date: string;
@@ -133,7 +133,7 @@ export interface NordeaTransaction {
     pending_review?: boolean;
     original_booking_date?: string | null;
     custom_booking_date?: string | null;
-    splits: NordeaSplitLine[];
+    splits: BankSplitLine[];
     split_group_id?: string | null;
     split_line_id?: string | null;
     split_original_parent_id?: string | null;
@@ -141,7 +141,7 @@ export interface NordeaTransaction {
     source: string;
 }
 
-export interface NordeaCategoryOption {
+export interface BankCategoryOption {
     categoryType: string;
     mainCategoryId?: string | number | null;
     mainCategoryName: string;
@@ -151,26 +151,26 @@ export interface NordeaCategoryOption {
     search_aliases?: string[];
 }
 
-export interface NordeaHashtagOption {
+export interface BankHashtagOption {
     name: string;
     usage_count: number;
     last_seen: string;
 }
 
-export interface NordeaTaxonomyResponse {
-    categories: NordeaCategoryOption[];
-    hashtags: NordeaHashtagOption[];
+export interface BankTaxonomyResponse {
+    categories: BankCategoryOption[];
+    hashtags: BankHashtagOption[];
 }
 
-export interface NordeaSplitLine {
+export interface BankSplitLine {
     id: string;
     amount: number;
     note: string;
-    category: NordeaCategoryOption;
+    category: BankCategoryOption;
 }
 
-export interface NordeaOverridePatch {
-    category?: NordeaCategoryOption | null;
+export interface BankOverridePatch {
+    category?: BankCategoryOption | null;
     booking_date?: string | null;
     note?: string;
     hashtags?: string[];
@@ -178,10 +178,10 @@ export interface NordeaOverridePatch {
     remove_hashtags?: string[];
     is_extraordinary?: boolean;
     pending_review?: boolean;
-    splits?: NordeaSplitLine[];
+    splits?: BankSplitLine[];
 }
 
-export interface NordeaTransactionsResponse {
+export interface BankTransactionsResponse {
     generated_at?: string | null;
     last_retrieved_at?: string | null;
     last_retrieve_duration_seconds?: number | null;
@@ -192,10 +192,10 @@ export interface NordeaTransactionsResponse {
     limit?: number | null;
     has_more?: boolean;
     accounts: unknown[];
-    transactions: NordeaTransaction[];
+    transactions: BankTransaction[];
 }
 
-export interface NordeaRetrieveResponse {
+export interface BankRetrieveResponse {
     retrieved_count: number;
     transaction_count: number;
     raw_files: string[];
@@ -204,7 +204,7 @@ export interface NordeaRetrieveResponse {
     fetch_window?: Record<string, unknown>;
 }
 
-export interface NordeaRetrieveEvent {
+export interface BankRetrieveEvent {
     at: string;
     label: string;
     progress: number;
@@ -212,7 +212,7 @@ export interface NordeaRetrieveEvent {
     [key: string]: unknown;
 }
 
-export interface NordeaRetrieveJobStatus {
+export interface BankRetrieveJobStatus {
     job_id?: string | null;
     status: "idle" | "queued" | "running" | "succeeded" | "failed";
     started_at?: string | null;
@@ -220,8 +220,8 @@ export interface NordeaRetrieveJobStatus {
     completed_at?: string | null;
     progress: number;
     current_phase?: string | null;
-    events: NordeaRetrieveEvent[];
-    result?: NordeaRetrieveResponse | null;
+    events: BankRetrieveEvent[];
+    result?: BankRetrieveResponse | null;
     sync_result?: {
         created_count: number;
         updated_count: number;
@@ -233,10 +233,10 @@ export interface NordeaRetrieveJobStatus {
     error?: string | null;
 }
 
-export interface NordeaOverrideResponse {
+export interface BankOverrideResponse {
     updated_count: number;
     updated_at: string;
-    updated_transactions?: NordeaTransaction[];
+    updated_transactions?: BankTransaction[];
     deleted_transaction_ids?: string[];
 }
 

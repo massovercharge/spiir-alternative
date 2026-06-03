@@ -69,7 +69,7 @@ def request_json(method: str, path: str, **kwargs: Any) -> Any:
 def command_aspsps() -> None:
     payload = request_json("GET", "/aspsps", params={"country": "DK", "service": "AIS", "psu_type": "personal"})
     write_json(DATA_DIR / "aspsps_dk_personal_ais.json", payload)
-    matches = [item for item in payload.get("aspsps", []) if "nordea" in item.get("name", "").lower()]
+    matches = [item for item in payload.get("aspsps", []) if "bank" in item.get("name", "").lower()]
     print(json.dumps(matches, indent=2, ensure_ascii=False))
     print(f"\nSaved full ASPSP list: {DATA_DIR / 'aspsps_dk_personal_ais.json'}")
 
@@ -79,7 +79,7 @@ def command_auth_url(days: int) -> None:
     valid_until = (utc_now() + dt.timedelta(days=days)).isoformat().replace("+00:00", "Z")
     body = {
         "access": {"balances": True, "transactions": True, "valid_until": valid_until},
-        "aspsp": {"name": "Nordea", "country": "DK"},
+        "aspsp": {"name": "Bank", "country": "DK"},
         "psu_type": "personal",
         "redirect_url": REDIRECT_URL,
         "state": state,
@@ -92,11 +92,14 @@ def command_auth_url(days: int) -> None:
     print("\nAfter consent, copy the `code` query parameter from the callback URL.")
 
 
-def command_session(code: str) -> None:
+def command_session(code: str, session_name: str | None = None) -> None:
     payload = request_json("POST", "/sessions", json={"code": code})
     session_id = payload["session_id"]
+    if session_name:
+        write_json(DATA_DIR / f"session_{session_name}.json", payload)
+    else:
+        write_json(DATA_DIR / f"session_{session_id}.json", payload)
     write_json(DATA_DIR / "latest_session.json", payload)
-    write_json(DATA_DIR / f"session_{session_id}.json", payload)
     print(json.dumps({"session_id": session_id, "accounts": payload.get("accounts", [])}, indent=2, ensure_ascii=False))
 
 
@@ -148,6 +151,7 @@ def main() -> None:
 
     session_parser = subparsers.add_parser("session")
     session_parser.add_argument("--code", required=True)
+    session_parser.add_argument("--session-name", help="Custom name for the session")
 
     tx_parser = subparsers.add_parser("transactions")
     tx_parser.add_argument("--account-index", type=int, default=0)
@@ -161,7 +165,7 @@ def main() -> None:
     elif args.command == "auth-url":
         command_auth_url(args.days)
     elif args.command == "session":
-        command_session(args.code)
+        command_session(args.code, args.session_name)
     elif args.command == "transactions":
         command_transactions(args)
 

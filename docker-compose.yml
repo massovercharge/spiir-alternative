@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  ui:
+    build: 
+      context: ./frontend
+    networks:
+      - traefik-public
+    ports:
+      - "25432:80" # Exposed on the uncommon port as requested
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spiir-ui.rule=Host(`spiir.seame.click`)"
+      - "traefik.http.routers.spiir-ui.entrypoints=websecure"
+      - "traefik.http.routers.spiir-ui.tls.certresolver=letsencrypt" # Or your specific cert resolver
+      - "traefik.http.services.spiir-ui.loadbalancer.server.port=80"
+    restart: unless-stopped
+
+  spiir-api:
+    build:
+      context: ./backend
+    networks:
+      - traefik-public
+    volumes:
+      - ./data:/app/data
+    environment:
+      - LOGTO_ENDPOINT=${LOGTO_ENDPOINT}
+      - LOGTO_API_RESOURCE=${LOGTO_API_RESOURCE}
+      - SPIIR_ALT_DATA_DIR=/app/data
+      - ENABLEBANKING_APP_ID=${ENABLEBANKING_APP_ID}
+      - ENABLEBANKING_PRIVATE_KEY_PATH=/app/data/local_secrets/enablebanking/b031858a-0805-407d-b5b3-0c0c3c7dd748.pem
+      - ENABLEBANKING_REDIRECT_URL=${ENABLEBANKING_REDIRECT_URL}
+      - ENABLEBANKING_PSU_ID=${ENABLEBANKING_PSU_ID}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spiir-api.rule=Host(`spiir.seame.click`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.spiir-api.entrypoints=websecure"
+      - "traefik.http.routers.spiir-api.tls.certresolver=letsencrypt" # Or your specific cert resolver
+      - "traefik.http.services.spiir-api.loadbalancer.server.port=8000"
+    restart: unless-stopped
+
+networks:
+  traefik-public:
+    external: true

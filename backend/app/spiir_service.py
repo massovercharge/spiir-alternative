@@ -320,7 +320,7 @@ def _load_entries(json_path: Path) -> pd.DataFrame:
 
 
 def _normalize_local_ledger_entry(entry: dict[str, Any]) -> dict[str, Any] | None:
-    if str(entry.get("source") or "") not in {"spiir", "nordea"}:
+    if str(entry.get("source") or "") not in {"spiir", "bank"}:
         return None
     if SKIP_IS_EXTRAORDINARY and entry.get("is_extraordinary"):
         return None
@@ -562,10 +562,7 @@ def load_spiir_income_expense_series() -> dict[str, Any]:
     if cached is not None:
         return {**cached, "generated_at": _iso_utc_now()}
 
-    overview_file = get_spiir_overview_file()
-    if not overview_file.exists():
-        raise FileNotFoundError(f"Missing Spiir processed overview: {overview_file}")
-    payload = _read_json(overview_file)
+    payload = load_spiir_overview()
     if not isinstance(payload, dict):
         raise ValueError("Spiir processed overview is invalid")
     response = _build_income_expense_series_from_overview(payload)
@@ -898,8 +895,6 @@ def _load_or_rebuild_json(path: Path, rebuild: bool) -> Any:
         if not rebuild:
             raise FileNotFoundError(path)
         default_source = _default_processed_source()
-        if default_source == "local":
-            raise FileNotFoundError(path)
         rebuild_spiir_processed(source=default_source)
     return _read_json(path)
 

@@ -1,4 +1,4 @@
-import type { NordeaTransaction, NordeaTransactionsResponse } from "./types";
+import type { BankTransaction, BankTransactionsResponse } from "./types";
 
 export type TransactionPageOptions = {
     limit: number;
@@ -12,15 +12,15 @@ export function localLedgerFirstPage(limit: number): TransactionPageOptions {
     };
 }
 
-export function computeAllTransactionsLoaded(payload: NordeaTransactionsResponse): boolean {
+export function computeAllTransactionsLoaded(payload: BankTransactionsResponse): boolean {
     return !payload.has_more || payload.transactions.length >= payload.transaction_count;
 }
 
 export function mergeUpdatedTransactions(
-    current: NordeaTransactionsResponse | null,
-    updatedTransactions: NordeaTransaction[] | undefined,
+    current: BankTransactionsResponse | null,
+    updatedTransactions: BankTransaction[] | undefined,
     deletedTransactionIds?: string[],
-): NordeaTransactionsResponse | null {
+): BankTransactionsResponse | null {
     if (current === null) {
         return current;
     }

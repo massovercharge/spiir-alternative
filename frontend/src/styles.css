@@ -119,11 +119,11 @@
     z-index: 10;
 }
 
-.app-mode-nordea .top-nav-panel {
+.app-mode-bank .top-nav-panel {
     position: static;
     isolation: isolate;
     grid-template-columns: auto 1fr auto;
-    width: var(--nordea-page-width);
+    width: var(--bank-page-width);
     max-width: none;
     min-height: 48px;
     margin: 0;
@@ -136,24 +136,24 @@
     z-index: 20;
 }
 
-.app-mode-nordea .top-nav-panel .scope-switcher,
-.app-mode-nordea .top-nav-panel .year-picker-group {
+.app-mode-bank .top-nav-panel .scope-switcher,
+.app-mode-bank .top-nav-panel .year-picker-group {
     border: 0;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
 }
 
-.app-mode-nordea .top-nav-panel .top-nav-controls {
+.app-mode-bank .top-nav-panel .top-nav-controls {
     display: none;
 }
 
-.app-mode-nordea .top-nav-panel .top-nav-actions {
+.app-mode-bank .top-nav-panel .top-nav-actions {
     gap: 0.4rem;
 }
 
-.app-mode-nordea .top-nav-panel .nav-pill,
-.app-mode-nordea .top-nav-panel .secondary-button {
+.app-mode-bank .top-nav-panel .nav-pill,
+.app-mode-bank .top-nav-panel .secondary-button {
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -161,16 +161,16 @@
     font-weight: 700;
 }
 
-.app-mode-nordea .top-nav-panel .nav-pill.active,
-.app-mode-nordea .top-nav-panel .nav-pill:hover,
-.app-mode-nordea .top-nav-panel .secondary-button:hover {
+.app-mode-bank .top-nav-panel .nav-pill.active,
+.app-mode-bank .top-nav-panel .nav-pill:hover,
+.app-mode-bank .top-nav-panel .secondary-button:hover {
     background: rgba(0, 0, 0, 0.12);
     color: rgb(255, 255, 255);
 }
 
-.app-mode-nordea {
-    --nordea-page-left: 90px;
-    --nordea-page-width: 1350px;
+.app-mode-bank {
+    --bank-page-left: 90px;
+    --bank-page-width: 1350px;
     position: relative;
     width: 100vw;
     min-height: 100vh;
@@ -182,20 +182,20 @@
     background-attachment: local;
 }
 
-.app-mode-nordea::before {
+.app-mode-bank::before {
     content: "";
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    width: var(--nordea-page-width);
+    width: var(--bank-page-width);
     min-height: 100%;
     background: rgb(255, 255, 255);
     pointer-events: none;
     z-index: 0;
 }
 
-.app-mode-nordea > * {
+.app-mode-bank > * {
     position: relative;
     z-index: 1;
 }
@@ -893,7 +893,7 @@ td {
     flex: 1 1 auto;
 }
 
-.nordea-retrieve-panel {
+.bank-retrieve-panel {
     margin-top: 1rem;
     padding: 0.9rem 1rem;
     border-radius: 18px;
@@ -902,12 +902,12 @@ td {
     color: #0f486f;
 }
 
-.nordea-retrieve-panel-title {
+.bank-retrieve-panel-title {
     margin: 0;
     font-weight: 600;
 }
 
-.nordea-retrieve-progress {
+.bank-retrieve-progress {
     margin-top: 0.55rem;
     width: 100%;
     height: 10px;
@@ -916,7 +916,7 @@ td {
     overflow: hidden;
 }
 
-.nordea-retrieve-progress-fill {
+.bank-retrieve-progress-fill {
     display: block;
     height: 100%;
     width: 0;
@@ -924,7 +924,7 @@ td {
     transition: width 220ms linear;
 }
 
-.nordea-retrieve-panel-meta {
+.bank-retrieve-panel-meta {
     margin: 0.5rem 0 0;
     font-size: 0.9rem;
     color: rgba(15, 72, 111, 0.9);
@@ -1502,7 +1502,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     box-shadow: 0 18px 60px rgba(65, 40, 10, 0.18);
 }
 
-.nordea-drilldown-modal {
+.bank-drilldown-modal {
     width: min(1420px, calc(100vw - 2rem));
     max-height: calc(100vh - 2rem);
     overflow: auto;
@@ -1512,14 +1512,14 @@ html[data-density="compact"] .spiir-expand-toggle {
     box-shadow: 0 24px 70px rgba(20, 20, 20, 0.26);
 }
 
-.nordea-poster-embedded {
+.bank-poster-embedded {
     width: 100%;
     margin: 0;
     padding: 0.95rem 1rem 1rem;
     background: rgb(255, 255, 255);
 }
 
-.nordea-embedded-header {
+.bank-embedded-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1527,7 +1527,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     margin-bottom: 0.75rem;
 }
 
-.nordea-embedded-header h2 {
+.bank-embedded-header h2 {
     margin: 0;
     color: rgb(51, 51, 51);
     font-family: Georgia, "Times New Roman", serif;
@@ -1535,21 +1535,21 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1.1;
 }
 
-.nordea-poster-embedded .nordea-poster-controls {
+.bank-poster-embedded .bank-poster-controls {
     margin-bottom: 0.7rem;
 }
 
-.nordea-poster-embedded .nordea-poster-content {
+.bank-poster-embedded .bank-poster-content {
     grid-template-columns: minmax(0, 1fr) 260px;
     gap: 18px;
 }
 
-.nordea-poster-embedded .nordea-posting-table-container {
+.bank-poster-embedded .bank-posting-table-container {
     max-height: min(62vh, 720px);
     overflow: auto;
 }
 
-.nordea-poster-embedded .nordea-edit-panel {
+.bank-poster-embedded .bank-edit-panel {
     position: sticky;
     top: 0.5rem;
 }
@@ -1588,14 +1588,14 @@ html[data-density="compact"] .spiir-expand-toggle {
     color: var(--muted);
 }
 
-.nordea-summary-grid {
+.bank-summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.7rem;
     margin-top: 0.9rem;
 }
 
-.nordea-summary-grid div {
+.bank-summary-grid div {
     display: grid;
     gap: 0.2rem;
     padding: 0.85rem 0.95rem;
@@ -1604,19 +1604,19 @@ html[data-density="compact"] .spiir-expand-toggle {
     background: rgba(255, 255, 255, 0.58);
 }
 
-.nordea-summary-grid span {
+.bank-summary-grid span {
     color: var(--muted);
     font-size: 0.86rem;
 }
 
-.nordea-summary-grid strong {
+.bank-summary-grid strong {
     font-size: 1.05rem;
 }
 
-.nordea-poster {
+.bank-poster {
     width: 1240px;
     max-width: none;
-    margin: 0 0 0 var(--nordea-page-left);
+    margin: 0 0 0 var(--bank-page-left);
     background: rgb(255, 255, 255);
     color: rgb(51, 51, 51);
     font-family: MuseoSans, Helvetica, Arial, sans-serif;
@@ -1624,7 +1624,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-poster-header {
+.bank-poster-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -1632,27 +1632,27 @@ html[data-density="compact"] .spiir-expand-toggle {
     margin: 0 0 0.75rem;
 }
 
-.nordea-poster-header h2 {
+.bank-poster-header h2 {
     margin: 0;
     color: rgb(51, 51, 51);
     font-size: 24px;
     line-height: 31px;
 }
 
-.nordea-poster-header span,
-.nordea-poster-stats span {
+.bank-poster-header span,
+.bank-poster-stats span {
     color: rgb(153, 153, 153);
 }
 
-.nordea-poster-actions {
+.bank-poster-actions {
     display: flex;
     align-items: center;
     gap: 0.65rem;
 }
 
-.nordea-poster-actions button,
-.nordea-poster-controls button,
-.nordea-edit-panel button {
+.bank-poster-actions button,
+.bank-poster-controls button,
+.bank-edit-panel button {
     min-height: 28px;
     padding: 3px 10px;
     border: 1px solid rgb(204, 204, 204);
@@ -1662,27 +1662,27 @@ html[data-density="compact"] .spiir-expand-toggle {
     font: inherit;
 }
 
-.nordea-poster-controls {
+.bank-poster-controls {
     display: grid;
     gap: 0.55rem;
     margin: 0 10px 0.75rem;
 }
 
-.nordea-income-overview {
+.bank-income-overview {
     position: relative;
     width: calc(100% - 260px);
     margin: 0 0 12px;
     color: rgb(51, 51, 51);
 }
 
-.nordea-income-chart-head {
+.bank-income-chart-head {
     position: absolute;
     top: 0;
     right: 0;
     z-index: 6;
 }
 
-.nordea-income-chart-head select {
+.bank-income-chart-head select {
     width: 58px;
     height: 40px;
     padding: 0 4px;
@@ -1694,98 +1694,98 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 40px;
 }
 
-.nordea-income-svg-wrap {
+.bank-income-svg-wrap {
     position: relative;
     width: 100%;
 }
 
-.nordea-income-svg-wrap svg {
+.bank-income-svg-wrap svg {
     display: block;
     width: 100%;
     height: auto;
     overflow: visible;
 }
 
-.nordea-income-grid {
+.bank-income-grid {
     stroke: #eee;
     stroke-width: 1;
 }
 
-.nordea-income-axis-label {
+.bank-income-axis-label {
     fill: #666;
     font-size: 11px;
 }
 
-.nordea-income-tick {
+.bank-income-tick {
     stroke: #c0d0e0;
     stroke-width: 1;
 }
 
-.nordea-income-bar,
-.nordea-expense-bar {
+.bank-income-bar,
+.bank-expense-bar {
     stroke: #fff;
     stroke-width: 1;
 }
 
-.nordea-income-bar {
+.bank-income-bar {
     fill: #09ab58;
 }
 
-.nordea-expense-bar {
+.bank-expense-bar {
     fill: #ff9800;
 }
 
-.nordea-income-bar.current {
+.bank-income-bar.current {
     fill: #a6c980;
 }
 
-.nordea-expense-bar.current {
+.bank-expense-bar.current {
     fill: #ffa778;
 }
 
-.nordea-income-hover-zone {
+.bank-income-hover-zone {
     fill: transparent;
 }
 
-.nordea-income-hover-zone.active {
+.bank-income-hover-zone.active {
     fill: rgba(0, 0, 0, 0.03);
 }
 
-.nordea-income-hover-zone.clickable {
+.bank-income-hover-zone.clickable {
     cursor: pointer;
 }
 
-.nordea-net-line {
+.bank-net-line {
     fill: none;
     stroke: #333;
     stroke-width: 2;
     pointer-events: none;
 }
 
-.nordea-net-point {
+.bank-net-point {
     fill: #fff;
     stroke: #333;
     stroke-width: 2;
     pointer-events: auto;
 }
 
-.nordea-net-point.active {
+.bank-net-point.active {
     stroke-width: 3;
 }
 
-.nordea-net-point.clickable {
+.bank-net-point.clickable {
     cursor: pointer;
 }
 
-.nordea-net-point.clickable:focus {
+.bank-net-point.clickable:focus {
     outline: none;
     stroke-width: 4;
 }
 
-.nordea-income-tooltip {
+.bank-income-tooltip {
     position: absolute;
     top: 42px;
-    left: clamp(156px, var(--nordea-income-tooltip-x, 50%), calc(100% - 156px));
+    left: clamp(156px, var(--bank-income-tooltip-x, 50%), calc(100% - 156px));
     transform: translateX(-50%);
     z-index: 5;
     display: grid;
@@ -1801,7 +1801,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 18px;
 }
 
-.nordea-income-tooltip::after {
+.bank-income-tooltip::after {
     content: "";
     position: absolute;
     left: 50%;
@@ -1815,20 +1815,20 @@ html[data-density="compact"] .spiir-expand-toggle {
     filter: drop-shadow(0 1px 1px #888);
 }
 
-.nordea-income-tooltip small,
-.nordea-income-tooltip span {
+.bank-income-tooltip small,
+.bank-income-tooltip span {
     display: block;
     color: #666;
     text-transform: none;
 }
 
-.nordea-income-tooltip > div:first-child span {
+.bank-income-tooltip > div:first-child span {
     margin-top: 6px;
     font-size: 10px;
     text-transform: uppercase;
 }
 
-.nordea-income-tooltip > div:first-child strong {
+.bank-income-tooltip > div:first-child strong {
     display: block;
     margin-top: 2px;
     color: #3f3f3f;
@@ -1836,67 +1836,67 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 24px;
 }
 
-.nordea-income-tooltip p {
+.bank-income-tooltip p {
     display: flex;
     justify-content: space-between;
     gap: 10px;
     margin: 2px 0;
 }
 
-.nordea-income-tooltip p strong {
+.bank-income-tooltip p strong {
     color: #3f3f3f;
     font-size: 14px;
 }
 
-.nordea-income-mobile {
+.bank-income-mobile {
     display: none;
 }
 
-.nordea-poster-stats {
+.bank-poster-stats {
     display: flex;
     gap: 1.1rem;
     flex-wrap: wrap;
 }
 
-.nordea-poster-stats div {
+.bank-poster-stats div {
     display: flex;
     gap: 0.35rem;
     align-items: baseline;
 }
 
-.nordea-poster-stats strong {
+.bank-poster-stats strong {
     font-weight: 700;
 }
 
-.nordea-poster-content {
+.bank-poster-content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 240px;
     gap: 20px;
     align-items: start;
 }
 
-.nordea-description-cell {
+.bank-description-cell {
     text-align: left !important;
     width: 100%;
     white-space: normal;
     overflow: visible;
 }
 
-.nordea-description-cell span,
-.nordea-description-cell small {
+.bank-description-cell span,
+.bank-description-cell small {
     display: inline;
 }
 
-.nordea-description-note {
+.bank-description-note {
     color: var(--muted);
 }
 
-.nordea-description-cell small {
+.bank-description-cell small {
     color: var(--muted);
     font-size: 0.86em;
 }
 
-.nordea-filter-bar {
+.bank-filter-bar {
     display: flex;
     align-items: center;
     gap: 0.55rem;
@@ -1904,12 +1904,12 @@ html[data-density="compact"] .spiir-expand-toggle {
     margin: 0;
 }
 
-.nordea-spiir-filter-shell {
+.bank-spiir-filter-shell {
     position: relative;
     width: 100%;
 }
 
-.nordea-spiir-filter-strip {
+.bank-spiir-filter-strip {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
@@ -1922,14 +1922,14 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-spiir-filter-strip > span {
+.bank-spiir-filter-strip > span {
     color: rgb(230, 230, 230);
     font-size: 14px;
     line-height: 21px;
 }
 
-.nordea-spiir-filter-button,
-.nordea-spiir-filter-select {
+.bank-spiir-filter-button,
+.bank-spiir-filter-select {
     min-height: 42px;
     padding: 0.35rem 0.8rem;
     border: 2px solid rgb(90, 90, 93);
@@ -1941,35 +1941,35 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1.1;
 }
 
-.nordea-spiir-filter-button {
+.bank-spiir-filter-button {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
     cursor: pointer;
 }
 
-.nordea-spiir-filter-button span {
+.bank-spiir-filter-button span {
     font-size: 0.62em;
 }
 
-.nordea-spiir-filter-select {
+.bank-spiir-filter-select {
     flex: 0 0 116px;
     width: 116px;
     min-width: 116px;
 }
 
-.nordea-spiir-search-wrap {
+.bank-spiir-search-wrap {
     flex: 0 0 230px;
     width: 230px;
     min-width: 230px;
 }
 
-.nordea-search-input-wrap {
+.bank-search-input-wrap {
     position: relative;
     width: 100%;
 }
 
-.nordea-spiir-search-wrap input {
+.bank-spiir-search-wrap input {
     width: 100%;
     height: 42px;
     border: 2px solid rgb(90, 90, 93);
@@ -1981,13 +1981,13 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1.1;
 }
 
-.nordea-spiir-search-wrap input::-webkit-search-cancel-button,
-.nordea-spiir-search-wrap input::-webkit-search-decoration {
+.bank-spiir-search-wrap input::-webkit-search-cancel-button,
+.bank-spiir-search-wrap input::-webkit-search-decoration {
     appearance: none;
     -webkit-appearance: none;
 }
 
-.nordea-poster-controls .nordea-search-clear {
+.bank-poster-controls .bank-search-clear {
     position: absolute;
     top: 50%;
     right: 10px;
@@ -2004,15 +2004,15 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1;
 }
 
-.nordea-poster-controls .nordea-search-clear:active {
+.bank-poster-controls .bank-search-clear:active {
     color: rgb(0, 104, 54);
 }
 
-.nordea-spiir-search-wrap input::placeholder {
+.bank-spiir-search-wrap input::placeholder {
     color: rgb(180, 180, 180);
 }
 
-.nordea-spiir-reset-link {
+.bank-spiir-reset-link {
     margin-left: 0;
     border: 0;
     background: transparent;
@@ -2024,7 +2024,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-spiir-filter-actions {
+.bank-spiir-filter-actions {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -2032,7 +2032,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     flex: 0 0 auto;
 }
 
-.nordea-spiir-filter-actions button {
+.bank-spiir-filter-actions button {
     min-height: 32px;
     padding: 3px 10px;
     border: 1px solid rgb(204, 204, 204);
@@ -2043,7 +2043,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     white-space: nowrap;
 }
 
-.nordea-save-indicator {
+.bank-save-indicator {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -2053,27 +2053,27 @@ html[data-density="compact"] .spiir-expand-toggle {
     white-space: nowrap;
 }
 
-.nordea-saving-spinner {
+.bank-saving-spinner {
     width: 13px;
     height: 13px;
     border: 2px solid rgba(255, 255, 255, 0.45);
     border-top-color: rgb(255, 255, 255);
     border-radius: 999px;
-    animation: nordea-spin 800ms linear infinite;
+    animation: bank-spin 800ms linear infinite;
 }
 
-@keyframes nordea-spin {
+@keyframes bank-spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-.nordea-spiir-reset-link:disabled {
+.bank-spiir-reset-link:disabled {
     color: rgb(130, 130, 130);
     text-decoration: none;
 }
 
-.nordea-spiir-visibility-panel {
+.bank-spiir-visibility-panel {
     position: absolute;
     top: calc(100% + 8px);
     left: 84px;
@@ -2088,14 +2088,14 @@ html[data-density="compact"] .spiir-expand-toggle {
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
 }
 
-.nordea-spiir-visibility-panel h3 {
+.bank-spiir-visibility-panel h3 {
     margin: 0 0 0.55rem;
     font-size: 18px;
     line-height: 1.1;
     color: rgb(30, 30, 30);
 }
 
-.nordea-spiir-radio-row {
+.bank-spiir-radio-row {
     display: flex;
     align-items: center;
     gap: 0.45rem;
@@ -2105,14 +2105,14 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-spiir-radio-row input[type="radio"] {
+.bank-spiir-radio-row input[type="radio"] {
     width: 24px;
     height: 24px;
     margin: 0;
     flex: 0 0 auto;
 }
 
-.nordea-spiir-category-row select {
+.bank-spiir-category-row select {
     height: 34px;
     border: 2px solid rgb(189, 189, 189);
     border-radius: 8px;
@@ -2122,12 +2122,12 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-spiir-category-row .nordea-category-picker {
+.bank-spiir-category-row .bank-category-picker {
     width: 100%;
     max-width: 100%;
 }
 
-.nordea-spiir-category-row .nordea-category-picker input {
+.bank-spiir-category-row .bank-category-picker input {
     height: 34px;
     border: 2px solid rgb(189, 189, 189);
     border-radius: 8px;
@@ -2138,7 +2138,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-spiir-category-row .nordea-category-picker > button {
+.bank-spiir-category-row .bank-category-picker > button {
     min-height: 34px;
     border: 2px solid rgb(189, 189, 189);
     border-left: 0;
@@ -2148,7 +2148,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     padding: 0 0.45rem;
 }
 
-.nordea-spiir-visibility-footer {
+.bank-spiir-visibility-footer {
     margin-top: 0.6rem;
     padding-top: 0.5rem;
     border-top: 1px dotted rgb(167, 167, 167);
@@ -2159,7 +2159,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     justify-content: space-between;
 }
 
-.nordea-spiir-visibility-footer label {
+.bank-spiir-visibility-footer label {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -2167,13 +2167,13 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-size: 14px;
 }
 
-.nordea-spiir-visibility-footer input[type="checkbox"] {
+.bank-spiir-visibility-footer input[type="checkbox"] {
     width: 24px;
     height: 24px;
     margin: 0;
 }
 
-.nordea-spiir-close-link {
+.bank-spiir-close-link {
     border: 0;
     background: transparent;
     color: rgb(0, 42, 165);
@@ -2183,7 +2183,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-size: 14px;
 }
 
-.nordea-filter-bar label {
+.bank-filter-bar label {
     display: flex;
     align-items: center;
     gap: 0.35rem;
@@ -2191,23 +2191,23 @@ html[data-density="compact"] .spiir-expand-toggle {
     min-width: 0;
 }
 
-.nordea-filter-bar select,
-.nordea-filter-bar input {
+.bank-filter-bar select,
+.bank-filter-bar input {
     height: 28px;
     border: 1px solid rgb(204, 204, 204);
     border-radius: 3px;
     font: inherit;
 }
 
-.nordea-search-field {
+.bank-search-field {
     flex: 1 1 18rem;
 }
 
-.nordea-filter-spacer {
+.bank-filter-spacer {
     flex: 1 1 auto;
 }
 
-.nordea-pagination-bar {
+.bank-pagination-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2217,18 +2217,18 @@ html[data-density="compact"] .spiir-expand-toggle {
     flex-wrap: wrap;
 }
 
-.nordea-pagination-bar div {
+.bank-pagination-bar div {
     display: flex;
     align-items: center;
     gap: 0.55rem;
     flex-wrap: wrap;
 }
 
-.nordea-pagination-bar span {
+.bank-pagination-bar span {
     white-space: nowrap;
 }
 
-.nordea-table {
+.bank-table {
     width: 100%;
     min-width: 0;
     table-layout: fixed;
@@ -2237,48 +2237,48 @@ html[data-density="compact"] .spiir-expand-toggle {
     user-select: none;
 }
 
-.nordea-checkbox-column {
+.bank-checkbox-column {
     width: 35px;
 }
 
-.nordea-date-column {
+.bank-date-column {
     width: 90px;
 }
 
-.nordea-description-column {
+.bank-description-column {
     width: auto;
 }
 
-.nordea-category-column {
+.bank-category-column {
     width: 235px;
 }
 
-.nordea-icon-column {
+.bank-icon-column {
     width: 15px;
 }
 
-.nordea-amount-column {
+.bank-amount-column {
     width: 83px;
 }
 
-.nordea-table th,
-.nordea-table td {
+.bank-table th,
+.bank-table td {
     padding: 5px 10px 5px 5px;
     line-height: 21px;
     vertical-align: middle;
 }
 
-.nordea-table tbody tr {
+.bank-table tbody tr {
     height: 35px;
 }
 
-.nordea-table thead tr {
+.bank-table thead tr {
     height: 31px;
     background: rgb(9, 171, 88);
     color: rgb(255, 255, 255);
 }
 
-.nordea-table th {
+.bank-table th {
     text-align: left !important;
     color: rgb(255, 255, 255);
     font-weight: 700;
@@ -2286,25 +2286,25 @@ html[data-density="compact"] .spiir-expand-toggle {
     padding-bottom: 3px;
 }
 
-.nordea-table th.nordea-date-cell {
+.bank-table th.bank-date-cell {
     text-align: left !important;
 }
 
-.nordea-table tbody tr:nth-child(even) td {
+.bank-table tbody tr:nth-child(even) td {
     background: rgb(244, 244, 244);
 }
 
-.nordea-table tbody tr:hover td {
+.bank-table tbody tr:hover td {
     background: rgb(225, 225, 225);
 }
 
-.nordea-transfer-row .nordea-description-cell,
-.nordea-transfer-row .nordea-category-cell,
-.nordea-transfer-row .nordea-amount-cell {
+.bank-transfer-row .bank-description-cell,
+.bank-transfer-row .bank-category-cell,
+.bank-transfer-row .bank-amount-cell {
     color: rgb(190, 190, 190);
 }
 
-.nordea-sort-header {
+.bank-sort-header {
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
@@ -2322,23 +2322,23 @@ html[data-density="compact"] .spiir-expand-toggle {
     cursor: pointer;
 }
 
-.nordea-sort-header.active {
+.bank-sort-header.active {
     color: rgb(255, 255, 255);
 }
 
-.nordea-checkbox-cell {
+.bank-checkbox-cell {
     width: 35px;
     min-width: 35px;
     text-align: center !important;
     padding: 5px !important;
 }
 
-.nordea-checkbox-cell input {
+.bank-checkbox-cell input {
     width: 0.95rem;
     height: 0.95rem;
 }
 
-.nordea-date-cell {
+.bank-date-cell {
     width: 90px !important;
     min-width: 90px !important;
     max-width: 90px !important;
@@ -2349,35 +2349,35 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-feature-settings: "tnum";
 }
 
-.nordea-table th.nordea-date-cell {
+.bank-table th.bank-date-cell {
     color: rgb(255, 255, 255);
 }
 
-.nordea-amount-cell {
+.bank-amount-cell {
     white-space: nowrap;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
 
-.nordea-amount-cell small {
+.bank-amount-cell small {
     display: inline;
     color: var(--muted);
     font-weight: 500;
 }
 
-.nordea-category-cell {
+.bank-category-cell {
     text-align: left !important;
     white-space: nowrap;
 }
 
-.nordea-category-wrapper {
+.bank-category-wrapper {
     position: relative;
     width: 220px;
     line-height: 1;
 }
 
-.nordea-category-text {
+.bank-category-text {
     display: inline-block;
     max-width: 100%;
     padding: 4px;
@@ -2387,20 +2387,20 @@ html[data-density="compact"] .spiir-expand-toggle {
     vertical-align: top;
 }
 
-.nordea-category-text::after {
+.bank-category-text::after {
     content: "-";
     opacity: 0;
     color: rgb(255, 255, 255);
 }
 
-.nordea-amount-cell {
+.bank-amount-cell {
     width: 83px;
     min-width: 83px;
     max-width: 83px;
     text-align: right !important;
 }
 
-.nordea-icon-cell {
+.bank-icon-cell {
     width: 15px;
     min-width: 15px;
     max-width: 15px;
@@ -2408,7 +2408,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     text-align: center !important;
 }
 
-.nordea-icon-cell span {
+.bank-icon-cell span {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2422,17 +2422,17 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 18px;
 }
 
-.nordea-category-cell select,
-.nordea-edit-panel select,
-.nordea-edit-panel input,
-.nordea-edit-panel textarea,
-.nordea-split-line select,
-.nordea-split-line input {
+.bank-category-cell select,
+.bank-edit-panel select,
+.bank-edit-panel input,
+.bank-edit-panel textarea,
+.bank-split-line select,
+.bank-split-line input {
     width: 100%;
     min-width: 0;
 }
 
-.nordea-category-picker {
+.bank-category-picker {
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 2rem;
@@ -2443,11 +2443,11 @@ html[data-density="compact"] .spiir-expand-toggle {
     background: rgb(255, 255, 255);
 }
 
-.nordea-category-picker.search-only {
+.bank-category-picker.search-only {
     grid-template-columns: minmax(0, 1fr);
 }
 
-.nordea-category-picker input {
+.bank-category-picker input {
     min-width: 0;
     height: 23px;
     padding: 3px 4px 3px 3px;
@@ -2461,7 +2461,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     border-bottom-right-radius: 0;
 }
 
-.nordea-category-picker > button {
+.bank-category-picker > button {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     padding: 0;
@@ -2473,7 +2473,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     font: inherit;
 }
 
-.nordea-category-options {
+.bank-category-options {
     position: absolute;
     z-index: 1000;
     display: block;
@@ -2488,21 +2488,21 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-category-main-list,
-.nordea-category-sub-list,
-.nordea-category-search-list {
+.bank-category-main-list,
+.bank-category-sub-list,
+.bank-category-search-list {
     min-width: 0;
     overflow: visible;
 }
 
-.nordea-category-sub-list {
+.bank-category-sub-list {
     position: absolute;
     border-left: 1px solid rgb(204, 204, 204);
     border: 1px solid rgb(204, 204, 204);
     background: rgb(255, 255, 255);
 }
 
-.nordea-category-options button {
+.bank-category-options button {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2521,63 +2521,63 @@ html[data-density="compact"] .spiir-expand-toggle {
     font: inherit;
 }
 
-.nordea-category-sub-list button {
+.bank-category-sub-list button {
     justify-content: flex-start;
 }
 
-.nordea-category-search-list button {
+.bank-category-search-list button {
     justify-content: flex-start;
 }
 
-.nordea-category-options button span {
+.bank-category-options button span {
     display: inline;
 }
 
-.nordea-category-options button small {
+.bank-category-options button small {
     display: inline;
     margin-left: 0.35rem;
     color: rgb(153, 153, 153);
     font: inherit;
 }
 
-.nordea-category-arrow {
+.bank-category-arrow {
     margin-left: auto;
 }
 
-.nordea-category-options button:hover,
-.nordea-category-options button:focus,
-.nordea-category-options button.active {
+.bank-category-options button:hover,
+.bank-category-options button:focus,
+.bank-category-options button.active {
     background: rgb(225, 225, 225);
 }
 
-.nordea-category-options small,
-.nordea-category-empty {
+.bank-category-options small,
+.bank-category-empty {
     color: var(--muted);
 }
 
-.nordea-category-empty {
+.bank-category-empty {
     display: block;
     padding: 3px 8px;
 }
 
-.nordea-category-cell small {
+.bank-category-cell small {
     display: inline;
     color: var(--muted);
 }
 
-.nordea-selected-row td {
+.bank-selected-row td {
     background: rgb(225, 225, 225) !important;
 }
 
-.nordea-pending-row td {
+.bank-pending-row td {
     background: rgb(255, 247, 223);
 }
 
-.nordea-extraordinary-row td {
+.bank-extraordinary-row td {
     color: var(--muted);
 }
 
-.nordea-pending-pill {
+.bank-pending-pill {
     display: inline-block;
     margin-left: 8px;
     padding: 2px 7px;
@@ -2589,7 +2589,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     vertical-align: middle;
 }
 
-.nordea-edit-panel {
+.bank-edit-panel {
     position: relative;
     display: grid;
     gap: 14px;
@@ -2603,7 +2603,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-edit-panel h3 {
+.bank-edit-panel h3 {
     margin: 0;
     color: rgb(51, 51, 51);
     font-size: 28px;
@@ -2612,7 +2612,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     text-align: right;
 }
 
-.nordea-edit-panel h5 {
+.bank-edit-panel h5 {
     margin: 0 0 4px;
     color: rgb(51, 51, 51);
     font-size: 14px;
@@ -2620,36 +2620,36 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 21px;
 }
 
-.nordea-edit-panel section,
-.nordea-edit-panel > p {
+.bank-edit-panel section,
+.bank-edit-panel > p {
     margin: 0;
 }
 
-.nordea-edit-panel label {
+.bank-edit-panel label {
     display: grid;
     gap: 0.25rem;
     color: rgb(51, 51, 51);
 }
 
-.nordea-edit-panel textarea {
+.bank-edit-panel textarea {
     min-height: 72px;
     resize: vertical;
 }
 
-.nordea-edit-panel input,
-.nordea-edit-panel textarea {
+.bank-edit-panel input,
+.bank-edit-panel textarea {
     border: 1px solid rgb(204, 204, 204);
     border-radius: 3px;
     padding: 5px 7px;
     font: inherit;
 }
 
-.nordea-note-suggest-wrap {
+.bank-note-suggest-wrap {
     position: relative;
     width: 100%;
 }
 
-.nordea-note-suggest-list {
+.bank-note-suggest-list {
     position: absolute;
     z-index: 1200;
     top: 2.15rem;
@@ -2660,7 +2660,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
-.nordea-note-suggest-list button {
+.bank-note-suggest-list button {
     display: block;
     width: 100%;
     min-height: 32px;
@@ -2674,41 +2674,41 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-weight: 600;
 }
 
-.nordea-note-suggest-list strong {
+.bank-note-suggest-list strong {
     font-weight: 800;
 }
 
-.nordea-note-suggest-list button.active,
-.nordea-note-suggest-list button:hover,
-.nordea-note-suggest-list button:focus {
+.bank-note-suggest-list button.active,
+.bank-note-suggest-list button:hover,
+.bank-note-suggest-list button:focus {
     background: rgb(45, 99, 245);
     color: rgb(255, 255, 255);
 }
 
-.nordea-edit-panel .nordea-category-picker input {
+.bank-edit-panel .bank-category-picker input {
     height: 23px;
     padding: 3px 4px 3px 3px;
     border: 0;
     border-radius: 0;
 }
 
-.nordea-bulk-summary p {
+.bank-bulk-summary p {
     margin: 0 0 10px;
 }
 
-.nordea-bulk-amount {
+.bank-bulk-amount {
     color: rgb(51, 51, 51);
     font-size: 28px;
     font-weight: 700;
     line-height: 36px;
 }
-.nordea-edit-panel small,
-.nordea-edit-panel > span {
+.bank-edit-panel small,
+.bank-edit-panel > span {
     color: rgb(102, 102, 102);
     overflow-wrap: anywhere;
 }
 
-.nordea-similar-list {
+.bank-similar-list {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
@@ -2717,26 +2717,26 @@ html[data-density="compact"] .spiir-expand-toggle {
     padding: 0;
 }
 
-.nordea-similar-list button {
+.bank-similar-list button {
     min-height: 22px;
     padding: 1px 7px;
     font-size: 12px;
     line-height: 18px;
 }
 
-.nordea-date-edit {
+.bank-date-edit {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
 }
 
-.nordea-origin-text {
+.bank-origin-text {
     display: grid;
     gap: 2px;
     color: rgb(102, 102, 102);
 }
 
-.nordea-checkbox-label {
+.bank-checkbox-label {
     display: flex !important;
     grid-template-columns: none !important;
     align-items: center;
@@ -2747,11 +2747,11 @@ html[data-density="compact"] .spiir-expand-toggle {
     color: var(--text) !important;
 }
 
-.nordea-checkbox-label input {
+.bank-checkbox-label input {
     width: auto;
 }
 
-.nordea-split-modal {
+.bank-split-modal {
     width: min(760px, calc(100vw - 2rem));
     padding: 1.35rem 1.35rem 1.15rem;
     border: 1px solid rgba(42, 42, 42, 0.08);
@@ -2762,27 +2762,27 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-family: MuseoSans, Helvetica, Arial, sans-serif;
 }
 
-.nordea-split-modal-header {
+.bank-split-modal-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
 }
 
-.nordea-split-modal-header h2 {
+.bank-split-modal-header h2 {
     margin: 0;
     font-size: 32px;
     font-weight: 400;
     line-height: 1.02;
 }
 
-.nordea-split-modal-header p {
+.bank-split-modal-header p {
     margin: 0.15rem 0 0;
     font-size: 16px;
     line-height: 1.3;
 }
 
-.nordea-split-close {
+.bank-split-close {
     flex: 0 0 auto;
     min-width: 0;
     padding: 0;
@@ -2794,18 +2794,18 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1;
 }
 
-.nordea-split-close:hover {
+.bank-split-close:hover {
     background: transparent;
     color: rgb(130, 130, 130);
 }
 
-.nordea-split-lines {
+.bank-split-lines {
     display: grid;
     gap: 0.6rem;
     margin-top: 0.6rem;
 }
 
-.nordea-split-line {
+.bank-split-line {
     display: grid;
     grid-template-columns: 1.25rem minmax(0, 1.2fr) minmax(0, 0.75fr) 10rem;
     gap: 0.3rem;
@@ -2816,17 +2816,17 @@ html[data-density="compact"] .spiir-expand-toggle {
     background: rgb(246, 246, 246);
 }
 
-.nordea-split-line-locked {
+.bank-split-line-locked {
     background: rgb(239, 242, 233);
 }
 
-.nordea-split-remove-placeholder {
+.bank-split-remove-placeholder {
     display: inline-block;
     width: 1.25rem;
     height: 1.25rem;
 }
 
-.nordea-split-remove {
+.bank-split-remove {
     align-self: center;
     width: 1.25rem;
     height: 1.25rem;
@@ -2839,12 +2839,12 @@ html[data-density="compact"] .spiir-expand-toggle {
     line-height: 1;
 }
 
-.nordea-split-remove:hover {
+.bank-split-remove:hover {
     background: transparent;
     color: rgb(120, 120, 120);
 }
 
-.nordea-split-line .nordea-category-picker {
+.bank-split-line .bank-category-picker {
     width: 100%;
     min-width: 0;
     height: 34px;
@@ -2853,24 +2853,24 @@ html[data-density="compact"] .spiir-expand-toggle {
     overflow: hidden;
 }
 
-.nordea-split-line .nordea-category-picker input,
-.nordea-split-line .nordea-category-picker > button {
+.bank-split-line .bank-category-picker input,
+.bank-split-line .bank-category-picker > button {
     height: 32px;
 }
 
-.nordea-split-line .nordea-category-picker input {
+.bank-split-line .bank-category-picker input {
     padding: 0 8px;
     font-size: 15px;
     line-height: 32px;
 }
 
-.nordea-split-line .nordea-category-picker > button {
+.bank-split-line .bank-category-picker > button {
     width: 34px;
     min-width: 34px;
     border-left: 1px solid rgb(202, 202, 202);
 }
 
-.nordea-split-line > input {
+.bank-split-line > input {
     min-width: 0;
     height: 34px;
     border: 1px solid rgb(202, 202, 202);
@@ -2883,48 +2883,48 @@ html[data-density="compact"] .spiir-expand-toggle {
 }
 
 
-.nordea-tag-check-list {
+.bank-tag-check-list {
     max-height: 160px;
     overflow: auto;
 }
 
-.nordea-tag-check {
+.bank-tag-check {
     margin: 0 0 4px;
     color: rgb(51, 51, 51);
 }
 
-.nordea-tag-check label {
+.bank-tag-check label {
     display: flex;
     gap: 6px;
 }
 
-.nordea-tag-check input {
+.bank-tag-check input {
     width: auto;
     accent-color: rgb(42, 85, 196);
 }
 
-.nordea-tag-create {
+.bank-tag-create {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
     margin-top: 8px;
 }
-.nordea-split-line > input::placeholder {
+.bank-split-line > input::placeholder {
     color: rgb(182, 182, 182);
 }
 
-.nordea-split-amount {
+.bank-split-amount {
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
 
-.nordea-split-error {
+.bank-split-error {
     margin: 0.55rem 0 0;
     color: #a63f2d;
     font-size: 14px;
 }
 
-.nordea-split-actions {
+.bank-split-actions {
     display: flex;
     justify-content: space-between;
     gap: 0.75rem;
@@ -2933,7 +2933,7 @@ html[data-density="compact"] .spiir-expand-toggle {
     flex-wrap: wrap;
 }
 
-.nordea-split-add {
+.bank-split-add {
     min-width: 0;
     padding: 0;
     border-radius: 0;
@@ -2943,12 +2943,12 @@ html[data-density="compact"] .spiir-expand-toggle {
     font-weight: 400;
 }
 
-.nordea-split-add:hover {
+.bank-split-add:hover {
     background: transparent;
     color: rgb(20, 30, 138);
 }
 
-.nordea-split-save {
+.bank-split-save {
     width: auto;
     min-width: 0;
     padding: 0.5rem 1.2rem;
@@ -2960,50 +2960,50 @@ html[data-density="compact"] .spiir-expand-toggle {
     box-shadow: none;
 }
 
-.nordea-split-save:hover {
+.bank-split-save:hover {
     background: linear-gradient(180deg, rgb(85, 135, 243) 0%, rgb(54, 104, 218) 100%);
 }
 
-.nordea-split-save:disabled {
+.bank-split-save:disabled {
     background: rgb(192, 205, 237);
 }
 
-.nordea-posting-table-container {
+.bank-posting-table-container {
     position: relative;
     max-width: 100%;
     overflow: visible;
 }
 
-.nordea-mobile-review-bar,
-.nordea-mobile-review-list {
+.bank-mobile-review-bar,
+.bank-mobile-review-list {
     display: none;
 }
 
 @media (max-width: 900px) {
-    .app-mode-nordea {
-        --nordea-page-left: 12px;
+    .app-mode-bank {
+        --bank-page-left: 12px;
     }
 
-    .app-mode-nordea .top-nav-panel {
+    .app-mode-bank .top-nav-panel {
         padding-left: 12px;
         padding-right: 12px;
     }
 }
 
 @media (max-width: 760px) {
-    .app-mode-nordea {
-        --nordea-page-left: 0;
-        --nordea-page-width: 100vw;
+    .app-mode-bank {
+        --bank-page-left: 0;
+        --bank-page-width: 100vw;
         width: 100%;
         padding-bottom: 1rem;
         background: rgb(255, 255, 255);
     }
 
-    .app-mode-nordea::before {
+    .app-mode-bank::before {
         display: none;
     }
 
-    .app-mode-nordea .top-nav-panel {
+    .app-mode-bank .top-nav-panel {
         grid-template-columns: minmax(0, 1fr) auto;
         width: 100%;
         min-height: 44px;
@@ -3011,33 +3011,33 @@ html[data-density="compact"] .spiir-expand-toggle {
         overflow: hidden;
     }
 
-    .app-mode-nordea .top-nav-panel .top-nav-start {
+    .app-mode-bank .top-nav-panel .top-nav-start {
         min-width: 0;
         overflow-x: auto;
         scrollbar-width: none;
     }
 
-    .app-mode-nordea .top-nav-panel .top-nav-start::-webkit-scrollbar {
+    .app-mode-bank .top-nav-panel .top-nav-start::-webkit-scrollbar {
         display: none;
     }
 
-    .app-mode-nordea .top-nav-panel .scope-switcher {
+    .app-mode-bank .top-nav-panel .scope-switcher {
         width: max-content;
         min-width: max-content;
     }
 
-    .app-mode-nordea .top-nav-panel .top-nav-actions {
+    .app-mode-bank .top-nav-panel .top-nav-actions {
         overflow-x: auto;
     }
 
-    .app-mode-nordea .top-nav-panel .nav-pill,
-    .app-mode-nordea .top-nav-panel .secondary-button {
+    .app-mode-bank .top-nav-panel .nav-pill,
+    .app-mode-bank .top-nav-panel .secondary-button {
         min-height: 44px;
         padding: 0 9px;
         white-space: nowrap;
     }
 
-    .nordea-poster {
+    .bank-poster {
         width: 100%;
         margin: 0;
         padding: 0 0 1rem;
@@ -3045,29 +3045,29 @@ html[data-density="compact"] .spiir-expand-toggle {
         line-height: 1.35;
     }
 
-    .nordea-income-overview {
+    .bank-income-overview {
         width: auto;
         margin: 0;
         padding: 0.75rem 0.65rem 0.55rem;
         border-bottom: 1px solid rgb(241, 241, 241);
     }
 
-    .nordea-income-desktop {
+    .bank-income-desktop {
         display: none;
     }
 
-    .nordea-income-mobile {
+    .bank-income-mobile {
         display: grid;
         gap: 0.7rem;
     }
 
-    .nordea-income-mobile-head {
+    .bank-income-mobile-head {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.5rem;
     }
 
-    .nordea-income-mobile-head div {
+    .bank-income-mobile-head div {
         display: grid;
         gap: 0.1rem;
         min-width: 0;
@@ -3077,8 +3077,8 @@ html[data-density="compact"] .spiir-expand-toggle {
         background: rgb(249, 249, 249);
     }
 
-    .nordea-income-mobile-head span,
-    .nordea-income-mobile-head small {
+    .bank-income-mobile-head span,
+    .bank-income-mobile-head small {
         color: rgb(102, 102, 102);
         font-size: 12px;
         line-height: 16px;
@@ -3087,7 +3087,7 @@ html[data-density="compact"] .spiir-expand-toggle {
         text-overflow: ellipsis;
     }
 
-    .nordea-income-mobile-head strong {
+    .bank-income-mobile-head strong {
         color: rgb(51, 51, 51);
         font-size: 18px;
         line-height: 24px;
@@ -3096,14 +3096,14 @@ html[data-density="compact"] .spiir-expand-toggle {
         text-overflow: ellipsis;
     }
 
-    .nordea-income-mobile-bars {
+    .bank-income-mobile-bars {
         display: grid;
         grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 0.35rem;
         align-items: end;
     }
 
-    .nordea-income-mobile-bars button {
+    .bank-income-mobile-bars button {
         display: grid;
         gap: 0.25rem;
         justify-items: center;
@@ -3116,14 +3116,14 @@ html[data-density="compact"] .spiir-expand-toggle {
         color: rgb(102, 102, 102);
     }
 
-    .nordea-income-mobile-bars button.active {
+    .bank-income-mobile-bars button.active {
         border-color: rgb(9, 171, 88);
         background: rgb(247, 252, 249);
         color: rgb(51, 51, 51);
         font-weight: 700;
     }
 
-    .nordea-income-mobile-bar-stack {
+    .bank-income-mobile-bar-stack {
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -3133,33 +3133,33 @@ html[data-density="compact"] .spiir-expand-toggle {
         padding-bottom: 2px;
     }
 
-    .nordea-income-mobile-bar-stack i {
+    .bank-income-mobile-bar-stack i {
         width: 10px;
         min-height: 2px;
         border-radius: 2px 2px 0 0;
         opacity: 0.62;
     }
 
-    .nordea-income-mobile-bars button.active .nordea-income-mobile-bar-stack i {
+    .bank-income-mobile-bars button.active .bank-income-mobile-bar-stack i {
         opacity: 1;
     }
 
-    .nordea-income-mobile-bar-stack .income {
+    .bank-income-mobile-bar-stack .income {
         background: #09ab58;
     }
 
-    .nordea-income-mobile-bar-stack .expense {
+    .bank-income-mobile-bar-stack .expense {
         background: #ff9800;
     }
 
-    .nordea-poster-controls {
+    .bank-poster-controls {
         margin: 0;
         padding: 0.45rem 0.65rem 0.6rem;
         background: rgb(255, 255, 255);
         box-shadow: none;
     }
 
-    .nordea-spiir-filter-strip {
+    .bank-spiir-filter-strip {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
         gap: 0.45rem;
@@ -3168,67 +3168,67 @@ html[data-density="compact"] .spiir-expand-toggle {
         color: rgb(51, 51, 51);
     }
 
-    .nordea-spiir-filter-strip > span,
-    .nordea-spiir-reset-link,
-    .nordea-pagination-bar,
-    .nordea-posting-table-container,
-    .nordea-poster-content > .nordea-edit-panel {
+    .bank-spiir-filter-strip > span,
+    .bank-spiir-reset-link,
+    .bank-pagination-bar,
+    .bank-posting-table-container,
+    .bank-poster-content > .bank-edit-panel {
         display: none;
     }
 
-    .nordea-spiir-filter-button,
-    .nordea-spiir-filter-select,
-    .nordea-spiir-search-wrap input,
-    .nordea-spiir-filter-actions button,
-    .nordea-mobile-review-bar button,
-    .nordea-mobile-load-more,
-    .nordea-mobile-row-actions button {
+    .bank-spiir-filter-button,
+    .bank-spiir-filter-select,
+    .bank-spiir-search-wrap input,
+    .bank-spiir-filter-actions button,
+    .bank-mobile-review-bar button,
+    .bank-mobile-load-more,
+    .bank-mobile-row-actions button {
         min-height: 44px;
         border-radius: 8px;
         font-size: 15px;
     }
 
-    .nordea-spiir-filter-button,
-    .nordea-spiir-filter-select,
-    .nordea-spiir-search-wrap input {
+    .bank-spiir-filter-button,
+    .bank-spiir-filter-select,
+    .bank-spiir-search-wrap input {
         border: 1px solid rgb(211, 211, 211);
         background: rgb(255, 255, 255);
         color: rgb(51, 51, 51);
     }
 
-    .nordea-spiir-filter-button,
-    .nordea-spiir-filter-select,
-    .nordea-spiir-search-wrap,
-    .nordea-spiir-filter-actions {
+    .bank-spiir-filter-button,
+    .bank-spiir-filter-select,
+    .bank-spiir-search-wrap,
+    .bank-spiir-filter-actions {
         width: 100%;
         min-width: 0;
         flex: 1 1 auto;
     }
 
-    .nordea-spiir-search-wrap,
-    .nordea-spiir-filter-actions {
+    .bank-spiir-search-wrap,
+    .bank-spiir-filter-actions {
         grid-column: 1 / -1;
     }
 
-    .nordea-spiir-filter-actions {
+    .bank-spiir-filter-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         margin-left: 0;
     }
 
-    .nordea-spiir-filter-actions .nordea-save-indicator {
+    .bank-spiir-filter-actions .bank-save-indicator {
         grid-column: 1 / -1;
         color: rgb(102, 102, 102);
     }
 
-    .nordea-poster-stats {
+    .bank-poster-stats {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 0.4rem;
         margin-top: 0.45rem;
     }
 
-    .nordea-poster-stats div {
+    .bank-poster-stats div {
         display: grid;
         gap: 0.05rem;
         padding: 0.35rem 0.45rem;
@@ -3236,20 +3236,20 @@ html[data-density="compact"] .spiir-expand-toggle {
         background: rgb(245, 245, 245);
     }
 
-    .nordea-poster-stats span,
-    .nordea-poster-stats strong {
+    .bank-poster-stats span,
+    .bank-poster-stats strong {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    .nordea-mobile-review-bar {
+    .bank-mobile-review-bar {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.45rem;
     }
 
-    .nordea-mobile-review-bar button {
+    .bank-mobile-review-bar button {
         border: 1px solid rgb(211, 211, 211);
         background: rgb(255, 255, 255);
         color: rgb(51, 51, 51);
@@ -3257,33 +3257,33 @@ html[data-density="compact"] .spiir-expand-toggle {
         white-space: nowrap;
     }
 
-    .nordea-mobile-review-bar button.active {
+    .bank-mobile-review-bar button.active {
         border-color: rgb(9, 171, 88);
         color: rgb(0, 137, 70);
         font-weight: 700;
     }
 
-    .nordea-mobile-review-bar button:last-child:nth-child(3) {
+    .bank-mobile-review-bar button:last-child:nth-child(3) {
         grid-column: 1 / -1;
     }
 
-    .nordea-poster-content {
+    .bank-poster-content {
         grid-template-columns: minmax(0, 1fr);
         display: block;
     }
 
-    .nordea-edit-panel {
+    .bank-edit-panel {
         position: relative;
     }
 
-    .nordea-mobile-review-list {
+    .bank-mobile-review-list {
         display: grid;
         gap: 0;
         padding: 0.5rem 0 1rem;
         background: rgb(255, 255, 255);
     }
 
-    .nordea-mobile-row {
+    .bank-mobile-row {
         display: grid;
         gap: 0.65rem;
         padding: 1.05rem 1rem;
@@ -3292,69 +3292,69 @@ html[data-density="compact"] .spiir-expand-toggle {
         color: rgb(0, 0, 0);
     }
 
-    .nordea-mobile-row.pending {
+    .bank-mobile-row.pending {
         background: rgb(255, 252, 242);
     }
 
-    .nordea-mobile-row.expanded {
+    .bank-mobile-row.expanded {
         background: rgb(248, 250, 249);
     }
 
-    .nordea-mobile-row.transfer .nordea-mobile-row-text strong,
-    .nordea-mobile-row.transfer .nordea-mobile-row-text span,
-    .nordea-mobile-row.transfer .nordea-mobile-row-text em,
-    .nordea-mobile-row.transfer .nordea-mobile-row-meta strong {
+    .bank-mobile-row.transfer .bank-mobile-row-text strong,
+    .bank-mobile-row.transfer .bank-mobile-row-text span,
+    .bank-mobile-row.transfer .bank-mobile-row-text em,
+    .bank-mobile-row.transfer .bank-mobile-row-meta strong {
         color: rgb(190, 190, 190);
     }
 
-    .nordea-mobile-row-main {
+    .bank-mobile-row-main {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         gap: 0.75rem;
         align-items: start;
     }
 
-    .nordea-mobile-row-text,
-    .nordea-mobile-row-meta {
+    .bank-mobile-row-text,
+    .bank-mobile-row-meta {
         display: grid;
         min-width: 0;
     }
 
-    .nordea-mobile-row-text strong,
-    .nordea-mobile-row-meta strong {
+    .bank-mobile-row-text strong,
+    .bank-mobile-row-meta strong {
         font-size: 1.08rem;
         line-height: 1.15;
     }
 
-    .nordea-mobile-row-text strong,
-    .nordea-mobile-row-text span,
-    .nordea-mobile-row-text em {
+    .bank-mobile-row-text strong,
+    .bank-mobile-row-text span,
+    .bank-mobile-row-text em {
         overflow-wrap: anywhere;
     }
 
-    .nordea-mobile-row-text span,
-    .nordea-mobile-row-meta span {
+    .bank-mobile-row-text span,
+    .bank-mobile-row-meta span {
         color: rgb(109, 109, 109);
         font-size: 1rem;
     }
 
-    .nordea-mobile-row-text em {
+    .bank-mobile-row-text em {
         margin-top: 0.2rem;
         color: rgb(20, 20, 20);
         font-size: 0.9rem;
     }
 
-    .nordea-mobile-row-meta {
+    .bank-mobile-row-meta {
         justify-items: end;
         text-align: right;
         white-space: nowrap;
     }
 
-    .nordea-mobile-row-meta strong.positive {
+    .bank-mobile-row-meta strong.positive {
         color: rgb(43, 174, 100);
     }
 
-    .nordea-mobile-markers {
+    .bank-mobile-markers {
         display: flex;
         justify-content: flex-end;
         gap: 0.25rem;
@@ -3362,7 +3362,7 @@ html[data-density="compact"] .spiir-expand-toggle {
         margin-top: 0.2rem;
     }
 
-    .nordea-mobile-markers small {
+    .bank-mobile-markers small {
         padding: 0.08rem 0.3rem;
         border-radius: 999px;
         background: rgb(238, 238, 238);
@@ -3371,13 +3371,13 @@ html[data-density="compact"] .spiir-expand-toggle {
         line-height: 1.35;
     }
 
-    .nordea-mobile-row-editor {
+    .bank-mobile-row-editor {
         display: grid;
         gap: 0.65rem;
         padding-top: 0.25rem;
     }
 
-    .nordea-mobile-row-editor label {
+    .bank-mobile-row-editor label {
         display: grid;
         gap: 0.3rem;
         color: rgb(86, 86, 86);
@@ -3385,15 +3385,15 @@ html[data-density="compact"] .spiir-expand-toggle {
         font-weight: 700;
     }
 
-    .nordea-mobile-row-editor textarea,
-    .nordea-mobile-row-editor .nordea-category-picker {
+    .bank-mobile-row-editor textarea,
+    .bank-mobile-row-editor .bank-category-picker {
         width: 100%;
         min-height: 44px;
         border-radius: 8px;
         background: rgb(255, 255, 255);
     }
 
-    .nordea-mobile-row-editor textarea {
+    .bank-mobile-row-editor textarea {
         border: 1px solid rgb(204, 204, 204);
         padding: 0.65rem 0.75rem;
         color: rgb(51, 51, 51);
@@ -3401,89 +3401,89 @@ html[data-density="compact"] .spiir-expand-toggle {
         font-weight: 400;
     }
 
-    .nordea-mobile-row-editor .nordea-note-suggest-list {
+    .bank-mobile-row-editor .bank-note-suggest-list {
         top: 2.5rem;
         left: 0.5rem;
         width: min(20rem, calc(100% - 1rem));
         font-size: 16px;
     }
 
-    .nordea-mobile-row-editor .nordea-note-suggest-list button {
+    .bank-mobile-row-editor .bank-note-suggest-list button {
         min-height: 44px;
     }
 
-    .nordea-mobile-row-editor .nordea-category-picker {
+    .bank-mobile-row-editor .bank-category-picker {
         height: 44px;
         overflow: hidden;
     }
 
-    .nordea-mobile-row-editor .nordea-category-picker:not(.search-only) {
+    .bank-mobile-row-editor .bank-category-picker:not(.search-only) {
         grid-template-columns: minmax(0, 1fr) 44px;
     }
 
-    .nordea-mobile-row-editor .nordea-category-picker.search-only input {
+    .bank-mobile-row-editor .bank-category-picker.search-only input {
         border-radius: 8px;
     }
 
-    .nordea-mobile-row-editor .nordea-category-picker input,
-    .nordea-mobile-row-editor .nordea-category-picker > button {
+    .bank-mobile-row-editor .bank-category-picker input,
+    .bank-mobile-row-editor .bank-category-picker > button {
         height: 42px;
         font-size: 16px;
     }
 
-    .nordea-mobile-row-actions {
+    .bank-mobile-row-actions {
         display: flex;
         gap: 0.5rem;
         justify-content: flex-end;
     }
 
-    .nordea-mobile-row-actions button,
-    .nordea-mobile-load-more {
+    .bank-mobile-row-actions button,
+    .bank-mobile-load-more {
         border: 1px solid rgb(204, 204, 204);
         background: rgb(255, 255, 255);
         color: rgb(51, 51, 51);
         padding: 0.55rem 1rem;
     }
 
-    .nordea-mobile-load-more {
+    .bank-mobile-load-more {
         width: calc(100% - 2rem);
         margin: 1rem;
     }
 
-    .nordea-mobile-empty {
+    .bank-mobile-empty {
         margin: 1rem;
         color: rgb(109, 109, 109);
     }
 
-    .nordea-category-options {
+    .bank-category-options {
         max-width: calc(100vw - 1rem) !important;
         font-size: 16px;
     }
 
-    .nordea-category-options button {
+    .bank-category-options button {
         min-height: 44px;
     }
 
-    .nordea-poster-header,
-    .nordea-poster-actions,
-    .nordea-date-edit {
+    .bank-poster-header,
+    .bank-poster-actions,
+    .bank-date-edit {
         align-items: stretch;
         grid-template-columns: 1fr;
         flex-direction: column;
     }
 
-    .nordea-split-line {
+    .bank-split-line {
         grid-template-columns: 1fr;
     }
 
-    .nordea-split-backdrop {
+    .bank-split-backdrop {
         align-items: end;
         justify-items: stretch;
         place-items: end stretch;
         padding: 0;
     }
 
-    .nordea-split-modal {
+    .bank-split-modal {
         width: 100vw;
         max-height: calc(100vh - 0.75rem);
         overflow: auto;
@@ -3494,26 +3494,26 @@ html[data-density="compact"] .spiir-expand-toggle {
         border-radius: 16px 16px 0 0;
     }
 
-    .nordea-split-modal-header h2 {
+    .bank-split-modal-header h2 {
         font-size: 28px;
     }
 
-    .nordea-split-modal-header p,
-    .nordea-split-add,
-    .nordea-split-save,
-    .nordea-split-line .nordea-category-picker input,
-    .nordea-split-line > input {
+    .bank-split-modal-header p,
+    .bank-split-add,
+    .bank-split-save,
+    .bank-split-line .bank-category-picker input,
+    .bank-split-line > input {
         font-size: 16px;
     }
 
-    .nordea-split-save {
+    .bank-split-save {
         font-size: 16px;
     }
 }
 
 @media (min-width: 901px) and (max-width: 1320px) {
-    .app-mode-nordea {
-        --nordea-page-left: 24px;
+    .app-mode-bank {
+        --bank-page-left: 24px;
     }
 }
 
@@ -4811,7 +4811,7 @@ html[data-density="compact"] .kvitteringer-price-chart-foot {
         min-height: 2.85rem;
     }
 
-    .app-mode-nordea .top-nav-panel {
+    .app-mode-bank .top-nav-panel {
         position: sticky;
         grid-template-columns: 1fr;
         top: 0;
@@ -4819,27 +4819,27 @@ html[data-density="compact"] .kvitteringer-price-chart-foot {
         overflow: visible;
     }
 
-    .app-mode-nordea .top-nav-panel .top-nav-controls {
+    .app-mode-bank .top-nav-panel .top-nav-controls {
         display: flex;
     }
 
-    .app-mode-nordea .top-nav-collapse.open {
+    .app-mode-bank .top-nav-collapse.open {
         color: var(--ink);
     }
 
-    .app-mode-nordea .top-nav-collapse.open .scope-mode-label,
-    .app-mode-nordea .top-nav-sheet-header {
+    .app-mode-bank .top-nav-collapse.open .scope-mode-label,
+    .app-mode-bank .top-nav-sheet-header {
         color: var(--muted);
     }
 
-    .app-mode-nordea .top-nav-collapse.open .nav-pill,
-    .app-mode-nordea .top-nav-collapse.open .secondary-button,
-    .app-mode-nordea .top-nav-collapse.open .primary-button {
+    .app-mode-bank .top-nav-collapse.open .nav-pill,
+    .app-mode-bank .top-nav-collapse.open .secondary-button,
+    .app-mode-bank .top-nav-collapse.open .primary-button {
         color: var(--ink);
     }
 
-    .app-mode-nordea .top-nav-collapse.open .nav-pill.active,
-    .app-mode-nordea .top-nav-collapse.open .primary-button {
+    .app-mode-bank .top-nav-collapse.open .nav-pill.active,
+    .app-mode-bank .top-nav-collapse.open .primary-button {
         color: white;
     }
 

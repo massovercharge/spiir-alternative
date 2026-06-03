@@ -3,7 +3,10 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from typing import Annotated, Any, Literal
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile, status
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, status, Depends
+from contextlib import asynccontextmanager
+from .scheduler import start_scheduler, shutdown_scheduler
+from .auth import verify_token
 
 from .config import get_data_dir, get_kvitteringer_db_path, get_storebox_source_dir
 from .kvitteringer_service import (
@@ -24,21 +27,21 @@ from .kvitteringer_service import (
     replace_storebox_upload,
     set_item_cluster_category_override,
 )
-from .nordea_service import (
-    get_nordea_retrieve_status,
-    load_nordea_taxonomy,
-    load_nordea_transactions,
-    retrieve_nordea_transactions,
-    save_nordea_overrides,
-    start_nordea_retrieve_job,
+from .bank_service import (
+    get_bank_retrieve_status,
+    load_bank_taxonomy,
+    load_bank_transactions,
+    retrieve_bank_transactions,
+    save_bank_overrides,
+    start_bank_retrieve_job,
 )
 from .spiir_local_ledger_service import (
-    apply_nordea_sync_into_spiir_local_ledger,
+    apply_bank_sync_into_spiir_local_ledger,
     apply_spiir_local_ledger_import,
     apply_spiir_local_ledger_split_canonicalization,
     apply_spiir_local_ledger_split_fragment_repair,
     load_spiir_local_ledger_transactions,
-    preview_nordea_sync_into_spiir_local_ledger,
+    preview_bank_sync_into_spiir_local_ledger,
     preview_spiir_local_ledger_import,
     preview_spiir_local_ledger_split_canonicalization,
     preview_spiir_local_ledger_split_fragment_repair,
@@ -60,8 +63,14 @@ def iso_utc() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    yield
+    shutdown_scheduler()
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="Spiir Alternative Reference API", version="0.1.0")
+    app = FastAPI(title="Spiir Alternative Reference API", version="0.1.0", lifespan=lifespan, dependencies=[Depends(verify_token)])
 
     @app.get("/api/status")
     def status_route() -> dict[str, object]:
@@ -126,17 +135,17 @@ def create_app() -> FastAPI:
         except FileNotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
-    @app.get("/api/spiir/local-ledger/nordea-sync/preview")
-    def nordea_sync_preview() -> dict[str, object]:
+    @app.get("/api/spiir/local-ledger/bank-sync/preview")
+    def bank_sync_preview() -> dict[str, object]:
         try:
-            return preview_nordea_sync_into_spiir_local_ledger()
+            return preview_bank_sync_into_spiir_local_ledger()
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    @app.post("/api/spiir/local-ledger/nordea-sync/apply")
-    def nordea_sync_apply() -> dict[str, object]:
+    @app.post("/api/spiir/local-ledger/bank-sync/apply")
+    def bank_sync_apply() -> dict[str, object]:
         try:
-            return apply_nordea_sync_into_spiir_local_ledger()
+            return apply_bank_sync_into_spiir_local_ledger()
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -181,39 +190,39 @@ def create_app() -> FastAPI:
     def split_repair_apply() -> dict[str, object]:
         return apply_spiir_local_ledger_split_fragment_repair()
 
-    @app.get("/api/nordea/transactions")
-    def nordea_transactions() -> dict[str, object]:
-        return load_nordea_transactions()
+    @app.get("/api/bank/transactions")
+    def bank_transactions() -> dict[str, object]:
+        return load_bank_transactions()
 
-    @app.get("/api/nordea/taxonomy")
-    def nordea_taxonomy() -> dict[str, object]:
-        return load_nordea_taxonomy()
+    @app.get("/api/bank/taxonomy")
+    def bank_taxonomy() -> dict[str, object]:
+        return load_bank_taxonomy()
 
-    @app.post("/api/nordea/overrides")
-    def nordea_overrides(payload: dict[str, Any]) -> dict[str, object]:
+    @app.post("/api/bank/overrides")
+    def bank_overrides(payload: dict[str, Any]) -> dict[str, object]:
         try:
             transaction_ids = [str(item) for item in payload.get("transaction_ids", [])]
             patch = payload.get("patch", {})
             if not isinstance(patch, dict):
-                raise ValueError("Invalid Nordea override patch")
-            return save_nordea_overrides(transaction_ids, patch)
+                raise ValueError("Invalid Bank override patch")
+            return save_bank_overrides(transaction_ids, patch)
         except ValueError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    @app.post("/api/nordea/retrieve")
-    def nordea_retrieve() -> dict[str, object]:
+    @app.post("/api/bank/retrieve")
+    def bank_retrieve() -> dict[str, object]:
         try:
-            return retrieve_nordea_transactions()
+            return retrieve_bank_transactions()
         except (FileNotFoundError, RuntimeError) as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    @app.post("/api/nordea/retrieve/start")
-    def nordea_retrieve_start() -> dict[str, object]:
-        return start_nordea_retrieve_job(sync_local_ledger=True)
+    @app.post("/api/bank/retrieve/start")
+    def bank_retrieve_start() -> dict[str, object]:
+        return start_bank_retrieve_job(sync_local_ledger=True)
 
-    @app.get("/api/nordea/retrieve/status")
-    def nordea_retrieve_status() -> dict[str, object]:
-        return get_nordea_retrieve_status()
+    @app.get("/api/bank/retrieve/status")
+    def bank_retrieve_status() -> dict[str, object]:
+        return get_bank_retrieve_status()
 
     @app.get("/api/kvitteringer/status")
     def kvitteringer_status() -> dict[str, object]:

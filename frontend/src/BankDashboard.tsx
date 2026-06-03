@@ -1,24 +1,24 @@
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 
-import { getNordeaRetrieveStatus, getNordeaTaxonomy, getNordeaTransactions, getSpiirIncomeExpenseSeries, getSpiirLocalLedgerTransactions, getSpiirLocalLedgerTransactionsPage, getSpiirOverview, getSpiirStatus, getSpiirTransactions, invalidateLocalLedgerCache, invalidateSpiirCache, rebuildSpiirFromLocal, saveNordeaOverrides, saveSpiirLocalLedgerOverrides, scheduleSpiirRebuildFromLocal, startNordeaRetrieveJob, syncNordeaIntoSpiirLocalLedger } from "./api";
-import { computeAllTransactionsLoaded, localLedgerFirstPage, mergeUpdatedTransactions } from "./nordeaState";
+import { getBankRetrieveStatus, getBankTaxonomy, getBankTransactions, getSpiirIncomeExpenseSeries, getSpiirLocalLedgerTransactions, getSpiirLocalLedgerTransactionsPage, getSpiirOverview, getSpiirStatus, getSpiirTransactions, invalidateLocalLedgerCache, invalidateSpiirCache, rebuildSpiirFromLocal, saveBankOverrides, saveSpiirLocalLedgerOverrides, scheduleSpiirRebuildFromLocal, startBankRetrieveJob, syncBankIntoSpiirLocalLedger } from "./api";
+import { computeAllTransactionsLoaded, localLedgerFirstPage, mergeUpdatedTransactions } from "./bankState";
 import SpiirSunburstModal, { type SunburstState } from "./SpiirSunburstModal";
 import { formatSplitDraftAmount, parseSplitDraftAmount } from "./splitAmount";
-import type { NordeaCategoryOption, NordeaHashtagOption, NordeaOverridePatch, NordeaRetrieveJobStatus, NordeaSplitLine, NordeaTaxonomyResponse, NordeaTransaction, NordeaTransactionsResponse, SpiirIncomeExpenseMonth, SpiirIncomeExpenseSeriesResponse, SpiirOverviewResponse, SpiirStatusResponse, SpiirTransaction } from "./types";
+import type { BankCategoryOption, BankHashtagOption, BankOverridePatch, BankRetrieveJobStatus, BankSplitLine, BankTaxonomyResponse, BankTransaction, BankTransactionsResponse, SpiirIncomeExpenseMonth, SpiirIncomeExpenseSeriesResponse, SpiirOverviewResponse, SpiirStatusResponse, SpiirTransaction } from "./types";
 
 type PeriodFilter = "all" | "custom" | `year:${string}` | `month:${string}`;
 type VisibilityFilter = "all" | "income" | "expense" | "bills" | "consumption" | "category" | "uncategorized" | "extraordinary";
 type SortKey = "booking_date" | "description" | "category" | "amount";
 type SortDirection = "asc" | "desc";
 
-export type NordeaDrilldownFilter = {
+export type BankDrilldownFilter = {
     title: string;
     periodFilter?: PeriodFilter;
     periodStart?: string;
     periodEnd?: string;
     visibilityFilter?: VisibilityFilter;
-    categoryFilter?: NordeaCategoryOption | null;
+    categoryFilter?: BankCategoryOption | null;
     searchText?: string;
 };
 type SplitDraftLine = {
@@ -26,20 +26,20 @@ type SplitDraftLine = {
     amount: number;
     amountText: string;
     note: string;
-    category: NordeaCategoryOption | null;
+    category: BankCategoryOption | null;
     locked: boolean;
 };
 
-type NordeaDisplayRow = {
+type BankDisplayRow = {
     rowId: string;
     parentId: string;
-    transaction: NordeaTransaction;
+    transaction: BankTransaction;
     splitId: string | null;
     splitIndex: number | null;
     isSplitChild: boolean;
     amount: number;
     note: string;
-    category: NordeaCategoryOption;
+    category: BankCategoryOption;
 };
 
 const HASHTAG_TOKEN_RE = /(?<![0-9A-Za-z_æøåÆØÅ-])#([0-9A-Za-z_æøåÆØÅ-]+)/gi;
@@ -180,7 +180,7 @@ function spiirMainName(value: string): string {
     return value === "Andet" ? "Andre leveomkostninger" : value;
 }
 
-function spiirMenuMainName(category: NordeaCategoryOption): string {
+function spiirMenuMainName(category: BankCategoryOption): string {
     return category.categoryName === "Ikke kategoriseret" ? "Ikke kategoriseret" : spiirMainName(category.mainCategoryName || "Diverse");
 }
 
@@ -266,7 +266,7 @@ function formatDkk(value: number): string {
     }).format(value);
 }
 
-function counterparty(transaction: NordeaTransaction): string {
+function counterparty(transaction: BankTransaction): string {
     return transaction.creditor_name || transaction.debtor_name || transaction.bank_transaction_code || "-";
 }
 
@@ -297,7 +297,7 @@ function longMonthLabel(value: string): string {
     return new Intl.DateTimeFormat("da-DK", { month: "long", year: "numeric" }).format(parsed);
 }
 
-function transactionText(transaction: NordeaTransaction): string {
+function transactionText(transaction: BankTransaction): string {
     return [
         transaction.description,
         transaction.remittance_information,
@@ -308,7 +308,7 @@ function transactionText(transaction: NordeaTransaction): string {
     ].filter(Boolean).join(" ");
 }
 
-function detailTitle(transaction: NordeaTransaction): string {
+function detailTitle(transaction: BankTransaction): string {
     return [
         transaction.remittance_information,
         transaction.bank_transaction_code,
@@ -318,7 +318,7 @@ function detailTitle(transaction: NordeaTransaction): string {
     ].filter(Boolean).join("\n");
 }
 
-function descriptionLabel(transaction: NordeaTransaction): string {
+function descriptionLabel(transaction: BankTransaction): string {
     const note = transaction.note?.trim();
     return note ? `${transaction.description} (${note})` : transaction.description;
 }
@@ -372,7 +372,7 @@ function activeHashtagToken(value: string, caret: number | null): { start: numbe
     return { start: beforeCaret.length - token.length - 1, prefix: token };
 }
 
-function matchingHashtagSuggestions(hashtags: NordeaHashtagOption[], prefix: string): NordeaHashtagOption[] {
+function matchingHashtagSuggestions(hashtags: BankHashtagOption[], prefix: string): BankHashtagOption[] {
     if (!prefix) {
         return hashtags.slice(0, 5);
     }
@@ -400,7 +400,7 @@ function highlightedHashtagName(name: string, prefix: string): (string | JSX.Ele
     ];
 }
 
-function similarWords(transaction: NordeaTransaction): string[] {
+function similarWords(transaction: BankTransaction): string[] {
     return transaction.description
         .split(/\s+/)
         .map((word) => word.replace(/[(),.;:]/g, "").trim())
@@ -408,14 +408,14 @@ function similarWords(transaction: NordeaTransaction): string[] {
         .slice(0, 5);
 }
 
-function categoryKey(category: Pick<NordeaCategoryOption, "mainCategoryId" | "categoryId"> | null | undefined): string {
+function categoryKey(category: Pick<BankCategoryOption, "mainCategoryId" | "categoryId"> | null | undefined): string {
     if (!category?.categoryId) {
         return "";
     }
     return `${String(category.mainCategoryId ?? "")}|${String(category.categoryId)}`;
 }
 
-function buildMainCategoryOption(mainCategoryId: string | number | null | undefined, mainCategoryName: string, categoryType = "Expense", usageCount = 0): NordeaCategoryOption {
+function buildMainCategoryOption(mainCategoryId: string | number | null | undefined, mainCategoryName: string, categoryType = "Expense", usageCount = 0): BankCategoryOption {
     return {
         mainCategoryId: mainCategoryId ?? "",
         mainCategoryName,
@@ -426,7 +426,7 @@ function buildMainCategoryOption(mainCategoryId: string | number | null | undefi
     };
 }
 
-function categoryFromTransaction(transaction: NordeaTransaction): NordeaCategoryOption {
+function categoryFromTransaction(transaction: BankTransaction): BankCategoryOption {
     return {
         mainCategoryId: transaction.mainCategoryId ?? "synthetic-diverse",
         mainCategoryName: transaction.mainCategoryName || "Diverse",
@@ -437,19 +437,19 @@ function categoryFromTransaction(transaction: NordeaTransaction): NordeaCategory
     };
 }
 
-function categoryLabel(transaction: NordeaTransaction): string {
+function categoryLabel(transaction: BankTransaction): string {
     return transaction.categoryName || "Ikke kategoriseret";
 }
 
-function categoryLabelForRow(row: NordeaDisplayRow): string {
+function categoryLabelForRow(row: BankDisplayRow): string {
     return row.category.categoryName || "Ikke kategoriseret";
 }
 
-function categoryMainId(value: Pick<NordeaCategoryOption, "mainCategoryId">): string {
+function categoryMainId(value: Pick<BankCategoryOption, "mainCategoryId">): string {
     return String(value.mainCategoryId ?? "");
 }
 
-function categorySubId(value: Pick<NordeaCategoryOption, "categoryId">): string {
+function categorySubId(value: Pick<BankCategoryOption, "categoryId">): string {
     return String(value.categoryId ?? "");
 }
 
@@ -461,7 +461,7 @@ function categorySubFilterValue(mainCategoryId: string, categoryId: string): str
     return `sub::${mainCategoryId}::${categoryId}`;
 }
 
-function categoryFilterMatches(rowCategory: NordeaCategoryOption, selectedCategory: NordeaCategoryOption | null): boolean {
+function categoryFilterMatches(rowCategory: BankCategoryOption, selectedCategory: BankCategoryOption | null): boolean {
     if (!selectedCategory) {
         return false;
     }
@@ -502,34 +502,34 @@ function visibilityLabel(filter: VisibilityFilter, categoryLabel: string): strin
     return "Ekstraordinære poster";
 }
 
-function isTransferCategory(category: NordeaCategoryOption): boolean {
+function isTransferCategory(category: BankCategoryOption): boolean {
     return spiirMenuMainName(category) === "Vis ikke";
 }
 
-function nordeaRowClassName(row: NordeaDisplayRow, selected: boolean, selectedCount: number): string | undefined {
+function bankRowClassName(row: BankDisplayRow, selected: boolean, selectedCount: number): string | undefined {
     const classes = [];
     if (selected) {
-        classes.push("nordea-selected-row");
+        classes.push("bank-selected-row");
         if (selectedCount === 1) {
-            classes.push("nordea-editor-row");
+            classes.push("bank-editor-row");
         }
     } else if (isPendingReview(row.transaction)) {
-        classes.push("nordea-pending-row");
+        classes.push("bank-pending-row");
     } else if (row.transaction.is_extraordinary) {
-        classes.push("nordea-extraordinary-row");
+        classes.push("bank-extraordinary-row");
     }
     if (isTransferCategory(row.category)) {
-        classes.push("nordea-transfer-row");
+        classes.push("bank-transfer-row");
     }
     return classes.length > 0 ? classes.join(" ") : undefined;
 }
 
-function descriptionLabelForRow(row: NordeaDisplayRow): string {
+function descriptionLabelForRow(row: BankDisplayRow): string {
     const note = row.note.trim();
     return note ? `${row.transaction.description} (${note})` : row.transaction.description;
 }
 
-function transactionTextForRow(row: NordeaDisplayRow): string {
+function transactionTextForRow(row: BankDisplayRow): string {
     const hashtags = (row.transaction.hashtags ?? []).flatMap((tag) => {
         const normalizedTag = normalizeHashtag(tag);
         return normalizedTag ? [normalizedTag, `#${normalizedTag}`] : [];
@@ -542,7 +542,7 @@ function transactionTextForRow(row: NordeaDisplayRow): string {
     ].filter(Boolean).join(" ");
 }
 
-function rowHasHashtag(row: NordeaDisplayRow, hashtag: string): boolean {
+function rowHasHashtag(row: BankDisplayRow, hashtag: string): boolean {
     const normalizedTag = normalizeHashtag(hashtag);
     if (!normalizedTag) {
         return false;
@@ -553,11 +553,11 @@ function rowHasHashtag(row: NordeaDisplayRow, hashtag: string): boolean {
     ].some((tag) => normalizeHashtag(tag) === normalizedTag);
 }
 
-function isPendingReview(transaction: NordeaTransaction): boolean {
+function isPendingReview(transaction: BankTransaction): boolean {
     return Boolean(transaction.pending_review);
 }
 
-function transactionSortValueForRow(row: NordeaDisplayRow, sortKey: SortKey): string | number {
+function transactionSortValueForRow(row: BankDisplayRow, sortKey: SortKey): string | number {
     if (sortKey === "booking_date") {
         return row.transaction.booking_date || "";
     }
@@ -574,19 +574,19 @@ function roundAmount(value: number): number {
     return Math.round(value * 100) / 100;
 }
 
-function isUncategorizedCategory(category: NordeaCategoryOption | null | undefined): boolean {
+function isUncategorizedCategory(category: BankCategoryOption | null | undefined): boolean {
     return !category || category.categoryName === "Ikke kategoriseret";
 }
 
-function hasEffectiveSplit(transaction: NordeaTransaction): boolean {
+function hasEffectiveSplit(transaction: BankTransaction): boolean {
     return (transaction.splits ?? []).length > 1 || Boolean(transaction.split_group_id);
 }
 
-function hasEmbeddedSplit(transaction: NordeaTransaction): boolean {
+function hasEmbeddedSplit(transaction: BankTransaction): boolean {
     return (transaction.splits ?? []).length > 1;
 }
 
-function splitLineSortKey(transaction: NordeaTransaction): [number, string] {
+function splitLineSortKey(transaction: BankTransaction): [number, string] {
     return [transaction.split_line_index ?? 999999, transaction.id];
 }
 
@@ -598,13 +598,13 @@ function isGatewayTimeoutError(error: unknown): boolean {
 }
 
 function rowMatchesFilters(
-    row: NordeaDisplayRow,
+    row: BankDisplayRow,
     filters: {
         periodFilter: PeriodFilter;
         periodStart?: string;
         periodEnd?: string;
         visibilityFilter: VisibilityFilter;
-        categoryFilter: NordeaCategoryOption | null;
+        categoryFilter: BankCategoryOption | null;
         searchText: string;
         showTransfersAlways: boolean;
     }
@@ -647,7 +647,7 @@ function rowMatchesFilters(
     return !needle || transactionTextForRow(row).toLowerCase().includes(needle);
 }
 
-function categoryOptionFromSpiirTransactions(items: SpiirTransaction[]): NordeaCategoryOption | null {
+function categoryOptionFromSpiirTransactions(items: SpiirTransaction[]): BankCategoryOption | null {
     const first = items[0];
     if (!first || first.categoryId === null || first.categoryId === undefined) {
         return null;
@@ -666,7 +666,7 @@ function categoryOptionFromSpiirTransactions(items: SpiirTransaction[]): NordeaC
     };
 }
 
-function periodFilterFromSpiirTransactions(items: SpiirTransaction[]): NordeaDrilldownFilter["periodFilter"] {
+function periodFilterFromSpiirTransactions(items: SpiirTransaction[]): BankDrilldownFilter["periodFilter"] {
     const months = [...new Set(items.map((item) => item.yyyymm).filter(Boolean))];
     if (months.length === 1) {
         return `month:${months[0]}`;
@@ -675,9 +675,9 @@ function periodFilterFromSpiirTransactions(items: SpiirTransaction[]): NordeaDri
     return years.length === 1 ? `year:${years[0]}` : "all";
 }
 
-function buildDisplayRows(transactions: NordeaTransaction[]): NordeaDisplayRow[] {
+function buildDisplayRows(transactions: BankTransaction[]): BankDisplayRow[] {
     const splitChildIds = new Set<string>();
-    const canonicalSplitGroups = new Map<string, NordeaTransaction[]>();
+    const canonicalSplitGroups = new Map<string, BankTransaction[]>();
     const renderedCanonicalGroups = new Set<string>();
     for (const transaction of transactions) {
         const groupId = transaction.split_group_id?.trim();
@@ -694,7 +694,7 @@ function buildDisplayRows(transactions: NordeaTransaction[]): NordeaDisplayRow[]
         }
     }
 
-    return transactions.flatMap<NordeaDisplayRow>((transaction) => {
+    return transactions.flatMap<BankDisplayRow>((transaction) => {
         if (splitChildIds.has(transaction.id)) {
             return [];
         }
@@ -756,7 +756,7 @@ function compareText(left: string, right: string): number {
     return left.localeCompare(right, "da", { sensitivity: "base" });
 }
 
-function transactionSortValue(transaction: NordeaTransaction, sortKey: SortKey): string | number {
+function transactionSortValue(transaction: BankTransaction, sortKey: SortKey): string | number {
     if (sortKey === "booking_date") {
         return transaction.booking_date || "";
     }
@@ -782,9 +782,9 @@ function CategorySelect({
     searchOnly = false,
     bubbleClosedTableKeys = false
 }: {
-    categories: NordeaCategoryOption[];
+    categories: BankCategoryOption[];
     value: string;
-    onChange: (category: NordeaCategoryOption | null) => void;
+    onChange: (category: BankCategoryOption | null) => void;
     allowMainSelection?: boolean;
     disabled?: boolean;
     placeholder?: string;
@@ -804,7 +804,7 @@ function CategorySelect({
     const [submenuStyle, setSubmenuStyle] = useState<CSSProperties>({});
     const normalizedQuery = query.trim().toLowerCase();
     const categoryGroups = useMemo(() => {
-        const byMain = new Map<string, NordeaCategoryOption[]>();
+        const byMain = new Map<string, BankCategoryOption[]>();
         categories.forEach((category) => {
             const mainName = spiirMenuMainName(category);
             byMain.set(mainName, [...(byMain.get(mainName) ?? []), category]);
@@ -850,7 +850,7 @@ function CategorySelect({
         if (!normalizedQuery) {
             return [];
         }
-        const results: { category: NordeaCategoryOption; alias: string; ranking: number }[] = [];
+        const results: { category: BankCategoryOption; alias: string; ranking: number }[] = [];
         for (const category of allCategories) {
             const labelRanking = spiirSearchRank(category.categoryName, normalizedQuery);
             if (labelRanking > 0) {
@@ -978,7 +978,7 @@ function CategorySelect({
         return () => window.cancelAnimationFrame(frame);
     }, [open, normalizedQuery, activeGroup?.mainName]);
 
-    function selectCategory(category: NordeaCategoryOption): void {
+    function selectCategory(category: BankCategoryOption): void {
         onChange(category);
         setQuery("");
         setOpen(false);
@@ -1006,7 +1006,7 @@ function CategorySelect({
         }
     }
 
-    function optionSubtitle(category: NordeaCategoryOption): string {
+    function optionSubtitle(category: BankCategoryOption): string {
         const alias = normalizedQuery
             ? (category.search_aliases ?? []).find((item) => item.toLowerCase().includes(normalizedQuery))
             : null;
@@ -1037,9 +1037,9 @@ function CategorySelect({
     }
 
     const categoryOptions = open && (!searchOnly || normalizedQuery) ? (
-        <div className="nordea-category-options" ref={menuRef} style={menuStyle}>
+        <div className="bank-category-options" ref={menuRef} style={menuStyle}>
             {normalizedQuery ? (
-                <div className="nordea-category-search-list">
+                <div className="bank-category-search-list">
                     {searchResults.map((result) => (
                         <button
                             type="button"
@@ -1059,7 +1059,7 @@ function CategorySelect({
                 </div>
             ) : (
                 <>
-                    <div className="nordea-category-main-list">
+                    <div className="bank-category-main-list">
                         {categoryGroups.map((group) => (
                             <button
                                 type="button"
@@ -1101,11 +1101,11 @@ function CategorySelect({
                                 })()}
                             >
                                 <span>{group.mainName}</span>
-                                {group.mainName === "Ikke kategoriseret" ? null : <span className="nordea-category-arrow">›</span>}
+                                {group.mainName === "Ikke kategoriseret" ? null : <span className="bank-category-arrow">›</span>}
                             </button>
                         ))}
                     </div>
-                        {activeGroup?.mainName === "Ikke kategoriseret" ? null : <div className="nordea-category-sub-list" style={submenuStyle}>
+                        {activeGroup?.mainName === "Ikke kategoriseret" ? null : <div className="bank-category-sub-list" style={submenuStyle}>
                         {activeGroup?.categories.map((category) => (
                             <button
                                 type="button"
@@ -1125,12 +1125,12 @@ function CategorySelect({
                     </div>}
                 </>
             )}
-            {normalizedQuery && filteredCategories.length === 0 ? <span className="nordea-category-empty">Ingen match</span> : null}
+            {normalizedQuery && filteredCategories.length === 0 ? <span className="bank-category-empty">Ingen match</span> : null}
         </div>
     ) : null;
 
     return (
-        <div className={searchOnly ? "nordea-category-picker search-only" : "nordea-category-picker"} ref={pickerRef}>
+        <div className={searchOnly ? "bank-category-picker search-only" : "bank-category-picker"} ref={pickerRef}>
             <input
                 ref={inputRef}
                 type="text"
@@ -1324,7 +1324,7 @@ function HashtagTextarea({
     onKeyDown,
 }: {
     value: string;
-    hashtags: NordeaHashtagOption[];
+    hashtags: BankHashtagOption[];
     rows?: number;
     placeholder?: string;
     onChange: (value: string) => void;
@@ -1364,7 +1364,7 @@ function HashtagTextarea({
         setCaret(element.selectionStart);
     }
 
-    function selectSuggestion(hashtag: NordeaHashtagOption): void {
+    function selectSuggestion(hashtag: BankHashtagOption): void {
         if (!token || caret === null) {
             return;
         }
@@ -1377,7 +1377,7 @@ function HashtagTextarea({
     }
 
     return (
-        <div className="nordea-note-suggest-wrap">
+        <div className="bank-note-suggest-wrap">
             <textarea
                 ref={textareaRef}
                 value={value}
@@ -1417,7 +1417,7 @@ function HashtagTextarea({
                 }}
             />
             {suggestions.length > 0 ? (
-                <div className="nordea-note-suggest-list">
+                <div className="bank-note-suggest-list">
                     {suggestions.map((hashtag, index) => (
                         <button
                             type="button"
@@ -1445,7 +1445,7 @@ function NoteEditor({
 }: {
     entityId: string;
     note: string;
-    hashtags: NordeaHashtagOption[];
+    hashtags: BankHashtagOption[];
     saving: boolean;
     onSave: (note: string) => void;
 }) {
@@ -1503,7 +1503,7 @@ function SearchField({
     }, [value, resetKey]);
 
     return (
-        <div className="nordea-search-input-wrap">
+        <div className="bank-search-input-wrap">
             <input
                 ref={inputRef}
                 type="search"
@@ -1525,7 +1525,7 @@ function SearchField({
             {draft ? (
                 <button
                     type="button"
-                    className="nordea-search-clear"
+                    className="bank-search-clear"
                     aria-label="Nulstil søgning"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => {
@@ -1571,7 +1571,7 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
     const barWidth = Math.min(38, Math.max(22, step * 0.55));
     const hoveredCenterX = hoveredIndex >= 0 ? plot.left + step * hoveredIndex + step / 2 : null;
     const tooltipStyle = hoveredCenterX === null ? undefined : ({
-        "--nordea-income-tooltip-x": `${(hoveredCenterX / 650) * 100}%`,
+        "--bank-income-tooltip-x": `${(hoveredCenterX / 650) * 100}%`,
     } as CSSProperties);
     const mobileMax = Math.max(1, ...mobileMonths.flatMap((month) => [month.income, month.expense]));
     const mobileAverageIncome = mobileMonths.length ? mobileMonths.reduce((sum, month) => sum + month.income, 0) / mobileMonths.length : 0;
@@ -1594,23 +1594,23 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
     }
 
     return (
-        <section className="nordea-income-overview" aria-label="Indkomst og udgifter">
-            <div className="nordea-income-desktop">
-                <div className="nordea-income-chart-head">
+        <section className="bank-income-overview" aria-label="Indkomst og udgifter">
+            <div className="bank-income-desktop">
+                <div className="bank-income-chart-head">
                     <select value={activePeriod?.label ?? periodLabel} onChange={(event) => setPeriodLabel(event.target.value)}>
                         {series.periods.map((period) => (
                             <option key={period.label} value={period.label}>{period.label}</option>
                         ))}
                     </select>
                 </div>
-                <div className="nordea-income-svg-wrap" onMouseLeave={() => setHoveredMonth(null)}>
+                <div className="bank-income-svg-wrap" onMouseLeave={() => setHoveredMonth(null)}>
                     <svg viewBox="0 0 650 220" role="img" aria-label="Indkomst og udgifter pr. måned">
                         {[-roundedMax, 0, roundedMax].map((tick) => {
                             const y = scale(tick);
                             return (
                                 <g key={tick}>
-                                    <line x1={plot.left} x2={plot.left + plot.width} y1={y} y2={y} className="nordea-income-grid" />
-                                    <text x={plot.left - 8} y={y + 4} textAnchor="end" className="nordea-income-axis-label">{formatChartAmount(tick)}</text>
+                                    <line x1={plot.left} x2={plot.left + plot.width} y1={y} y2={y} className="bank-income-grid" />
+                                    <text x={plot.left - 8} y={y + 4} textAnchor="end" className="bank-income-axis-label">{formatChartAmount(tick)}</text>
                                 </g>
                             );
                         })}
@@ -1621,16 +1621,16 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
                             const isHover = hoveredMonth === month.month;
                             return (
                                 <g key={month.month} onMouseEnter={() => setHoveredMonth(month.month)}>
-                                    <rect x={centerX - barWidth / 2} y={incomeY} width={barWidth} height={zeroY - incomeY} className={month.is_current_month ? "nordea-income-bar current" : "nordea-income-bar"} />
-                                    <rect x={centerX - barWidth / 2} y={zeroY} width={barWidth} height={expenseY - zeroY} className={month.is_current_month ? "nordea-expense-bar current" : "nordea-expense-bar"} />
-                                    <line x1={centerX} x2={centerX} y1={zeroY} y2={zeroY + 5} className="nordea-income-tick" />
-                                    <text x={centerX} y={plot.top + plot.height + 20} textAnchor="middle" className="nordea-income-axis-label">{shortMonthLabel(month.month)}</text>
+                                    <rect x={centerX - barWidth / 2} y={incomeY} width={barWidth} height={zeroY - incomeY} className={month.is_current_month ? "bank-income-bar current" : "bank-income-bar"} />
+                                    <rect x={centerX - barWidth / 2} y={zeroY} width={barWidth} height={expenseY - zeroY} className={month.is_current_month ? "bank-expense-bar current" : "bank-expense-bar"} />
+                                    <line x1={centerX} x2={centerX} y1={zeroY} y2={zeroY + 5} className="bank-income-tick" />
+                                    <text x={centerX} y={plot.top + plot.height + 20} textAnchor="middle" className="bank-income-axis-label">{shortMonthLabel(month.month)}</text>
                                     <rect
                                         x={centerX - step / 2}
                                         y={plot.top}
                                         width={step}
                                         height={plot.height}
-                                        className={isHover ? "nordea-income-hover-zone active clickable" : "nordea-income-hover-zone clickable"}
+                                        className={isHover ? "bank-income-hover-zone active clickable" : "bank-income-hover-zone clickable"}
                                         role="button"
                                         tabIndex={0}
                                         aria-label={`Åbn Spiir sunburst for ${longMonthLabel(month.month)}`}
@@ -1647,7 +1647,7 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
                         })}
                         <polyline
                             points={desktopMonths.map((month, index) => `${plot.left + step * index + step / 2},${scale(month.net)}`).join(" ")}
-                            className="nordea-net-line"
+                            className="bank-net-line"
                         />
                         {desktopMonths.map((month, index) => {
                             const centerX = plot.left + step * index + step / 2;
@@ -1659,7 +1659,7 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
                                     cx={centerX}
                                     cy={y}
                                     r={isHover ? 6 : 4}
-                                    className={isHover ? "nordea-net-point active clickable" : "nordea-net-point clickable"}
+                                    className={isHover ? "bank-net-point active clickable" : "bank-net-point clickable"}
                                     role="button"
                                     tabIndex={0}
                                     aria-label={`Åbn Spiir sunburst for ${longMonthLabel(month.month)}`}
@@ -1675,7 +1675,7 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
                         })}
                     </svg>
                     {hovered ? (
-                        <div className="nordea-income-tooltip" style={tooltipStyle}>
+                        <div className="bank-income-tooltip" style={tooltipStyle}>
                             <div>
                                 <small>{longMonthLabel(hovered.month)}</small>
                                 <span>RESULTAT</span>
@@ -1691,17 +1691,17 @@ function IncomeExpenseOverview({ series, onOpenSunburst }: { series: SpiirIncome
                     ) : null}
                 </div>
             </div>
-            <div className="nordea-income-mobile">
+            <div className="bank-income-mobile">
                 {selectedMobile ? (
-                    <div className="nordea-income-mobile-head">
+                    <div className="bank-income-mobile-head">
                         <div><span>{monthLabel(selectedMobile.month)}</span><strong>{formatWholeDkk(selectedMobile.income)}</strong><small>Gns. {formatWholeDkk(mobileAverageIncome)}</small></div>
                         <div><span>Udgifter</span><strong>{formatWholeDkk(selectedMobile.expense)}</strong><small>Gns. {formatWholeDkk(mobileAverageExpense)}</small></div>
                     </div>
                 ) : null}
-                <div className="nordea-income-mobile-bars">
+                <div className="bank-income-mobile-bars">
                     {mobileMonths.map((month) => (
                         <button key={month.month} type="button" className={selectedMobile?.month === month.month ? "active" : ""} onClick={() => setSelectedMobileMonth(month.month)}>
-                            <span className="nordea-income-mobile-bar-stack">
+                            <span className="bank-income-mobile-bar-stack">
                                 <i className="income" style={{ height: `${Math.max(2, (month.income / mobileMax) * 74)}px` }} />
                                 <i className="expense" style={{ height: `${Math.max(2, (month.expense / mobileMax) * 74)}px` }} />
                             </span>
@@ -1725,15 +1725,15 @@ function MobileReviewRow({
     onCategoryChange,
     onSplit,
 }: {
-    row: NordeaDisplayRow;
+    row: BankDisplayRow;
     expanded: boolean;
-    categories: NordeaCategoryOption[];
-    hashtags: NordeaHashtagOption[];
+    categories: BankCategoryOption[];
+    hashtags: BankHashtagOption[];
     editControlsDisabled: boolean;
-    onOpen: (row: NordeaDisplayRow, focusCategoryInput?: boolean) => void;
-    onClose: (row: NordeaDisplayRow, note: string) => void;
-    onCategoryChange: (row: NordeaDisplayRow, category: NordeaCategoryOption) => void;
-    onSplit: (row: NordeaDisplayRow) => void;
+    onOpen: (row: BankDisplayRow, focusCategoryInput?: boolean) => void;
+    onClose: (row: BankDisplayRow, note: string) => void;
+    onCategoryChange: (row: BankDisplayRow, category: BankCategoryOption) => void;
+    onSplit: (row: BankDisplayRow) => void;
 }) {
     const [noteText, setNoteText] = useState(row.note);
     const note = row.note.trim();
@@ -1747,25 +1747,25 @@ function MobileReviewRow({
 
     return (
         <article
-            id={`nordea-mobile-row-${row.rowId}`}
+            id={`bank-mobile-row-${row.rowId}`}
             className={[
-                "nordea-mobile-row",
+                "bank-mobile-row",
                 expanded ? "expanded" : null,
                 !expanded && pending ? "pending" : null,
                 isTransferCategory(row.category) ? "transfer" : null,
             ].filter(Boolean).join(" ")}
             onClick={() => onOpen(row, !expanded && isUncategorizedCategory(row.category))}
         >
-            <div className="nordea-mobile-row-main">
-                <div className="nordea-mobile-row-text">
+            <div className="bank-mobile-row-main">
+                <div className="bank-mobile-row-text">
                     <strong>{row.transaction.description}</strong>
                     <span>{isUncategorizedCategory(row.category) ? "Ikke kategoriseret" : categoryLabelForRow(row)}</span>
                     {note ? <em>{note}</em> : null}
                 </div>
-                <div className="nordea-mobile-row-meta">
+                <div className="bank-mobile-row-meta">
                     <strong className={row.amount > 0 ? "positive" : ""}>{formatMobileAmount(row.amount)}</strong>
                     <span>{formatMobileTxDate(row.transaction.booking_date)}</span>
-                    <div className="nordea-mobile-markers">
+                    <div className="bank-mobile-markers">
                         {pending ? <small>Pending</small> : null}
                         {row.isSplitChild ? <small>Split</small> : null}
                         {row.transaction.is_extraordinary ? <small>Ekstra</small> : null}
@@ -1773,7 +1773,7 @@ function MobileReviewRow({
                 </div>
             </div>
             {expanded ? (
-                <div className="nordea-mobile-row-editor" onClick={(event) => event.stopPropagation()}>
+                <div className="bank-mobile-row-editor" onClick={(event) => event.stopPropagation()}>
                     <label>
                         Kategori
                         <CategorySelect
@@ -1790,8 +1790,8 @@ function MobileReviewRow({
                         Note
                         <HashtagTextarea value={noteText} hashtags={hashtags} onChange={setNoteText} rows={3} placeholder="Skriv note og tags" />
                     </label>
-                    <div className="nordea-mobile-row-actions">
-                        <button type="button" className="nordea-mobile-split-action" onClick={() => onSplit(row)} disabled={editControlsDisabled}>
+                    <div className="bank-mobile-row-actions">
+                        <button type="button" className="bank-mobile-split-action" onClick={() => onSplit(row)} disabled={editControlsDisabled}>
                             Split
                         </button>
                         <button type="button" onClick={() => onClose(row, noteText)} disabled={editControlsDisabled}>
@@ -1819,29 +1819,29 @@ function SortHeader({
 }) {
     const active = sortKey === activeSortKey;
     return (
-        <button type="button" className={active ? "nordea-sort-header active" : "nordea-sort-header"} onClick={() => onSort(sortKey)}>
+        <button type="button" className={active ? "bank-sort-header active" : "bank-sort-header"} onClick={() => onSort(sortKey)}>
             <span>{label}</span>
             <span aria-hidden="true">{active ? (direction === "asc" ? "▲" : "▼") : ""}</span>
         </button>
     );
 }
 
-export default function NordeaDashboard({
+export default function BankDashboard({
     active,
-    source = "nordea",
+    source = "bank",
     embedded = false,
     initialFilter = null,
     onClose,
 }: {
     active: boolean;
-    source?: "nordea" | "local-ledger";
+    source?: "bank" | "local-ledger";
     embedded?: boolean;
-    initialFilter?: NordeaDrilldownFilter | null;
+    initialFilter?: BankDrilldownFilter | null;
     onClose?: () => void;
 }) {
     const isLocalLedgerSource = source === "local-ledger";
-    const [data, setData] = useState<NordeaTransactionsResponse | null>(null);
-    const [taxonomy, setTaxonomy] = useState<NordeaTaxonomyResponse>({ categories: [], hashtags: [] });
+    const [data, setData] = useState<BankTransactionsResponse | null>(null);
+    const [taxonomy, setTaxonomy] = useState<BankTaxonomyResponse>({ categories: [], hashtags: [] });
     const [loading, setLoading] = useState(false);
     const [retrieving, setRetrieving] = useState(false);
     const [retrieveChecking, setRetrieveChecking] = useState(false);
@@ -1849,7 +1849,7 @@ export default function NordeaDashboard({
     const [retrieveProgress, setRetrieveProgress] = useState(0);
     const [retrieveExpectedMs, setRetrieveExpectedMs] = useState(120000);
     const [retrieveStartedAt, setRetrieveStartedAt] = useState<number | null>(null);
-    const [retrieveJobStatus, setRetrieveJobStatus] = useState<NordeaRetrieveJobStatus | null>(null);
+    const [retrieveJobStatus, setRetrieveJobStatus] = useState<BankRetrieveJobStatus | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [spiirStatus, setSpiirStatus] = useState<SpiirStatusResponse | null>(null);
@@ -1857,12 +1857,12 @@ export default function NordeaDashboard({
     const [spiirOverview, setSpiirOverview] = useState<SpiirOverviewResponse | null>(null);
     const [spiirTransactions, setSpiirTransactions] = useState<SpiirTransaction[] | null>(null);
     const [sunburstState, setSunburstState] = useState<SunburstState>(null);
-    const [sunburstDrilldownModal, setSunburstDrilldownModal] = useState<NordeaDrilldownFilter | null>(null);
+    const [sunburstDrilldownModal, setSunburstDrilldownModal] = useState<BankDrilldownFilter | null>(null);
     const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(initialFilter?.periodFilter ?? "all");
     const [customPeriodStart, setCustomPeriodStart] = useState(initialFilter?.periodStart ?? "");
     const [customPeriodEnd, setCustomPeriodEnd] = useState(initialFilter?.periodEnd ?? "");
     const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(initialFilter?.visibilityFilter ?? "all");
-    const [categoryFilter, setCategoryFilter] = useState<NordeaCategoryOption | null>(initialFilter?.categoryFilter ?? null);
+    const [categoryFilter, setCategoryFilter] = useState<BankCategoryOption | null>(initialFilter?.categoryFilter ?? null);
     const [showTransfersAlways, setShowTransfersAlways] = useState(true);
     const [visibilityPanelOpen, setVisibilityPanelOpen] = useState(false);
     const [searchText, setSearchText] = useState(initialFilter?.searchText ?? "");
@@ -1902,11 +1902,11 @@ export default function NordeaDashboard({
     const saving = pendingSaveCount > 0;
     const editControlsDisabled = saving && !isLocalLedgerSource;
 
-    async function loadTransactions(options?: { limit?: number; offset?: number }): Promise<NordeaTransactionsResponse> {
+    async function loadTransactions(options?: { limit?: number; offset?: number }): Promise<BankTransactionsResponse> {
         if (isLocalLedgerSource) {
             return getSpiirLocalLedgerTransactionsPage(options);
         }
-        return getNordeaTransactions();
+        return getBankTransactions();
     }
 
     async function ensureAllTransactionsLoaded(): Promise<void> {
@@ -1993,7 +1993,7 @@ export default function NordeaDashboard({
             const transactionsPromise = isLocalLedgerSource
                 ? loadTransactions(localLedgerFirstPage(LOCAL_LEDGER_INITIAL_LIMIT))
                 : loadTransactions();
-            void getNordeaTaxonomy()
+            void getBankTaxonomy()
                 .then((nextTaxonomy) => {
                     if (requestId !== loadRequestIdRef.current) {
                         return;
@@ -2004,7 +2004,7 @@ export default function NordeaDashboard({
                     if (requestId !== loadRequestIdRef.current) {
                         return;
                     }
-                    setError(loadError instanceof Error ? loadError.message : "Kunne ikke hente Nordea metadata");
+                    setError(loadError instanceof Error ? loadError.message : "Kunne ikke hente Bank metadata");
                 });
             const nextData = await transactionsPromise;
             if (requestId !== loadRequestIdRef.current) {
@@ -2012,7 +2012,7 @@ export default function NordeaDashboard({
             }
             setData(nextData);
             setAllTransactionsLoaded(!isLocalLedgerSource || computeAllTransactionsLoaded(nextData));
-            void getNordeaRetrieveStatus()
+            void getBankRetrieveStatus()
                 .then(async (status) => {
                     if (requestId !== loadRequestIdRef.current) {
                         return;
@@ -2038,7 +2038,7 @@ export default function NordeaDashboard({
                         if (requestId !== loadRequestIdRef.current) {
                             return;
                         }
-                        setError(loadError instanceof Error ? loadError.message : "Kunne ikke hente Nordea metadata");
+                        setError(loadError instanceof Error ? loadError.message : "Kunne ikke hente Bank metadata");
                     });
                 void getSpiirIncomeExpenseSeries()
                     .then((series) => {
@@ -2084,7 +2084,7 @@ export default function NordeaDashboard({
         void scheduleSpiirRebuildFromLocal(delaySeconds).catch(() => undefined);
     }
 
-    function nordeaSyncNotice(syncResult: Pick<Awaited<ReturnType<typeof syncNordeaIntoSpiirLocalLedger>>, "created_count" | "autocategorized_count" | "updated_count">): string {
+    function bankSyncNotice(syncResult: Pick<Awaited<ReturnType<typeof syncBankIntoSpiirLocalLedger>>, "created_count" | "autocategorized_count" | "updated_count">): string {
         const parts = [];
         if (syncResult.created_count > 0) {
             parts.push(`${syncResult.created_count} nye pending`);
@@ -2096,12 +2096,12 @@ export default function NordeaDashboard({
             parts.push(`${syncResult.updated_count} opdaterede`);
         }
         if (parts.length === 0) {
-            return "Nordea-data er opdateret: ingen nye ændringer.";
+            return "Bank-data er opdateret: ingen nye ændringer.";
         }
-        return `Nordea-data er opdateret: ${parts.join(", ")}. Spiir opdateres automatisk i baggrunden.`;
+        return `Bank-data er opdateret: ${parts.join(", ")}. Spiir opdateres automatisk i baggrunden.`;
     }
 
-    function nordeaSyncChanged(syncResult: Pick<Awaited<ReturnType<typeof syncNordeaIntoSpiirLocalLedger>>, "created_count" | "autocategorized_count" | "updated_count"> | null | undefined): boolean {
+    function bankSyncChanged(syncResult: Pick<Awaited<ReturnType<typeof syncBankIntoSpiirLocalLedger>>, "created_count" | "autocategorized_count" | "updated_count"> | null | undefined): boolean {
         return Boolean(syncResult && (syncResult.created_count > 0 || syncResult.autocategorized_count > 0 || syncResult.updated_count > 0));
     }
 
@@ -2118,20 +2118,20 @@ export default function NordeaDashboard({
         }
     }
 
-    async function pollNordeaRetrieveJob(): Promise<NordeaRetrieveJobStatus> {
+    async function pollBankRetrieveJob(): Promise<BankRetrieveJobStatus> {
         for (let attempt = 0; attempt < 180; attempt += 1) {
-            const status = await getNordeaRetrieveStatus();
+            const status = await getBankRetrieveStatus();
             setRetrieveJobStatus(status);
             setRetrieveProgress(Math.max(0, Math.min(100, status.progress)));
             if (status.status === "succeeded") {
                 return status;
             }
             if (status.status === "failed") {
-                throw new Error(status.error || "Nordea-hentning fejlede");
+                throw new Error(status.error || "Bank-hentning fejlede");
             }
             await wait(1500);
         }
-        throw new Error("Nordea-hentning tager længere end forventet. Åbn siden igen om lidt for status.");
+        throw new Error("Bank-hentning tager længere end forventet. Åbn siden igen om lidt for status.");
     }
 
     async function handleRetrieve(): Promise<void> {
@@ -2145,21 +2145,21 @@ export default function NordeaDashboard({
         setRetrieveJobStatus(null);
         setRetrieving(true);
         try {
-            setRetrieveJobStatus(await startNordeaRetrieveJob());
-            const completedStatus = await pollNordeaRetrieveJob();
+            setRetrieveJobStatus(await startBankRetrieveJob());
+            const completedStatus = await pollBankRetrieveJob();
             await reloadTransactionsAfterRetrieve();
             invalidateSpiirCache();
-            if (isLocalLedgerSource && nordeaSyncChanged(completedStatus.sync_result)) {
-                markSpiirRebuildRequired("nordea_sync");
+            if (isLocalLedgerSource && bankSyncChanged(completedStatus.sync_result)) {
+                markSpiirRebuildRequired("bank_sync");
                 scheduleSpiirRebuild();
             }
             if (completedStatus.sync_result) {
-                setNotice(nordeaSyncNotice(completedStatus.sync_result));
+                setNotice(bankSyncNotice(completedStatus.sync_result));
             } else {
-                setNotice("Nordea-data er opdateret.");
+                setNotice("Bank-data er opdateret.");
             }
         } catch (retrieveError) {
-            setError(retrieveError instanceof Error ? retrieveError.message : "Kunne ikke hente fra Nordea");
+            setError(retrieveError instanceof Error ? retrieveError.message : "Kunne ikke hente fra Bank");
         } finally {
             setRetrieving(false);
         }
@@ -2251,7 +2251,7 @@ export default function NordeaDashboard({
         return run;
     }
 
-    function savePatch(transactionIds: string[], patch: NordeaOverridePatch): Promise<boolean> {
+    function savePatch(transactionIds: string[], patch: BankOverridePatch): Promise<boolean> {
         setError(null);
         return enqueueSave(async () => {
             try {
@@ -2260,12 +2260,12 @@ export default function NordeaDashboard({
                     markSpiirRebuildRequired("local_ledger_override");
                     setData((current) => mergeUpdatedTransactions(current, result.updated_transactions, result.deleted_transaction_ids));
                 } else {
-                    await saveNordeaOverrides(transactionIds, patch);
+                    await saveBankOverrides(transactionIds, patch);
                     setData(await loadTransactions());
                 }
                 return true;
             } catch (saveError) {
-                setError(saveError instanceof Error ? saveError.message : "Kunne ikke gemme Nordea-ændring");
+                setError(saveError instanceof Error ? saveError.message : "Kunne ikke gemme Bank-ændring");
                 return false;
             }
         });
@@ -2287,10 +2287,10 @@ export default function NordeaDashboard({
     }
 
     useEffect(() => {
-        if (active && data === null && !loading) {
+        if (active && data === null && !loading && !error) {
             void load();
         }
-    }, [active, data, loading]);
+    }, [active, data, loading, error]);
 
     const requiresAllTransactions = isLocalLedgerSource && (
         embedded
@@ -2347,7 +2347,7 @@ export default function NordeaDashboard({
         return { months, years };
     }, [transactions]);
     const categoryFilterOptions = useMemo(() => {
-        const byMain = new Map<string, { mainName: string; categories: NordeaCategoryOption[] }>();
+        const byMain = new Map<string, { mainName: string; categories: BankCategoryOption[] }>();
         taxonomy.categories.forEach((category) => {
             const mainId = categoryMainId(category);
             const current = byMain.get(mainId) ?? {
@@ -2474,7 +2474,7 @@ export default function NordeaDashboard({
         function closeOnOutside(event: MouseEvent): void {
             const target = event.target as Node;
             const targetElement = target instanceof Element ? target : null;
-            const insideCategoryPortal = Boolean(targetElement?.closest(".nordea-category-options"));
+            const insideCategoryPortal = Boolean(targetElement?.closest(".bank-category-options"));
             if (!visibilityPanelRef.current?.contains(target) && !visibilityButtonRef.current?.contains(target) && !insideCategoryPortal) {
                 setVisibilityPanelOpen(false);
             }
@@ -2514,7 +2514,7 @@ export default function NordeaDashboard({
         }
         const table = tableContainer.querySelector("table");
         const tableHead = tableContainer.querySelector("thead");
-        const selectedRows = Array.from(tableContainer.querySelectorAll<HTMLTableRowElement>("tbody tr.nordea-selected-row"));
+        const selectedRows = Array.from(tableContainer.querySelectorAll<HTMLTableRowElement>("tbody tr.bank-selected-row"));
         if (!table || selectedRows.length === 0) {
             setEditPanelTop(0);
             return;
@@ -2665,10 +2665,10 @@ export default function NordeaDashboard({
             if (!(target instanceof Element)) {
                 return false;
             }
-            if (target.closest(".nordea-category-picker")) {
+            if (target.closest(".bank-category-picker")) {
                 return false;
             }
-            if (target instanceof HTMLInputElement && target.type === "checkbox" && target.closest(".nordea-posting-table-container")) {
+            if (target instanceof HTMLInputElement && target.type === "checkbox" && target.closest(".bank-posting-table-container")) {
                 return false;
             }
             const isEditable = target instanceof HTMLInputElement
@@ -2740,7 +2740,7 @@ export default function NordeaDashboard({
         return () => document.removeEventListener("keydown", handleDocumentKeyDown);
     }, [active, isMobileLayout, selectedIds, splitModalOpen, sunburstDrilldownModal, visibilityPanelOpen, visibleRowIds]);
 
-    function transactionWithCategory(transaction: NordeaTransaction, category: NordeaCategoryOption): NordeaTransaction {
+    function transactionWithCategory(transaction: BankTransaction, category: BankCategoryOption): BankTransaction {
         return {
             ...transaction,
             categoryType: category.categoryType,
@@ -2751,7 +2751,7 @@ export default function NordeaDashboard({
         };
     }
 
-    function transactionWithHashtag(transaction: NordeaTransaction, hashtag: string, checked: boolean): NordeaTransaction {
+    function transactionWithHashtag(transaction: BankTransaction, hashtag: string, checked: boolean): BankTransaction {
         const normalizedTag = normalizeHashtag(hashtag);
         if (!normalizedTag) {
             return transaction;
@@ -2782,7 +2782,7 @@ export default function NordeaDashboard({
         };
     }
 
-    function saveBulkCategory(category: NordeaCategoryOption): void {
+    function saveBulkCategory(category: BankCategoryOption): void {
         const parentIds = selectedParentIds;
         const parentIdSet = new Set(parentIds);
         setData((current) => {
@@ -2797,12 +2797,12 @@ export default function NordeaDashboard({
         void savePatch(parentIds, { category });
     }
 
-    function initialSplitCategory(transaction: NordeaTransaction): NordeaCategoryOption | null {
+    function initialSplitCategory(transaction: BankTransaction): BankCategoryOption | null {
         const category = categoryFromTransaction(transaction);
         return isUncategorizedCategory(category) ? null : category;
     }
 
-    function splitRowsForTransaction(transaction: NordeaTransaction): NordeaTransaction[] {
+    function splitRowsForTransaction(transaction: BankTransaction): BankTransaction[] {
         const groupId = transaction.split_group_id?.trim();
         if (!groupId) {
             return [transaction];
@@ -2817,11 +2817,11 @@ export default function NordeaDashboard({
         return groupRows.length > 0 ? groupRows : [transaction];
     }
 
-    function splitTotalAmount(transaction: NordeaTransaction): number {
+    function splitTotalAmount(transaction: BankTransaction): number {
         return splitRowsForTransaction(transaction).reduce((total, item) => total + item.amount, 0);
     }
 
-    function splitDisplayMultiplier(transaction: NordeaTransaction): number {
+    function splitDisplayMultiplier(transaction: BankTransaction): number {
         return splitTotalAmount(transaction) >= 0 ? 1 : -1;
     }
 
@@ -2874,7 +2874,7 @@ export default function NordeaDashboard({
             return;
         }
         const multiplier = splitDisplayMultiplier(selectedTransaction);
-        const payload: NordeaSplitLine[] = splitLines.map((line) => ({
+        const payload: BankSplitLine[] = splitLines.map((line) => ({
             id: line.id,
             amount: roundAmount(line.amount * multiplier),
             note: line.note,
@@ -2897,7 +2897,7 @@ export default function NordeaDashboard({
         }
     }
 
-    function saveRowCategory(row: NordeaDisplayRow, category: NordeaCategoryOption, selectNext = false): void {
+    function saveRowCategory(row: BankDisplayRow, category: BankCategoryOption, selectNext = false): void {
         if (row.isSplitChild && row.splitIndex !== null && hasEmbeddedSplit(row.transaction)) {
             const nextSplits = (row.transaction.splits ?? []).map((split, index) => index === row.splitIndex ? { ...split, category } : split);
             setData((current) => {
@@ -2939,7 +2939,7 @@ export default function NordeaDashboard({
         }
     }
 
-    function saveRowNote(row: NordeaDisplayRow, note: string): void {
+    function saveRowNote(row: BankDisplayRow, note: string): void {
         const nextHashtags = extractedHashtags(note);
         if (row.isSplitChild && row.splitIndex !== null && hasEmbeddedSplit(row.transaction)) {
             const nextSplits = (row.transaction.splits ?? []).map((split, index) => index === row.splitIndex ? { ...split, note } : split);
@@ -2976,7 +2976,7 @@ export default function NordeaDashboard({
         void savePatch([row.parentId], { note });
     }
 
-    function openMobileRow(row: NordeaDisplayRow, focusCategoryInput = false): void {
+    function openMobileRow(row: BankDisplayRow, focusCategoryInput = false): void {
         let opening = false;
         flushSync(() => {
             setExpandedMobileRowId((current) => {
@@ -2987,19 +2987,19 @@ export default function NordeaDashboard({
         if (!opening || !focusCategoryInput) {
             return;
         }
-        const input = document.getElementById(`nordea-mobile-row-${row.rowId}`)?.querySelector<HTMLInputElement>(".nordea-category-picker input");
+        const input = document.getElementById(`bank-mobile-row-${row.rowId}`)?.querySelector<HTMLInputElement>(".bank-category-picker input");
         input?.focus();
         input?.select();
     }
 
-    function closeMobileRow(row: NordeaDisplayRow, note: string): void {
+    function closeMobileRow(row: BankDisplayRow, note: string): void {
         if (note !== row.note) {
             saveRowNote(row, note);
         }
         setExpandedMobileRowId(null);
     }
 
-    function openMobileSplit(row: NordeaDisplayRow): void {
+    function openMobileSplit(row: BankDisplayRow): void {
         setSelectedIds([row.rowId]);
         lastSelectedRowIdRef.current = row.rowId;
         setExpandedMobileRowId(row.rowId);
@@ -3016,7 +3016,7 @@ export default function NordeaDashboard({
         setSortDirection(nextSortKey === "booking_date" || nextSortKey === "amount" ? "desc" : "asc");
     }
 
-    function openSplitModal(transaction: NordeaTransaction): void {
+    function openSplitModal(transaction: BankTransaction): void {
         const groupRows = splitRowsForTransaction(transaction);
         const parentAmount = Math.abs(splitTotalAmount(transaction));
         const multiplier = splitDisplayMultiplier(transaction);
@@ -3091,36 +3091,36 @@ export default function NordeaDashboard({
     const spiirNeedsRebuild = Boolean(isLocalLedgerSource && spiirStatus?.rebuild_required);
 
     return (
-        <section className={embedded ? "nordea-poster nordea-poster-embedded" : "nordea-poster"}>
+        <section className={embedded ? "bank-poster bank-poster-embedded" : "bank-poster"}>
             {embedded ? (
-                <header className="nordea-embedded-header">
+                <header className="bank-embedded-header">
                     <div>
-                        <p className="eyebrow">Nordea</p>
+                        <p className="eyebrow">Bank</p>
                         <h2>{initialFilter?.title ?? "Poster"}</h2>
                     </div>
                     {onClose ? <button type="button" className="secondary-button" onClick={onClose}>Luk</button> : null}
                 </header>
             ) : null}
             {!isLocalLedgerSource ? (
-                <header className="nordea-poster-header">
+                <header className="bank-poster-header">
                     <div>
-                        <h2>Nordea</h2>
+                        <h2>Bank</h2>
                         <span>{data?.last_retrieved_at ? `Senest hentet ${formatDateTime(data.last_retrieved_at)}` : "Rå transaktioner fra Enable Banking"}</span>
                     </div>
                 </header>
             ) : null}
             {error ? <p className="error-banner">{error}</p> : null}
             {retrievePanelOpen ? (
-                <section className="nordea-retrieve-panel" aria-live="polite">
-                    <p className="nordea-retrieve-panel-title">
+                <section className="bank-retrieve-panel" aria-live="polite">
+                    <p className="bank-retrieve-panel-title">
                         {retrieveChecking
                             ? "Tjekker om hentning blev færdig i baggrunden..."
-                            : retrieveJobStatus?.current_phase || "Henter seneste transaktioner fra Nordea..."}
+                            : retrieveJobStatus?.current_phase || "Henter seneste transaktioner fra Bank..."}
                     </p>
-                    <div className="nordea-retrieve-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={retrieveProgress}>
-                        <span className="nordea-retrieve-progress-fill" style={{ width: `${retrieveProgress}%` }} />
+                    <div className="bank-retrieve-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={retrieveProgress}>
+                        <span className="bank-retrieve-progress-fill" style={{ width: `${retrieveProgress}%` }} />
                     </div>
-                    <p className="nordea-retrieve-panel-meta">
+                    <p className="bank-retrieve-panel-meta">
                         Forventet tid: ca. {Math.round(retrieveExpectedMs / 1000)} sek
                         {data?.last_retrieve_duration_seconds ? ` (sidst ${Math.round(data.last_retrieve_duration_seconds)} sek)` : ""}
                     </p>
@@ -3128,14 +3128,14 @@ export default function NordeaDashboard({
             ) : null}
             {notice ? <p className="info-banner">{notice}</p> : null}
             {isLocalLedgerSource && !embedded ? <IncomeExpenseOverview series={incomeExpenseSeries} onOpenSunburst={(month) => void openIncomeExpenseSunburst(month)} /> : null}
-            <section className="nordea-poster-controls">
-                <div className="nordea-filter-bar">
-                    <div className="nordea-spiir-filter-shell">
-                        <div className="nordea-spiir-filter-strip">
+            <section className="bank-poster-controls">
+                <div className="bank-filter-bar">
+                    <div className="bank-spiir-filter-shell">
+                        <div className="bank-spiir-filter-strip">
                             <span>Viser</span>
                             <button
                                 type="button"
-                                className="nordea-spiir-filter-button"
+                                className="bank-spiir-filter-button"
                                 ref={visibilityButtonRef}
                                 onClick={() => setVisibilityPanelOpen((current) => !current)}
                             >
@@ -3143,7 +3143,7 @@ export default function NordeaDashboard({
                             </button>
                             <span>fra</span>
                             <select
-                                className="nordea-spiir-filter-select"
+                                className="bank-spiir-filter-select"
                                 value={periodFilter}
                                 onChange={(event) => {
                                     setPeriodFilter(event.target.value as PeriodFilter);
@@ -3165,13 +3165,13 @@ export default function NordeaDashboard({
                                 </optgroup>
                             </select>
                             <span>med teksten</span>
-                            <div className="nordea-spiir-search-wrap">
+                            <div className="bank-spiir-search-wrap">
                                 <SearchField value={searchText} resetKey={searchResetKey} onCommit={setSearchText} onClear={resetSearchToLatest} />
                             </div>
-                            <div className="nordea-spiir-filter-actions">
+                            <div className="bank-spiir-filter-actions">
                                 {isLocalLedgerSource && saving ? (
-                                    <span className="nordea-save-indicator" aria-live="polite">
-                                        <span className="nordea-saving-spinner" aria-hidden="true" />
+                                    <span className="bank-save-indicator" aria-live="polite">
+                                        <span className="bank-saving-spinner" aria-hidden="true" />
                                         Gemmer
                                     </span>
                                 ) : null}
@@ -3204,7 +3204,7 @@ export default function NordeaDashboard({
                             </div>
                             <button
                                 type="button"
-                                className="nordea-spiir-reset-link"
+                                className="bank-spiir-reset-link"
                                 onClick={() => {
                                     setVisibilityFilter("all");
                                     setCategoryFilter(null);
@@ -3221,21 +3221,21 @@ export default function NordeaDashboard({
                         </div>
 
                         {visibilityPanelOpen ? (
-                            <div className="nordea-spiir-visibility-panel" ref={visibilityPanelRef}>
+                            <div className="bank-spiir-visibility-panel" ref={visibilityPanelRef}>
                                 <h3>Vis</h3>
-                                <label className="nordea-spiir-radio-row">
+                                <label className="bank-spiir-radio-row">
                                     <input type="radio" checked={visibilityFilter === "all"} onChange={() => setVisibilityFilter("all")} />
                                     <span>Alle poster</span>
                                 </label>
-                                <label className="nordea-spiir-radio-row">
+                                <label className="bank-spiir-radio-row">
                                     <input type="radio" checked={visibilityFilter === "bills"} onChange={() => setVisibilityFilter("bills")} />
                                     <span>Alle regninger</span>
                                 </label>
-                                <label className="nordea-spiir-radio-row">
+                                <label className="bank-spiir-radio-row">
                                     <input type="radio" checked={visibilityFilter === "consumption"} onChange={() => setVisibilityFilter("consumption")} />
                                     <span>Alt forbrug</span>
                                 </label>
-                                <div className="nordea-spiir-radio-row nordea-spiir-category-row">
+                                <div className="bank-spiir-radio-row bank-spiir-category-row">
                                     <input
                                         type="radio"
                                         checked={visibilityFilter === "category"}
@@ -3254,15 +3254,15 @@ export default function NordeaDashboard({
                                         placeholder="Vælg kategori"
                                     />
                                 </div>
-                                <label className="nordea-spiir-radio-row">
+                                <label className="bank-spiir-radio-row">
                                     <input type="radio" checked={visibilityFilter === "uncategorized"} onChange={() => setVisibilityFilter("uncategorized")} />
                                     <span>Ikke kategoriserede poster</span>
                                 </label>
-                                <label className="nordea-spiir-radio-row">
+                                <label className="bank-spiir-radio-row">
                                     <input type="radio" checked={visibilityFilter === "extraordinary"} onChange={() => setVisibilityFilter("extraordinary")} />
                                     <span>Ekstraordinære poster</span>
                                 </label>
-                                <div className="nordea-spiir-visibility-footer">
+                                <div className="bank-spiir-visibility-footer">
                                     <label>
                                         <input
                                             type="checkbox"
@@ -3272,7 +3272,7 @@ export default function NordeaDashboard({
                                         />
                                         <span>Vis altid kontooverførsler, udlæg og ignorer</span>
                                     </label>
-                                    <button type="button" className="nordea-spiir-close-link" onClick={() => setVisibilityPanelOpen(false)}>
+                                    <button type="button" className="bank-spiir-close-link" onClick={() => setVisibilityPanelOpen(false)}>
                                         Luk
                                     </button>
                                 </div>
@@ -3280,7 +3280,7 @@ export default function NordeaDashboard({
                         ) : null}
                     </div>
                 </div>
-                <div className="nordea-poster-stats">
+                <div className="bank-poster-stats">
                     <div>
                         <span>Viser</span>
                         <strong>{loading ? "..." : `${filteredTransactions.length} af ${displayTransactions.length}`}</strong>
@@ -3295,7 +3295,7 @@ export default function NordeaDashboard({
                     </div>
                 </div>
                 {isMobileLayout ? (
-                    <div className="nordea-mobile-review-bar">
+                    <div className="bank-mobile-review-bar">
                         <button type="button" className={!mobilePendingOnly ? "active" : ""} onClick={() => setMobilePendingOnly(false)}>
                             Seneste
                         </button>
@@ -3304,7 +3304,7 @@ export default function NordeaDashboard({
                         </button>
                     </div>
                 ) : null}
-                {!isMobileLayout ? <div className="nordea-pagination-bar">
+                {!isMobileLayout ? <div className="bank-pagination-bar">
                     <span>{filteredTransactions.length === 0 ? "0 poster" : `${firstVisible}-${lastVisible} af ${filteredTransactions.length}`}</span>
                     <div>
                         {isLocalLedgerSource && !allTransactionsLoaded ? (
@@ -3327,7 +3327,7 @@ export default function NordeaDashboard({
                     </div>
                 </div> : null}
             </section>
-            {isMobileLayout ? <section className="nordea-mobile-review-list" aria-label="Nordea poster">
+            {isMobileLayout ? <section className="bank-mobile-review-list" aria-label="Bank poster">
                 {visibleMobileTransactions.map((row) => {
                     const expanded = expandedMobileRowId === row.rowId;
                     return (
@@ -3345,12 +3345,12 @@ export default function NordeaDashboard({
                         />
                     );
                 })}
-                {!loading && mobileTransactions.length === 0 ? <p className="nordea-mobile-empty">Ingen Nordea-poster matcher filteret.</p> : null}
+                {!loading && mobileTransactions.length === 0 ? <p className="bank-mobile-empty">Ingen Bank-poster matcher filteret.</p> : null}
                 {mobileRenderLimit < mobileTransactions.length ? (
-                    <div className="nordea-mobile-load-more-sentinel" ref={mobileLoadMoreRef}>
+                    <div className="bank-mobile-load-more-sentinel" ref={mobileLoadMoreRef}>
                         <button
                             type="button"
-                            className="nordea-mobile-load-more"
+                            className="bank-mobile-load-more"
                             onClick={() => setMobileRenderLimit((current) => Math.min(current + MOBILE_RENDER_INCREMENT, mobileTransactions.length))}
                         >
                             Vis flere
@@ -3360,7 +3360,7 @@ export default function NordeaDashboard({
                 {isLocalLedgerSource && !allTransactionsLoaded ? (
                     <button
                         type="button"
-                        className="nordea-mobile-load-more"
+                        className="bank-mobile-load-more"
                         onClick={() => void handleLoadMoreTransactions()}
                         disabled={loadingMore || loading || saving || retrieving || retrieveChecking}
                     >
@@ -3368,21 +3368,21 @@ export default function NordeaDashboard({
                     </button>
                 ) : null}
             </section> : null}
-            {!isMobileLayout ? <section className="nordea-poster-content">
-                <div className="nordea-posting-table-container" ref={tableContainerRef}>
-                    <table className="nordea-table">
+            {!isMobileLayout ? <section className="bank-poster-content">
+                <div className="bank-posting-table-container" ref={tableContainerRef}>
+                    <table className="bank-table">
                         <colgroup>
-                            <col className="nordea-checkbox-column" />
-                            <col className="nordea-date-column" />
-                            <col className="nordea-description-column" />
-                            <col className="nordea-category-column" />
-                            <col className="nordea-icon-column" />
-                            <col className="nordea-icon-column" />
-                            <col className="nordea-amount-column" />
+                            <col className="bank-checkbox-column" />
+                            <col className="bank-date-column" />
+                            <col className="bank-description-column" />
+                            <col className="bank-category-column" />
+                            <col className="bank-icon-column" />
+                            <col className="bank-icon-column" />
+                            <col className="bank-amount-column" />
                         </colgroup>
                         <thead>
                             <tr>
-                                <th className="nordea-checkbox-cell">
+                                <th className="bank-checkbox-cell">
                                     <input
                                         type="checkbox"
                                         checked={allVisibleSelected}
@@ -3398,11 +3398,11 @@ export default function NordeaDashboard({
                                         }}
                                     />
                                 </th>
-                                <th className="nordea-date-cell"><SortHeader label="Dato" sortKey="booking_date" activeSortKey={sortKey} direction={sortDirection} onSort={handleSort} /></th>
+                                <th className="bank-date-cell"><SortHeader label="Dato" sortKey="booking_date" activeSortKey={sortKey} direction={sortDirection} onSort={handleSort} /></th>
                                 <th><SortHeader label="Beskrivelse" sortKey="description" activeSortKey={sortKey} direction={sortDirection} onSort={handleSort} /></th>
                                 <th><SortHeader label="Kategori" sortKey="category" activeSortKey={sortKey} direction={sortDirection} onSort={handleSort} /></th>
-                                <th className="nordea-icon-cell" />
-                                <th className="nordea-icon-cell" />
+                                <th className="bank-icon-cell" />
+                                <th className="bank-icon-cell" />
                                 <th><SortHeader label="Beløb" sortKey="amount" activeSortKey={sortKey} direction={sortDirection} onSort={handleSort} /></th>
                             </tr>
                         </thead>
@@ -3416,7 +3416,7 @@ export default function NordeaDashboard({
                                         key={row.rowId}
                                         data-row-id={row.rowId}
                                         title={detailTitle(row.transaction)}
-                                        className={nordeaRowClassName(row, selected, selectedIds.length)}
+                                        className={bankRowClassName(row, selected, selectedIds.length)}
                                         onClick={(event) => {
                                             if (event.metaKey || event.shiftKey) {
                                                 event.preventDefault();
@@ -3424,17 +3424,17 @@ export default function NordeaDashboard({
                                             selectRow(row.rowId, { metaKey: event.metaKey, shiftKey: event.shiftKey });
                                         }}
                                     >
-                                        <td className="nordea-checkbox-cell" onClick={(event) => event.stopPropagation()}>
+                                        <td className="bank-checkbox-cell" onClick={(event) => event.stopPropagation()}>
                                             <input type="checkbox" checked={selected} onChange={(event) => toggleSelected(row.rowId, event.target.checked, (event.nativeEvent as MouseEvent).shiftKey)} />
                                         </td>
-                                        <td className="nordea-date-cell">{formatTxDate(row.transaction.booking_date)}</td>
-                                        <td className="nordea-description-cell">
+                                        <td className="bank-date-cell">{formatTxDate(row.transaction.booking_date)}</td>
+                                        <td className="bank-description-cell">
                                             <span>{row.transaction.description}</span>
-                                            {note ? <span className="nordea-description-note"> ({note})</span> : null}
-                                            {isPendingReview(row.transaction) ? <span className="nordea-pending-pill">Pending</span> : null}
+                                            {note ? <span className="bank-description-note"> ({note})</span> : null}
+                                            {isPendingReview(row.transaction) ? <span className="bank-pending-pill">Pending</span> : null}
                                         </td>
-                                        <td className="nordea-category-cell" onClick={selected ? (event) => event.stopPropagation() : undefined}>
-                                            <div className="nordea-category-wrapper">
+                                        <td className="bank-category-cell" onClick={selected ? (event) => event.stopPropagation() : undefined}>
+                                            <div className="bank-category-wrapper">
                                                 {selected && selectedIds.length === 1 && taxonomy.categories.length > 0 ? (
                                                     <CategorySelect
                                                         categories={taxonomy.categories}
@@ -3448,13 +3448,13 @@ export default function NordeaDashboard({
                                                         bubbleClosedTableKeys
                                                     />
                                                 ) : (
-                                                    <span className="nordea-category-text">{isUncategorizedCategory(row.category) ? "" : categoryLabelForRow(row)}</span>
+                                                    <span className="bank-category-text">{isUncategorizedCategory(row.category) ? "" : categoryLabelForRow(row)}</span>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="nordea-icon-cell">{row.isSplitChild ? <span>S</span> : null}</td>
-                                        <td className="nordea-icon-cell">{row.transaction.is_extraordinary ? <span>E</span> : null}</td>
-                                        <td className={row.amount < 0 ? "spiir-negative nordea-amount-cell" : row.amount > 0 ? "spiir-positive nordea-amount-cell" : "spiir-neutral nordea-amount-cell"}>
+                                        <td className="bank-icon-cell">{row.isSplitChild ? <span>S</span> : null}</td>
+                                        <td className="bank-icon-cell">{row.transaction.is_extraordinary ? <span>E</span> : null}</td>
+                                        <td className={row.amount < 0 ? "spiir-negative bank-amount-cell" : row.amount > 0 ? "spiir-positive bank-amount-cell" : "spiir-neutral bank-amount-cell"}>
                                             {formatPostingAmount(row.amount)}
                                         </td>
                                     </tr>
@@ -3462,7 +3462,7 @@ export default function NordeaDashboard({
                             })}
                             {!loading && filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7}>Ingen Nordea-transaktioner matcher filteret.</td>
+                                    <td colSpan={7}>Ingen Bank-transaktioner matcher filteret.</td>
                                 </tr>
                             ) : null}
                         </tbody>
@@ -3470,10 +3470,10 @@ export default function NordeaDashboard({
                 </div>
 
                 {selectedIds.length > 1 && taxonomy.categories.length > 0 ? (
-                    <aside className="nordea-edit-panel" ref={editPanelRef} style={{ top: editPanelTop }}>
-                        <section className="nordea-bulk-summary">
+                    <aside className="bank-edit-panel" ref={editPanelRef} style={{ top: editPanelTop }}>
+                        <section className="bank-bulk-summary">
                             <p>
-                                <span className="nordea-bulk-amount">{formatSidebarAmount(selectedTotal)}</span>
+                                <span className="bank-bulk-amount">{formatSidebarAmount(selectedTotal)}</span>
                                 <br />
                                 baseret på {selectedRows.length} poster
                             </p>
@@ -3485,11 +3485,11 @@ export default function NordeaDashboard({
                         </section>
                         <section>
                             <h5>Tags <small>– Opret nyt</small></h5>
-                            <div className="nordea-tag-check-list">
+                            <div className="bank-tag-check-list">
                                 {taxonomy.hashtags.map((hashtag) => {
                                     const checked = selectedRows.length > 0 && selectedRows.every((row) => rowHasHashtag(row, hashtag.name));
                                     return (
-                                        <p className="nordea-tag-check" key={hashtag.name}>
+                                        <p className="bank-tag-check" key={hashtag.name}>
                                             <label>
                                                 <input type="checkbox" checked={checked} disabled={editControlsDisabled} onChange={(event) => toggleBulkHashtag(hashtag.name, event.target.checked)} />
                                                 {hashtag.name}
@@ -3498,8 +3498,8 @@ export default function NordeaDashboard({
                                     );
                                 })}
                             </div>
-                            <div className="nordea-tag-create">
-                                <input list="nordea-hashtags" value={bulkHashtag} onChange={(event) => setBulkHashtag(event.target.value)} placeholder="Skriv hashtag" />
+                            <div className="bank-tag-create">
+                                <input list="bank-hashtags" value={bulkHashtag} onChange={(event) => setBulkHashtag(event.target.value)} placeholder="Skriv hashtag" />
                                 <button type="button" className="secondary-button" disabled={!bulkHashtag.trim() || editControlsDisabled} onClick={() => { void savePatch(selectedParentIds, { append_hashtags: [bulkHashtag.trim()] }); setBulkHashtag(""); }}>
                                     Tilføj
                                 </button>
@@ -3507,10 +3507,10 @@ export default function NordeaDashboard({
                         </section>
                     </aside>
                 ) : selectedTransaction && selectedRow ? (
-                    <aside className="nordea-edit-panel" ref={editPanelRef} style={{ top: editPanelTop }}>
+                    <aside className="bank-edit-panel" ref={editPanelRef} style={{ top: editPanelTop }}>
                         <section>
                             <h5>Find lignende poster</h5>
-                            <ul className="nordea-similar-list">
+                            <ul className="bank-similar-list">
                                 {similarWords(selectedTransaction).map((word) => (
                                     <li key={word}><button type="button" onClick={() => setSearchText(word)}>{word}</button></li>
                                 ))}
@@ -3518,7 +3518,7 @@ export default function NordeaDashboard({
                         </section>
                         <section>
                             <h5>Skift dato</h5>
-                            <div className="nordea-date-edit">
+                            <div className="bank-date-edit">
                                 <input type="date" value={dateText} onChange={(event) => setDateText(event.target.value)} />
                                 <button type="button" disabled={editControlsDisabled || !dateText} onClick={() => void savePatch([selectedTransaction.id], { booking_date: dateText })}>Gem</button>
                             </div>
@@ -3532,43 +3532,43 @@ export default function NordeaDashboard({
                             <p>{selectedRow.isSplitChild || hasEffectiveSplit(selectedTransaction) ? "Denne post er en del af et split" : "Ønsker du at angive mere præcist, hvad pengene er blevet brugt til?"}</p>
                             <button type="button" onClick={() => openSplitModal(selectedTransaction)}>{selectedRow.isSplitChild || hasEffectiveSplit(selectedTransaction) ? "Rediger split" : "Split beløb"}</button>
                         </section>
-                        <label className="nordea-checkbox-label">
+                        <label className="bank-checkbox-label">
                             <input type="checkbox" checked={isExtraordinary} onChange={(event) => { setIsExtraordinary(event.target.checked); void savePatch([selectedTransaction.id], { is_extraordinary: event.target.checked }); }} />
                             Ekstraordinær
                         </label>
-                        <p className="nordea-origin-text">
+                        <p className="bank-origin-text">
                             <span>Oprindelig dato: {formatTxDate(selectedTransaction.original_booking_date ?? selectedTransaction.booking_date)}</span>
                             <span>Oprindelig tekst: {selectedTransaction.remittance_information || selectedTransaction.description}</span>
                         </p>
                     </aside>
                 ) : null}
             </section> : null}
-            <datalist id="nordea-hashtags">
+            <datalist id="bank-hashtags">
                 {taxonomy.hashtags.map((hashtag) => <option key={hashtag.name} value={hashtag.name} />)}
             </datalist>
             {splitModalOpen && selectedTransaction ? (
-                <div className="modal-backdrop nordea-split-backdrop" onClick={() => setSplitModalOpen(false)}>
-                    <section className="spiir-transactions-modal nordea-split-modal" onClick={(event) => event.stopPropagation()}>
-                        <div className="nordea-split-modal-header">
+                <div className="modal-backdrop bank-split-backdrop" onClick={() => setSplitModalOpen(false)}>
+                    <section className="spiir-transactions-modal bank-split-modal" onClick={(event) => event.stopPropagation()}>
+                        <div className="bank-split-modal-header">
                             <div>
                                 <h2>Split beløbet</h2>
                                 <p>
                                     Split beløbet {formatPostingAmount(Math.abs(splitTotalAmount(selectedTransaction)))} for posten {selectedTransaction.description} fra {formatTxDate(selectedTransaction.booking_date)}.
                                 </p>
                             </div>
-                            <button type="button" className="nordea-split-close" onClick={() => setSplitModalOpen(false)} aria-label="Luk split">
+                            <button type="button" className="bank-split-close" onClick={() => setSplitModalOpen(false)} aria-label="Luk split">
                                 ×
                             </button>
                         </div>
-                        <div className="nordea-split-lines">
+                        <div className="bank-split-lines">
                             {splitLines.map((split, index) => (
-                                <div key={split.id} className={split.locked ? "nordea-split-line nordea-split-line-locked" : "nordea-split-line"}>
+                                <div key={split.id} className={split.locked ? "bank-split-line bank-split-line-locked" : "bank-split-line"}>
                                     {split.locked ? (
-                                        <span className="nordea-split-remove-placeholder" aria-hidden="true" />
+                                        <span className="bank-split-remove-placeholder" aria-hidden="true" />
                                     ) : (
                                         <button
                                             type="button"
-                                            className="nordea-split-remove"
+                                            className="bank-split-remove"
                                             onClick={() => setSplitDraftLines((current) => current.filter((_, itemIndex) => itemIndex !== index))}
                                             aria-label="Fjern splitlinje"
                                         >
@@ -3577,14 +3577,14 @@ export default function NordeaDashboard({
                                     )}
                                     <CategorySelect categories={taxonomy.categories} value={categoryKey(split.category)} onChange={(category) => setSplitDraftLines((current) => current.map((item) => item.id === split.id ? { ...item, category } : item))} placeholder="Vælg kategori" />
                                     <input value={split.note} onChange={(event) => setSplitDraftLines((current) => current.map((item) => item.id === split.id ? { ...item, note: event.target.value } : item))} placeholder="Skriv note" />
-                                    <input className="nordea-split-amount" type="text" inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={split.amountText} disabled={split.locked} onChange={(event) => setSplitDraftLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, amount: parseSplitDraftAmount(event.target.value), amountText: event.target.value } : item))} onBlur={() => setSplitDraftLines((current) => current.map((item, itemIndex) => itemIndex === index && Number.isFinite(item.amount) ? { ...item, amountText: formatSplitDraftAmount(item.amount) } : item))} />
+                                    <input className="bank-split-amount" type="text" inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={split.amountText} disabled={split.locked} onChange={(event) => setSplitDraftLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, amount: parseSplitDraftAmount(event.target.value), amountText: event.target.value } : item))} onBlur={() => setSplitDraftLines((current) => current.map((item, itemIndex) => itemIndex === index && Number.isFinite(item.amount) ? { ...item, amountText: formatSplitDraftAmount(item.amount) } : item))} />
                                 </div>
                             ))}
                         </div>
-                        {splitError ? <p className="nordea-split-error">{splitError}</p> : null}
-                        <div className="nordea-split-actions">
-                            <button type="button" className="nordea-split-add" onClick={() => setSplitDraftLines((current) => [...current, blankSplitLine()])}>Ny linje</button>
-                            <button type="button" className="nordea-split-save" disabled={splitSaveDisabled} onClick={() => { void saveSplitLines(); }}>Gem split</button>
+                        {splitError ? <p className="bank-split-error">{splitError}</p> : null}
+                        <div className="bank-split-actions">
+                            <button type="button" className="bank-split-add" onClick={() => setSplitDraftLines((current) => [...current, blankSplitLine()])}>Ny linje</button>
+                            <button type="button" className="bank-split-save" disabled={splitSaveDisabled} onClick={() => { void saveSplitLines(); }}>Gem split</button>
                         </div>
                     </section>
                 </div>
@@ -3601,8 +3601,8 @@ export default function NordeaDashboard({
             ) : null}
             {sunburstDrilldownModal ? (
                 <div className="modal-backdrop" onClick={() => setSunburstDrilldownModal(null)}>
-                    <section className="nordea-drilldown-modal" onClick={(event) => event.stopPropagation()}>
-                        <NordeaDashboard
+                    <section className="bank-drilldown-modal" onClick={(event) => event.stopPropagation()}>
+                        <BankDashboard
                             key={`${sunburstDrilldownModal.title}|${sunburstDrilldownModal.periodFilter ?? "all"}|${sunburstDrilldownModal.categoryFilter?.categoryId ?? ""}|${sunburstDrilldownModal.searchText ?? ""}`}
                             active
                             source="local-ledger"

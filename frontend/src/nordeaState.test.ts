@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { computeAllTransactionsLoaded, localLedgerFirstPage, mergeUpdatedTransactions } from "./nordeaState";
-import type { NordeaTransaction, NordeaTransactionsResponse } from "./types";
+import { computeAllTransactionsLoaded, localLedgerFirstPage, mergeUpdatedTransactions } from "./bankState";
+import type { BankTransaction, BankTransactionsResponse } from "./types";
 
-function makeTransaction(overrides: Partial<NordeaTransaction>): NordeaTransaction {
+function makeTransaction(overrides: Partial<BankTransaction>): BankTransaction {
     return {
         id: "tx-default",
         entry_reference: "ref-default",
@@ -14,12 +14,12 @@ function makeTransaction(overrides: Partial<NordeaTransaction>): NordeaTransacti
         hashtags: [],
         is_extraordinary: false,
         splits: [],
-        source: "nordea-local-ledger",
+        source: "bank-local-ledger",
         ...overrides,
     };
 }
 
-function makeResponse(overrides: Partial<NordeaTransactionsResponse>): NordeaTransactionsResponse {
+function makeResponse(overrides: Partial<BankTransactionsResponse>): BankTransactionsResponse {
     return {
         transaction_count: 0,
         pending_review_count: 0,
@@ -33,7 +33,7 @@ function makeResponse(overrides: Partial<NordeaTransactionsResponse>): NordeaTra
     };
 }
 
-describe("nordeaState", () => {
+describe("bankState", () => {
     it("builds local-ledger first page options", () => {
         expect(localLedgerFirstPage(300)).toEqual({ limit: 300, offset: 0 });
     });

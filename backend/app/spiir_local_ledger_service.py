@@ -21,11 +21,11 @@ from .local_ledger_overrides import (
     apply_local_ledger_override,
     load_local_ledger_overrides,
 )
-from .nordea_service import (
+from .bank_service import (
     _sanitize_category,
     _sanitize_split,
-    load_nordea_transactions,
-    warm_nordea_taxonomy_cache,
+    load_bank_transactions,
+    warm_bank_taxonomy_cache,
 )
 from .spiir_service import (
     RENAME_MAIN_CATEGORY_NAME,
@@ -174,7 +174,7 @@ def _read_local_ledger_first_page_cache(limit: int) -> dict[str, Any] | None:
         return None
     next_response = dict(response)
     next_response["generated_at"] = _iso_utc_now()
-    next_response.update(_nordea_retrieve_meta())
+    next_response.update(_bank_retrieve_meta())
     return next_response
 
 
@@ -214,18 +214,18 @@ def _sort_local_ledger_rows_desc(rows: list[dict[str, Any]]) -> list[dict[str, A
 def _build_local_ledger_transactions_meta(rows: list[dict[str, Any]]) -> dict[str, Any]:
     account_names = sorted({str(item.get("source_account_name") or "").strip() for item in rows if str(item.get("source_account_name") or "").strip()})
     return {
-        **_nordea_retrieve_meta(),
+        **_bank_retrieve_meta(),
         "transaction_count": len(rows),
         "pending_review_count": sum(1 for item in rows if bool(item.get("pending_review"))),
         "accounts": [{"name": name} for name in account_names],
     }
 
 
-def _nordea_retrieve_meta() -> dict[str, Any]:
-    nordea_meta = load_nordea_transactions()
+def _bank_retrieve_meta() -> dict[str, Any]:
+    bank_meta = load_bank_transactions()
     return {
-        "last_retrieved_at": nordea_meta.get("last_retrieved_at"),
-        "last_retrieve_duration_seconds": nordea_meta.get("last_retrieve_duration_seconds"),
+        "last_retrieved_at": bank_meta.get("last_retrieved_at"),
+        "last_retrieve_duration_seconds": bank_meta.get("last_retrieve_duration_seconds"),
     }
 
 
@@ -429,7 +429,7 @@ def _cutover_date() -> str:
     return value
 
 
-def _normalize_nordea_row(now: str, transaction: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
+def _normalize_bank_row(now: str, transaction: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
     source_id = str(transaction.get("id") or "").strip()
     original_date = str(transaction.get("original_booking_date") or transaction.get("booking_date") or "").strip() or None
     effective_date = str(transaction.get("custom_booking_date") or transaction.get("booking_date") or original_date or "").strip() or None
@@ -450,8 +450,8 @@ def _normalize_nordea_row(now: str, transaction: dict[str, Any], existing: dict[
     }
     splits = [split for item in transaction.get("splits") or [] if (split := _sanitize_split(item)) is not None]
     return {
-        "id": f"nordea:{source_id}",
-        "source": "nordea",
+        "id": f"bank:{source_id}",
+        "source": "bank",
         "source_id": source_id,
         "source_account_id": str(transaction.get("account_iban") or transaction.get("account_name") or ""),
         "source_account_name": str(transaction.get("account_name") or ""),
@@ -473,7 +473,7 @@ def _normalize_nordea_row(now: str, transaction: dict[str, Any], existing: dict[
         "is_extraordinary": bool(transaction.get("is_extraordinary")),
         "is_excluded": str(category.get("mainCategoryName") or "") in SKIP_MAIN_CATEGORY_NAMES,
         "splits": splits,
-        "category_source": "nordea_sync",
+        "category_source": "bank_sync",
         "category_reason": None,
         "category_confidence": None,
         "matched_source_ids": [],
@@ -481,8 +481,8 @@ def _normalize_nordea_row(now: str, transaction: dict[str, Any], existing: dict[
         "created_at": (existing or {}).get("created_at") or now,
         "updated_at": now,
         "provenance": {
-            "imported_from": "nordea_processed_transactions",
-            "nordea_transaction_id": source_id,
+            "imported_from": "bank_processed_transactions",
+            "bank_transaction_id": source_id,
             "cutover_date": _cutover_date(),
         },
     }
@@ -508,7 +508,7 @@ def _ledger_lookup_key(row: dict[str, Any]) -> str:
     )
 
 
-def _nordea_lookup_key(transaction: dict[str, Any]) -> str:
+def _bank_lookup_key(transaction: dict[str, Any]) -> str:
     return _normalize_lookup_text(
         transaction.get("description"),
         transaction.get("remittance_information"),
@@ -540,7 +540,7 @@ def _suggest_categories_from_ledger(
     categories_by_key: dict[str, dict[str, Any]] = {}
 
     for row in ledger_rows:
-        if str(row.get("source") or "") not in {"spiir", "nordea"}:
+        if str(row.get("source") or "") not in {"spiir", "bank"}:
             continue
         if bool(row.get("pending_review")):
             continue
@@ -561,7 +561,7 @@ def _suggest_categories_from_ledger(
     for transaction in candidate_transactions:
         if not _is_uncategorized_category(transaction.get("mainCategoryId"), transaction.get("categoryId")):
             continue
-        lookup_key = _nordea_lookup_key(transaction)
+        lookup_key = _bank_lookup_key(transaction)
         if not lookup_key:
             continue
         votes = votes_by_key.get(lookup_key) or {}
@@ -643,7 +643,7 @@ def _sorted_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _normalize_local_ledger_transaction_row(row: dict[str, Any]) -> dict[str, Any] | None:
-    if str(row.get("source") or "") not in {"spiir", "nordea"}:
+    if str(row.get("source") or "") not in {"spiir", "bank"}:
         return None
     splits = []
     for split in row.get("splits") or []:
@@ -912,7 +912,7 @@ def _preserve_reviewed_provenance(existing: dict[str, Any], candidate: dict[str,
 
 
 def _preserve_reviewed_local_fields(existing: dict[str, Any], candidate: dict[str, Any]) -> dict[str, Any]:
-    """Keep local reviewed/edit fields when refreshing an existing non-pending Nordea row."""
+    """Keep local reviewed/edit fields when refreshing an existing non-pending Bank row."""
     next_candidate = dict(candidate)
     preserved_keys = [
         "category_type",
@@ -1121,14 +1121,14 @@ def load_spiir_local_ledger_transactions(limit: int | None = None, offset: int =
 def warm_spiir_local_ledger_first_page_cache() -> None:
     _clear_local_ledger_transactions_memory_cache()
     load_spiir_local_ledger_transactions(limit=LOCAL_LEDGER_FIRST_PAGE_CACHE_LIMIT, offset=0)
-    warm_nordea_taxonomy_cache()
+    warm_bank_taxonomy_cache()
 
 
-def preview_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
+def preview_bank_sync_into_spiir_local_ledger() -> dict[str, Any]:
     ensure_runtime_dirs()
     now = _iso_utc_now()
     cutover_date = _cutover_date()
-    nordea_transactions = [item for item in load_nordea_transactions().get("transactions", []) if isinstance(item, dict)]
+    bank_transactions = [item for item in load_bank_transactions().get("transactions", []) if isinstance(item, dict)]
     existing_transactions = _load_existing_transactions()
     existing_by_id = {str(item.get("id") or ""): item for item in existing_transactions}
 
@@ -1138,7 +1138,7 @@ def preview_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
     skipped_before_cutover_count = 0
     skipped_missing_booking_date_count = 0
 
-    for transaction in nordea_transactions:
+    for transaction in bank_transactions:
         booking_date = str(transaction.get("booking_date") or "").strip()
         if not booking_date:
             skipped_missing_booking_date_count += 1
@@ -1146,7 +1146,7 @@ def preview_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
         if booking_date <= cutover_date:
             skipped_before_cutover_count += 1
             continue
-        candidate = _normalize_nordea_row(now=now, transaction=transaction, existing=existing_by_id.get(f"nordea:{transaction.get('id') or ''}"))
+        candidate = _normalize_bank_row(now=now, transaction=transaction, existing=existing_by_id.get(f"bank:{transaction.get('id') or ''}"))
         preview_rows.append(candidate)
         if candidate["id"] not in existing_by_id:
             would_create_count += 1
@@ -1157,7 +1157,7 @@ def preview_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
     return {
         "generated_at": now,
         "cutover_date": cutover_date,
-        "source_row_count": len(nordea_transactions),
+        "source_row_count": len(bank_transactions),
         "eligible_row_count": len(sorted_rows),
         "existing_row_count": len(existing_transactions),
         "would_create_count": would_create_count,
@@ -1178,32 +1178,32 @@ def preview_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
     }
 
 
-def apply_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
+def apply_bank_sync_into_spiir_local_ledger() -> dict[str, Any]:
     ensure_runtime_dirs()
     now = _iso_utc_now()
     cutover_date = _cutover_date()
     existing_transactions = _load_existing_transactions()
     existing_by_id = {str(item.get("id") or ""): item for item in existing_transactions}
-    raw_nordea_transactions = [item for item in load_nordea_transactions().get("transactions", []) if isinstance(item, dict)]
+    raw_bank_transactions = [item for item in load_bank_transactions().get("transactions", []) if isinstance(item, dict)]
     eligible_new_transactions = [
         item
-        for item in raw_nordea_transactions
+        for item in raw_bank_transactions
         if str(item.get("booking_date") or "").strip() > cutover_date
-        and f"nordea:{str(item.get('id') or '').strip()}" not in existing_by_id
+        and f"bank:{str(item.get('id') or '').strip()}" not in existing_by_id
     ]
     category_suggestions_by_transaction_id = _suggest_categories_from_ledger(
         ledger_rows=existing_transactions,
         candidate_transactions=eligible_new_transactions,
     )
     autocategorized_count = len(category_suggestions_by_transaction_id)
-    nordea_transactions = raw_nordea_transactions
+    bank_transactions = raw_bank_transactions
     merged_by_id = dict(existing_by_id)
     created_count = 0
     updated_count = 0
     skipped_before_cutover_count = 0
     skipped_missing_booking_date_count = 0
 
-    for transaction in nordea_transactions:
+    for transaction in bank_transactions:
         booking_date = str(transaction.get("booking_date") or "").strip()
         if not booking_date:
             skipped_missing_booking_date_count += 1
@@ -1220,13 +1220,13 @@ def apply_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
             candidate_source["mainCategoryName"] = suggested_category.get("mainCategoryName")
             candidate_source["categoryId"] = suggested_category.get("categoryId")
             candidate_source["categoryName"] = suggested_category.get("categoryName")
-        candidate = _normalize_nordea_row(now=now, transaction=candidate_source, existing=existing_by_id.get(f"nordea:{transaction.get('id') or ''}"))
+        candidate = _normalize_bank_row(now=now, transaction=candidate_source, existing=existing_by_id.get(f"bank:{transaction.get('id') or ''}"))
         existing = existing_by_id.get(candidate["id"])
         if existing is None:
             created_count += 1
         elif bool(existing.get("pending_review")):
             candidate = existing
-        elif str(existing.get("source") or "") == "nordea":
+        elif str(existing.get("source") or "") == "bank":
             candidate = _preserve_reviewed_local_fields(existing, candidate)
             if _row_changed(existing, candidate):
                 updated_count += 1
@@ -1240,7 +1240,7 @@ def apply_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
         merged_by_id[candidate["id"]] = candidate
 
     transactions = _sorted_rows(list(merged_by_id.values()))
-    _assert_no_split_fragments(transactions, "nordea_sync")
+    _assert_no_split_fragments(transactions, "bank_sync")
     transactions_file = get_spiir_local_transactions_file()
     import_runs_file = get_spiir_local_import_runs_file()
     create_backup(transactions_file)
@@ -1250,10 +1250,10 @@ def apply_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
     import_runs.append(
         {
             "id": len(import_runs) + 1,
-            "type": "nordea_sync",
+            "type": "bank_sync",
             "applied_at": now,
             "cutover_date": cutover_date,
-            "source_row_count": len(nordea_transactions),
+            "source_row_count": len(bank_transactions),
             "created_count": created_count,
             "updated_count": updated_count,
             "skipped_before_cutover_count": skipped_before_cutover_count,
@@ -1264,13 +1264,13 @@ def apply_nordea_sync_into_spiir_local_ledger() -> dict[str, Any]:
     create_backup(import_runs_file)
     _write_json(import_runs_file, import_runs)
     if created_count > 0 or updated_count > 0 or autocategorized_count > 0:
-        mark_spiir_rebuild_required("nordea_sync")
+        mark_spiir_rebuild_required("bank_sync")
     warm_spiir_local_ledger_first_page_cache()
 
     return {
         "applied_at": now,
         "cutover_date": cutover_date,
-        "source_row_count": len(nordea_transactions),
+        "source_row_count": len(bank_transactions),
         "created_count": created_count,
         "updated_count": updated_count,
         "autocategorized_count": autocategorized_count,
