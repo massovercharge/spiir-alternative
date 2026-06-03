@@ -7,11 +7,7 @@ from pathlib import Path
 from .config import (
     get_data_dir,
     get_kvitteringer_data_dir,
-    get_spiir_local_dir,
-    get_spiir_processed_dir,
-    get_spiir_raw_dir,
     get_storebox_source_dir,
-    get_transactions_dir,
 )
 
 
@@ -22,10 +18,7 @@ def _timestamp() -> str:
 def ensure_runtime_dirs() -> None:
     for path in [
         get_data_dir() / "backups",
-        get_transactions_dir(),
-        get_spiir_raw_dir(),
-        get_spiir_processed_dir(),
-        get_spiir_local_dir(),
+        get_data_dir() / "transactions",
         get_kvitteringer_data_dir(),
         get_storebox_source_dir(),
     ]:

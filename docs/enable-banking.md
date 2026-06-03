@@ -1,6 +1,6 @@
 # Enable Banking Setup
 
-This guide documents the reusable Enable Banking/Nordea transaction fetch path in `spiir-alternative`. It is meant for a person, or an AI agent helping that person, who wants to build their own Spiir replacement around the same idea.
+This guide documents the reusable Enable Banking transaction fetch path in `spiir-alternative`. It is meant for a person, or an AI agent helping that person, who wants to build their own Spiir replacement around the same idea.
 
 It covers the bank-connectivity slice only: developer account, app/key setup, account consent, session exchange, transaction fetch, and how the fetched rows enter this repo. It is not a public AIS/compliance guide.
 
@@ -11,8 +11,8 @@ Enable Banking is the bank connectivity layer. The rest of the repo is local app
 Useful files to mirror:
 
 - `scripts/enablebanking_probe.py`: setup/probe helper for listing banks, creating consent URLs, exchanging codes, and fetching raw transactions.
-- `backend/app/nordea_service.py`: backend fetcher, status tracking, raw storage, and transaction normalization.
-- `backend/app/reference_api.py`: optional FastAPI route wiring around the backend service.
+- `backend/app/sync_service.py`: backend fetcher, sync-job status tracking, raw storage, and transaction normalization.
+- `backend/app/api.py`: FastAPI route wiring around sync, transactions, categories, and insights.
 - `backend/app/config.py`: data directory lookup used by the backend code.
 - `.gitignore`: keeps local secrets and bank data out of git.
 
@@ -23,9 +23,9 @@ The flow is:
 1. Create an Enable Banking developer account.
 2. Create a production restricted account-information app.
 3. Save the app private key locally.
-4. Link your own Nordea accounts in Enable Banking.
-5. Generate a Nordea consent URL.
-6. Approve consent through Nordea/MitID.
+4. Link your own bank accounts in Enable Banking.
+5. Generate a bank consent URL.
+6. Approve consent through your bank/MitID.
 7. Exchange the returned `code` for an Enable Banking session.
 8. Fetch booked account transactions and archive the raw JSON locally.
 
@@ -44,7 +44,7 @@ The relevant API endpoints are:
 
 ## Production Restricted Vs Sandbox
 
-For a single-person Spiir replacement, production restricted mode is usually the shortest useful path. Sandbox can prove that JWT signing and request plumbing work, but it will not prove that your real Nordea accounts and transaction history work.
+For a single-person Spiir replacement, production restricted mode is usually the shortest useful path. Sandbox can prove that JWT signing and request plumbing work, but it will not prove that your real accounts and transaction history work.
 
 Use the restricted production setup when:
 
@@ -203,7 +203,7 @@ If you use this repo with an AI agent, give it this section plus the files liste
 2. Keep these env vars or map them explicitly: `SPIIR_ALT_DATA_DIR`, `ENABLEBANKING_APP_ID`, `ENABLEBANKING_PRIVATE_KEY_PATH`, `ENABLEBANKING_REDIRECT_URL`.
 3. If your bank is not Nordea DK, change the `/aspsps` country/service lookup and the `aspsp` body sent to `/auth`.
 4. Keep raw transaction archives before normalization. They are the easiest way to debug mapping mistakes.
-5. Keep session storage explicit. This repo writes `data/transactions/enablebanking/latest_session.json`; `nordea_service.py` reads that file.
+5. Keep session storage explicit. This repo writes `data/transactions/enablebanking/latest_session.json`; `sync_service.py` reads Enable Banking session files from that directory.
 6. Keep bank fetch separate from categorisation and UI. First prove you can fetch stable raw transactions.
 7. Do not hardcode app ids, private key paths, account ids, IBANs, consent codes, or session ids.
 
@@ -214,24 +214,24 @@ For a minimal independent project, copy the probe script first. Add the backend 
 Start the API:
 
 ```bash
-uvicorn app.reference_api:app --app-dir backend --reload --port 8000
+uvicorn app.api:app --app-dir backend --reload --port 8000
 ```
 
-Start a Nordea retrieval job and poll status:
+Start a retrieval job and poll status:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/nordea/retrieve/start
-curl http://127.0.0.1:8000/api/nordea/retrieve/status
+curl -X POST http://127.0.0.1:8000/api/sync/start
+curl http://127.0.0.1:8000/api/sync/status
 ```
 
-Then sync Nordea rows into the local ledger and rebuild the Spiir-style overview:
+Then read normalized transactions and insights:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/spiir/local-ledger/nordea-sync/apply
-curl -X POST http://127.0.0.1:8000/api/spiir/rebuild-from-local
+curl http://127.0.0.1:8000/api/transactions
+curl http://127.0.0.1:8000/api/insights/income-expense-series
 ```
 
-The reference API has no auth gate. Do not expose it directly. Add a password/session layer before using it outside your own machine.
+The API is protected by Logto token validation in `backend/app/auth.py`.
 
 ## Troubleshooting
 

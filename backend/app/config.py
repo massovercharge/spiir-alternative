@@ -36,62 +36,6 @@ def get_data_dir() -> Path:
     return _path_from_env(("SPIIR_ALT_DATA_DIR",), ROOT_DIR / "data")
 
 
-def get_transactions_dir() -> Path:
-    return get_data_dir() / "transactions"
-
-
-def get_spiir_data_dir() -> Path:
-    return get_data_dir() / "spiir"
-
-
-def get_spiir_raw_dir() -> Path:
-    return get_spiir_data_dir() / "raw"
-
-
-def get_spiir_processed_dir() -> Path:
-    return get_spiir_data_dir() / "processed"
-
-
-def get_spiir_local_dir() -> Path:
-    return get_spiir_data_dir() / "local"
-
-
-def get_spiir_raw_export_file() -> Path:
-    return get_spiir_raw_dir() / "all_entries.json"
-
-
-def get_spiir_overview_file() -> Path:
-    return get_spiir_processed_dir() / "overview.json"
-
-
-def get_spiir_transactions_file() -> Path:
-    return get_spiir_processed_dir() / "tx.json"
-
-
-def get_spiir_update_log_file() -> Path:
-    return get_spiir_data_dir() / "update.log"
-
-
-def get_spiir_local_transactions_file() -> Path:
-    return get_spiir_local_dir() / "transactions.json"
-
-
-def get_spiir_local_import_runs_file() -> Path:
-    return get_spiir_local_dir() / "import_runs.json"
-
-
-def get_spiir_local_overrides_file() -> Path:
-    return get_spiir_local_dir() / "overrides.json"
-
-
-def get_spiir_rebuild_state_file() -> Path:
-    return get_spiir_local_dir() / "rebuild_state.json"
-
-
-def get_spiir_income_expense_series_cache_file() -> Path:
-    return get_spiir_local_dir() / "cache" / "income_expense_series.json"
-
-
 def get_storebox_source_dir() -> Path:
     return _path_from_env(("STOREBOX_SOURCE_DIR", "SPIIR_ALT_STOREBOX_SOURCE_DIR"), get_data_dir() / "storebox")
 

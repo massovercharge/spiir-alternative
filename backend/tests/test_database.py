@@ -1,6 +1,5 @@
 """Comprehensive tests for the V2 backend."""
 import pytest
-from datetime import date
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.database import Account, Category, Transaction, SyncJob

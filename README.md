@@ -2,16 +2,16 @@
 
 This is a clean reference export of the reusable pieces from a private personal finance app. It is meant to show one practical approach to replacing a Spiir-style overview with local data:
 
-1. fetch bank transactions through Enable Banking / Nordea
-2. normalize them into a local ledger
-3. attempt to categorize new Nordea rows from repeated historical ledger matches
-4. save local category, note, hashtag, date, split, and review overrides
-5. rebuild a Spiir-style income/expense overview from that local ledger
+1. fetch bank transactions through Enable Banking
+2. normalize them into a local SQLite ledger
+3. categorize transactions against a Spiir-style taxonomy
+4. save category, note, and flag overrides directly on transaction rows
+5. show income/expense and category insights from the SQLite ledger
 6. optionally import Storebox receipt JSON for receipt/item analysis
 
 This is **not** a polished starter app. Treat it as a map and code archive for your own project.
 
-The most important external setup is Enable Banking/Nordea access. Start with [docs/enable-banking.md](docs/enable-banking.md) if you want to make the bank fetch work.
+The most important external setup is Enable Banking access. Start with [docs/enable-banking.md](docs/enable-banking.md) if you want to make the bank fetch work.
 
 Related Danish discussion: [r/dkfinance post](https://www.reddit.com/r/dkfinance/comments/1tpbb53/inspiration_til_selfhosted_spiiralternativ/).
 
@@ -19,9 +19,9 @@ Related Danish discussion: [r/dkfinance post](https://www.reddit.com/r/dkfinance
 
 These show the kind of workflows the exported code supports.
 
-### Nordea / Local Ledger Review
+### Bank Ledger Review
 
-![Nordea local ledger review](screenshots/nordea-local-ledger-review.png)
+![Bank ledger review](screenshots/nordea-local-ledger-review.png)
 
 ### Spiir-Style Monthly Overview
 
@@ -41,16 +41,17 @@ These show the kind of workflows the exported code supports.
 
 ## What Is Included
 
-- `backend/app/nordea_service.py`: Enable Banking/Nordea transaction fetch, raw storage, normalization, status, and taxonomy helpers.
-- `backend/app/spiir_local_ledger_service.py`: local transaction ledger, override application, sync from Nordea, history-based category suggestions, split migration/repair, and paged transaction responses.
-- `backend/app/spiir_service.py`: Spiir-style processed overview, income/expense series, rebuild state, hashtag helpers, and summary output.
-- `backend/app/local_ledger_overrides.py`: shared override normalization/application rules.
+- `backend/app/api.py`: FastAPI V2 routes for status, transactions, categories, insights, and sync.
+- `backend/app/database.py`: SQLModel models for accounts, categories, transactions, and sync jobs.
+- `backend/app/sync_service.py`: Enable Banking transaction fetch, raw archive storage, normalization, and SQLite persistence.
+- `backend/app/transaction_service.py`: transaction listing, overrides, and insight aggregation.
+- `backend/app/category_service.py`: Spiir-style taxonomy seeding and category responses.
 - `backend/app/kvitteringer_service.py`: Storebox receipt import, SQLite indexes, item clustering, category overrides, and receipt/Spiir linking helpers.
-- `backend/app/reference_api.py`: slim FastAPI route wiring for the exported modules.
 - `backend/app/config.py` and `backend/app/storage.py`: small generic replacements for private app config/storage.
-- `frontend/src/*Dashboard.tsx`: copied React UI surfaces for Nordea/local-ledger review, overview, and receipts.
+- `frontend/src/pages/Dashboard.tsx` and `frontend/src/components/`: React UI for bank ledger review, overview, and receipts.
 - `frontend/src/api.ts`, `frontend/src/types.ts`, and helpers: the API client and shared frontend types used by those dashboards.
 - `scripts/enablebanking_probe.py`: a local helper for listing banks, creating an auth URL, exchanging a consent code, and fetching transactions.
+- `scripts/migrate_v1_to_v2.py`: one-time V1 table to V2 SQLite migration helper.
 
 ## Privacy Rules
 
@@ -58,32 +59,11 @@ This repo is meant to contain reusable code and redacted examples only.
 
 ## Start Here
 
-1. If you still have Spiir access, download the full postings export first.
-2. Read [docs/enable-banking.md](docs/enable-banking.md) and create the Enable Banking app/key.
+1. Read [docs/enable-banking.md](docs/enable-banking.md) and create the Enable Banking app/key.
 3. Copy `env.example` to `.env`, replace placeholders, then source it in your shell.
 4. Install the backend and call `/api/status` to verify local storage paths.
-5. Import the Spiir export, then use `scripts/enablebanking_probe.py` to fetch new bank transactions.
+5. Use `scripts/enablebanking_probe.py` to create a session, then use `/api/sync/start` to fetch transactions.
 6. Start the frontend after the backend has data to show.
-
-## Seed From Existing Spiir Data
-
-Before Spiir disappears, download your full postings dataset if you can. This gives you historical transactions and a useful category history for matching future Nordea rows. During Nordea sync, uncategorized new rows can be assigned a category when matching historical rows agree strongly enough.
-
-Save the downloaded JSON as:
-
-```text
-data/spiir/raw/all_entries.json
-```
-
-Then run the reference API and import it into the local ledger:
-
-```bash
-curl http://127.0.0.1:8000/api/spiir/local-ledger/preview
-curl -X POST http://127.0.0.1:8000/api/spiir/local-ledger/apply
-curl -X POST http://127.0.0.1:8000/api/spiir/rebuild-from-local
-```
-
-The export downloader itself is not part of this reference repo. The reusable import code starts from `data/spiir/raw/all_entries.json`.
 
 ## Backend Setup
 
@@ -104,7 +84,6 @@ export SPIIR_ALT_DATA_DIR="$PWD/data"
 export ENABLEBANKING_APP_ID="your-enable-banking-app-id"
 export ENABLEBANKING_PRIVATE_KEY_PATH="$PWD/data/local_secrets/enablebanking/$ENABLEBANKING_APP_ID.pem"
 export ENABLEBANKING_REDIRECT_URL="https://your-domain.example/enablebanking/callback"
-export SPIIR_CUTOVER_DATE="2026-01-01"
 ```
 
 Or use the template:
@@ -117,13 +96,13 @@ source .env
 set +a
 ```
 
-Run the reference API:
+Run the API:
 
 ```bash
-uvicorn app.reference_api:app --app-dir backend --reload --port 8000
+uvicorn app.api:app --app-dir backend --reload --port 8000
 ```
 
-This reference API intentionally has no auth gate, because the point is to show the relevant routes. Do not expose it directly. Put a password/session layer in front of it before real use.
+The API is protected by Logto token validation in `backend/app/auth.py`.
 
 ## Enable Banking Setup
 
@@ -143,7 +122,7 @@ Open the printed URL, approve access in Nordea, then copy the `code` query param
 python scripts/enablebanking_probe.py session --code "PASTE_CODE_HERE"
 ```
 
-That writes `data/transactions/enablebanking/latest_session.json`. The backend fetcher reads that session and calls `/accounts/{uid}/transactions` for each linked account.
+That writes `data/transactions/enablebanking/latest_session.json`. The backend fetcher reads Enable Banking session files from `data/transactions/enablebanking` and calls `/accounts/{uid}/transactions` for each linked account.
 
 Fetch the first account manually with the longest available history:
 
@@ -154,15 +133,16 @@ python scripts/enablebanking_probe.py transactions --account-index 0 --strategy 
 API-driven fetch:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/nordea/retrieve/start
-curl http://127.0.0.1:8000/api/nordea/retrieve/status
+curl -X POST http://127.0.0.1:8000/api/sync/start
+curl http://127.0.0.1:8000/api/sync/status
 ```
 
-Then sync Nordea rows into the local ledger and rebuild the overview:
+Read ledger data and insights:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/spiir/local-ledger/nordea-sync/apply
-curl -X POST http://127.0.0.1:8000/api/spiir/rebuild-from-local
+curl http://127.0.0.1:8000/api/transactions
+curl http://127.0.0.1:8000/api/categories
+curl http://127.0.0.1:8000/api/insights/income-expense-series
 ```
 
 ## Frontend Setup

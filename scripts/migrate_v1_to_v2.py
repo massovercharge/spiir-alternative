@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import get_data_dir
-from app.database import Account, Category, Transaction, engine as v2_engine, create_db_and_tables
+from app.database import Account, Transaction, engine as v2_engine, create_db_and_tables
 from app.category_service import seed_categories, make_category_id
 
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ from app.category_service import seed_categories, make_category_id
 # ---------------------------------------------------------------------------
 
 from sqlmodel import Field
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 
 class V1BankAccount(SQLModel, table=True):
