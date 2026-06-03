@@ -380,8 +380,8 @@ function heatmapCellStyle(
         return undefined;
     }
     const alpha = Math.abs(value) / divisor * 0.24;
-    const rgb = value > 0 ? "31, 107, 92" : "142, 59, 46";
-    return { background: `rgba(${rgb}, ${Math.min(0.24, alpha)})` };
+    const rgb = value > 0 ? "94, 230, 180" : "240, 162, 104";
+    return { background: `rgba(${rgb}, ${Math.min(0.2, alpha)})` };
 }
 
 function buildPeriodChartSeries(visiblePeriods: string[], rows: SpiirOverviewRow[], level: ChartLevel): ChartSeries[] {
@@ -531,13 +531,19 @@ function buildPeriodChartFigure(
                 text: periodKind === "year"
                     ? `År: ${visiblePeriods[0] ?? ""}-${visiblePeriods[visiblePeriods.length - 1] ?? ""}`
                     : `Måneder: ${visiblePeriods[0] ?? ""}-${visiblePeriods[visiblePeriods.length - 1] ?? ""}`,
-                font: { size: 13 }
+                font: { size: 13, color: "#a7b6d7" }
             },
             margin: { l: 64, r: 12, t: 42, b: 66 },
-            height: 520,
+            height: 440,
             showlegend: true,
-            legend: { orientation: "h", x: 0, xanchor: "left", y: -0.22, yanchor: "top" },
+            font: { color: "#dfe8ff" },
+            legend: { orientation: "h", x: 0, xanchor: "left", y: -0.18, yanchor: "top", font: { color: "#a7b6d7" } },
             hovermode: "x unified",
+            hoverlabel: {
+                bgcolor: "rgba(8,19,43,0.96)",
+                bordercolor: "rgba(177,195,235,0.22)",
+                font: { color: "#edf4ff" }
+            },
             barmode: options.bars && options.stacked && options.level !== "top" ? "relative" : options.bars ? "group" : undefined,
             bargap: options.bars ? 0.18 : undefined,
             xaxis: {
@@ -546,15 +552,23 @@ function buildPeriodChartFigure(
                 tickmode: "array",
                 tickvals: periodKind === "month" && visiblePeriods.length > 10
                     ? visiblePeriods.filter((_, index) => index % 2 === 0 || index === visiblePeriods.length - 1)
-                    : visiblePeriods
+                    : visiblePeriods,
+                gridcolor: "rgba(177,195,235,0.08)",
+                linecolor: "rgba(177,195,235,0.2)",
+                tickfont: { color: "#a7b6d7" },
+                zerolinecolor: "rgba(177,195,235,0.2)"
             },
             yaxis: {
                 rangemode: "tozero",
                 automargin: true,
-                tickformat: ",.0f"
+                tickformat: ",.0f",
+                gridcolor: "rgba(177,195,235,0.11)",
+                linecolor: "rgba(177,195,235,0.2)",
+                tickfont: { color: "#a7b6d7" },
+                zerolinecolor: "rgba(170,182,255,0.3)"
             },
             paper_bgcolor: "rgba(0,0,0,0)",
-            plot_bgcolor: "rgba(255,255,255,0.55)"
+            plot_bgcolor: "rgba(5,12,29,0.42)"
         }
     };
 }

@@ -5459,3 +5459,171 @@ textarea::placeholder {
         color: var(--ink);
     }
 }
+
+/* Overview indigo refresh */
+.spiir-shell {
+    gap: 16px;
+}
+
+.spiir-panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(7, 15, 34, 0.7);
+    color: var(--ink);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(18px);
+}
+
+.spiir-plot-panel {
+    padding: 0;
+    border: 1px solid var(--line);
+    background: rgba(7, 15, 34, 0.7);
+}
+
+.spiir-plot-surface {
+    padding: 16px 16px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(8, 19, 43, 0.58);
+    box-shadow: none;
+}
+
+.spiir-plot-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 8px;
+}
+
+.spiir-plot-header h2 {
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.spiir-plot-header span,
+.spiir-sort-select-wrap,
+.spiir-muted-cell {
+    color: var(--muted);
+}
+
+.spiir-control-bar-chart {
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.spiir-control-bar-chart .spiir-pill-toggle,
+.spiir-sort-select-wrap select,
+.spiir-header-tools .spiir-pill-toggle,
+.spiir-window-select {
+    border: 1px solid rgba(177, 195, 235, 0.2);
+    border-radius: 8px;
+    background: rgba(14, 29, 63, 0.92);
+    color: var(--ink);
+}
+
+.spiir-control-bar-chart .spiir-pill-toggle.active,
+.spiir-header-tools .spiir-pill-toggle.active,
+.spiir-toggle-group .spiir-pill-toggle.active {
+    border-color: rgba(170, 182, 255, 0.45);
+    background: rgba(124, 140, 255, 0.2);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.spiir-sort-select-wrap select {
+    width: 8.25rem;
+    min-width: 0;
+}
+
+.spiir-plot {
+    min-height: 420px;
+}
+
+.spiir-plot .main-svg,
+.spiir-plot .svg-container {
+    border-radius: 8px;
+}
+
+.spiir-table-scroll {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(5, 12, 29, 0.44);
+}
+
+.spiir-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.spiir-table th,
+.spiir-table td {
+    border-bottom: 1px solid rgba(177, 195, 235, 0.09);
+    color: var(--ink);
+}
+
+.spiir-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: rgba(8, 19, 43, 0.96);
+    color: var(--ink);
+}
+
+.spiir-sticky,
+.spiir-row.spiir-level-1 .spiir-sticky,
+.spiir-row.spiir-level-0 .spiir-sticky,
+.spiir-row.spiir-level-2 .spiir-sticky {
+    background: rgba(8, 19, 43, 0.98);
+    color: var(--ink);
+}
+
+.spiir-row.spiir-level-0 td {
+    background: rgba(15, 31, 68, 0.82);
+}
+
+.spiir-row.spiir-level-1 td {
+    background: rgba(14, 29, 63, 0.58);
+}
+
+.spiir-row.spiir-level-2 td {
+    background: rgba(8, 19, 43, 0.5);
+    color: var(--muted);
+}
+
+.spiir-table tbody tr:hover td,
+.spiir-table tbody tr:hover .spiir-sticky {
+    background: rgba(72, 88, 177, 0.3);
+}
+
+.spiir-th-button,
+.spiir-cell-button {
+    color: inherit;
+}
+
+.spiir-table-expand-pill,
+.spiir-expand-toggle {
+    border: 1px solid rgba(170, 182, 255, 0.28);
+    background: rgba(124, 140, 255, 0.14);
+    color: #dfe6ff;
+}
+
+.spiir-positive {
+    color: var(--success) !important;
+}
+
+.spiir-negative {
+    color: #ffb4a5 !important;
+}
+
+@media (max-width: 1100px) {
+    .spiir-plot-header {
+        grid-template-columns: 1fr;
+    }
+
+    .spiir-control-bar-chart {
+        justify-content: flex-start;
+    }
+}

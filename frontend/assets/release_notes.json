@@ -1,5 +1,20 @@
 [
   {
+    "version": "0.2.4",
+    "da": {
+      "features": [],
+      "fixes": [
+        "På Overview passer chart, kontroller og tabellen nu bedre til det nye mørkeblå design, så siden er lettere at læse og føles mere samlet."
+      ]
+    },
+    "en": {
+      "features": [],
+      "fixes": [
+        "On Overview, the chart, controls, and table now fit the new dark blue design better, making the page easier to read and more cohesive."
+      ]
+    }
+  },
+  {
     "version": "0.2.3",
     "da": {
       "features": [],
