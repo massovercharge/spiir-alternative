@@ -17,8 +17,21 @@ echo "Deploying spiir-alternative to $SERVER..."
 # Ensure the remote directory exists
 ssh $SERVER "mkdir -p $REMOTE_DIR"
 
-# Rsync the codebase to the server, excluding node_modules, python caches, and local data
-rsync -avz --exclude 'node_modules' --exclude '.venv' --exclude '__pycache__' --exclude 'data/' --exclude '.git' ./ $SERVER:$REMOTE_DIR/
+# Rsync the runnable codebase to the server, excluding local docs, caches, secrets, and generated data.
+rsync -avz \
+    --exclude 'node_modules' \
+    --exclude '.venv' \
+    --exclude '__pycache__' \
+    --exclude '.pytest_cache' \
+    --exclude '.agent/' \
+    --exclude '.codex/' \
+    --exclude 'data/' \
+    --exclude 'dist/' \
+    --exclude '.env' \
+    --exclude '*.pem' \
+    --exclude '.git' \
+    --exclude 'spiir-scrape/' \
+    ./ $SERVER:$REMOTE_DIR/
 
 # Trigger a rebuild and restart on the remote server
 ssh $SERVER "cd $REMOTE_DIR && docker compose build && docker compose up -d"
