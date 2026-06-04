@@ -5627,3 +5627,224 @@ textarea::placeholder {
         justify-content: flex-start;
     }
 }
+
+/* Theme and locale controls */
+:root {
+    --control-bg: rgba(255, 255, 255, 0.82);
+    --control-bg-hover: rgba(239, 246, 255, 0.96);
+    --control-border: var(--line);
+    --app-gradient:
+        radial-gradient(120% 85% at 8% -5%, rgba(79, 70, 229, 0.18), transparent 58%),
+        radial-gradient(105% 85% at 88% 4%, rgba(14, 165, 233, 0.12), transparent 54%),
+        linear-gradient(145deg, #f5f7fb 0%, #e8eef9 48%, #f7f9fc 100%);
+    --app-bank-gradient: var(--app-gradient);
+    --surface-tint: rgba(255, 255, 255, 0.72);
+    --surface-strong-tint: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef3fb;
+    --panel: rgba(255, 255, 255, 0.9);
+    --panel-strong: rgba(248, 251, 255, 0.96);
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-raised: rgba(255, 255, 255, 0.96);
+    --ink: #142033;
+    --muted: #5e6d84;
+    --line: rgba(50, 72, 110, 0.16);
+    --accent: #3656f4;
+    --accent-strong: #2340d0;
+    --accent-soft: rgba(54, 86, 244, 0.12);
+    --warning: #b65f22;
+    --success: #0f8f72;
+    --control-bg: rgba(255, 255, 255, 0.88);
+    --control-bg-hover: rgba(236, 242, 255, 0.96);
+    --control-border: rgba(50, 72, 110, 0.18);
+    --app-gradient:
+        radial-gradient(120% 85% at 8% -5%, rgba(79, 70, 229, 0.18), transparent 58%),
+        radial-gradient(105% 85% at 88% 4%, rgba(14, 165, 233, 0.12), transparent 54%),
+        linear-gradient(145deg, #f5f7fb 0%, #e8eef9 48%, #f7f9fc 100%);
+    --app-bank-gradient: var(--app-gradient);
+    --surface-tint: rgba(255, 255, 255, 0.72);
+    --surface-strong-tint: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #061226;
+    --panel: rgba(11, 24, 52, 0.84);
+    --panel-strong: rgba(14, 28, 62, 0.96);
+    --surface: rgba(15, 31, 68, 0.9);
+    --surface-raised: rgba(22, 42, 88, 0.92);
+    --ink: #edf4ff;
+    --muted: #a7b6d7;
+    --line: rgba(177, 195, 235, 0.18);
+    --accent: #7c8cff;
+    --accent-strong: #aab6ff;
+    --accent-soft: rgba(124, 140, 255, 0.16);
+    --warning: #f0a268;
+    --success: #5ee6b4;
+    --control-bg: rgba(14, 29, 63, 0.92);
+    --control-bg-hover: rgba(42, 66, 132, 0.96);
+    --control-border: rgba(177, 195, 235, 0.2);
+    --app-gradient:
+        radial-gradient(125% 85% at 8% -5%, rgba(67, 56, 202, 0.38), transparent 58%),
+        radial-gradient(100% 85% at 88% 8%, rgba(56, 189, 248, 0.16), transparent 54%),
+        linear-gradient(145deg, #061226 0%, #0b1835 38%, #1a2259 67%, #060b1b 100%);
+    --app-bank-gradient:
+        radial-gradient(118% 88% at 8% -4%, rgba(99, 102, 241, 0.33), transparent 58%),
+        radial-gradient(105% 90% at 95% 5%, rgba(14, 165, 233, 0.16), transparent 54%),
+        linear-gradient(145deg, #050b1d 0%, #0a1835 34%, #18215d 68%, #050a19 100%);
+    --surface-tint: rgba(8, 19, 43, 0.58);
+    --surface-strong-tint: rgba(8, 19, 43, 0.88);
+}
+
+body,
+.app-shell,
+.login-shell,
+.app-mode-bank {
+    background: var(--app-gradient);
+    color: var(--ink);
+}
+
+.app-mode-bank {
+    background: var(--app-bank-gradient);
+}
+
+.auth-status {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 2rem;
+    background: var(--app-gradient);
+    color: var(--ink);
+}
+
+.app-settings-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.app-setting-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.app-setting-select select {
+    width: auto;
+    min-width: 6.4rem;
+    height: 36px;
+    padding: 0 30px 0 10px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background: var(--control-bg);
+    color: var(--ink);
+}
+
+.app-setting-select select:hover {
+    background: var(--control-bg-hover);
+}
+
+.top-nav-panel,
+.app-mode-bank .top-nav-panel,
+.panel,
+.login-card,
+.hero-panel,
+.bank-poster,
+.spiir-panel {
+    border-color: var(--line);
+    background: var(--panel);
+    color: var(--ink);
+}
+
+.app-mode-bank .top-nav-panel .nav-pill,
+.app-mode-bank .top-nav-panel .secondary-button,
+.nav-pill,
+.secondary-button {
+    border-color: var(--control-border);
+    background: var(--control-bg);
+    color: var(--ink);
+}
+
+.app-mode-bank .top-nav-panel .nav-pill.active,
+.nav-pill.active,
+.primary-button {
+    border-color: color-mix(in srgb, var(--accent) 62%, transparent);
+    background: linear-gradient(135deg, var(--accent) 0%, #2563eb 58%, #0ea5e9 100%);
+    color: #ffffff;
+}
+
+.app-mode-bank .top-nav-panel .nav-pill:hover,
+.app-mode-bank .top-nav-panel .secondary-button:hover,
+.nav-pill:hover,
+.secondary-button:hover {
+    background: var(--control-bg-hover);
+    color: var(--ink);
+}
+
+.spiir-plot-surface,
+.spiir-table-scroll,
+.bank-income-overview,
+.bank-spiir-filter-strip,
+.bank-posting-table-container {
+    border-color: var(--line);
+    background: var(--surface-tint);
+    color: var(--ink);
+}
+
+.spiir-control-bar-chart .spiir-pill-toggle,
+.spiir-sort-select-wrap select,
+.spiir-header-tools .spiir-pill-toggle,
+.spiir-window-select,
+.bank-spiir-filter-button,
+.bank-spiir-filter-select,
+.bank-spiir-search-wrap input,
+.bank-category-picker,
+.bank-category-picker input,
+.bank-category-picker > button {
+    border-color: var(--control-border);
+    background: var(--control-bg);
+    color: var(--ink);
+}
+
+.spiir-control-bar-chart .spiir-pill-toggle:hover,
+.spiir-sort-select-wrap select:hover,
+.spiir-header-tools .spiir-pill-toggle:hover,
+.spiir-window-select:hover,
+.bank-spiir-filter-button:hover,
+.bank-spiir-filter-select:hover,
+.bank-spiir-search-wrap input:hover {
+    background: var(--control-bg-hover);
+}
+
+.spiir-table thead th,
+.spiir-sticky,
+.spiir-row.spiir-level-1 .spiir-sticky,
+.spiir-row.spiir-level-0 .spiir-sticky,
+.spiir-row.spiir-level-2 .spiir-sticky {
+    background: var(--surface-strong-tint);
+    color: var(--ink);
+}
+
+@media (max-width: 760px) {
+    .app-settings-controls {
+        justify-content: flex-start;
+    }
+
+    .app-setting-select {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .app-setting-select select {
+        min-width: 0;
+        flex: 0 0 10rem;
+    }
+}

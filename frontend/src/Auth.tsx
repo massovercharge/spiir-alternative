@@ -2,6 +2,7 @@ import { LogtoProvider, LogtoConfig, useLogto, useHandleSignInCallback } from '@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import React, { useEffect } from 'react';
 import { setAccessToken } from './api';
+import { useAppPreferences } from './appPreferences';
 import ReferenceApp from './ReferenceApp';
 
 const config: LogtoConfig = {
@@ -12,6 +13,7 @@ const config: LogtoConfig = {
 
 const AuthCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading, error, signIn, getAccessToken } = useLogto();
+  const { t } = useAppPreferences();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -30,28 +32,29 @@ const AuthCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [isAuthenticated, getAccessToken]);
 
   if (isLoading || !isAuthenticated) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Redirecting to login...</div>;
+    return <div className="auth-status">{t("auth.redirecting")}</div>;
   }
   
   if (error) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Error: {error.message}</div>;
+    return <div className="auth-status">{t("auth.error")}: {error.message}</div>;
   }
 
   return <>{children}</>;
 };
 
 const Callback: React.FC = () => {
+  const { t } = useAppPreferences();
   const { isLoading, error } = useHandleSignInCallback(() => {
     navigate('/');
   });
   const navigate = useNavigate();
 
   if (isLoading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Handling authentication...</div>;
+    return <div className="auth-status">{t("auth.handlingCallback")}</div>;
   }
   
   if (error) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Error: {error.message}</div>;
+    return <div className="auth-status">{t("auth.error")}: {error.message}</div>;
   }
   
   return null;

@@ -1,5 +1,20 @@
 [
   {
+    "version": "0.3.0",
+    "da": {
+      "features": [
+        "Appen har nu et fælles fundament for sprog og tema, så topnavigation og loginstatus kan skifte mellem dansk/engelsk og system/lys/mørk visning."
+      ],
+      "fixes": []
+    },
+    "en": {
+      "features": [
+        "The app now has a shared foundation for language and theme, so top navigation and login status can switch between Danish/English and system/light/dark display."
+      ],
+      "fixes": []
+    }
+  },
+  {
     "version": "0.2.4",
     "da": {
       "features": [],
