@@ -607,6 +607,16 @@ def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
         else:
             msg = "Færdig"
 
+        # After successful retrieval, try to auto-match receipts
+        _update_job("running", 95, "Matcher kvitteringer...")
+        try:
+            from .transaction_service import auto_link_receipts
+            linked = auto_link_receipts()
+            if linked > 0:
+                msg += f" (Forbandt {linked} kvitteringer)"
+        except Exception as e:
+            print(f"Failed to auto-link receipts after sync: {e}")
+
         _update_job(
             "succeeded" if not account_errors else "completed_with_errors", 100, msg,
             completed_at=_utcnow_iso(),

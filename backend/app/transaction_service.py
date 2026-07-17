@@ -488,7 +488,7 @@ def apply_rule_retroactively(rule_id: str) -> int:
 
     return updated_count
 
-def link_receipt_to_transaction(posting_id: str, receipt_id: str) -> dict[str, Any]:
+def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool = False) -> dict[str, Any]:
     from .kvitteringer_service import get_receipt, link_peng_transaction_to_receipt
 
     receipt_data = get_receipt(receipt_id)
@@ -501,13 +501,14 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str) -> dict[str, A
             raise ValueError(f"Posting {posting_id} not found")
 
         # Save the link in the kvitteringer db using existing function
-        link_peng_transaction_to_receipt({
-            "transaction_id": posting_id,
-            "receipt_id": receipt_id,
-            "confidence": "manual",
-            "reason": "user_linked",
-            "transaction_payload_json": "{}"
-        })
+        if not is_auto:
+            link_peng_transaction_to_receipt({
+                "transaction_id": posting_id,
+                "receipt_id": receipt_id,
+                "confidence": "manual",
+                "reason": "user_linked",
+                "transaction_payload_json": "{}"
+            })
 
         # Calculate splits
         occurrences = receipt_data.get("occurrences", [])
@@ -556,16 +557,56 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str) -> dict[str, A
                     distributed_sum += dist_amt
                     sum_items += dist_amt
 
-        # Difference line
-        diff = posting.amount_minor - sum_items
-        if diff != 0:
+        if sum_items != abs(posting.amount_minor):
+            diff = abs(posting.amount_minor) - sum_items
             splits.append({
-                "amount_minor": diff,
+                "amount_minor": diff * multiplier,
                 "item_name": "Difference / Gebyr",
                 "item_cluster_id": None,
                 "category_id": None,
-                "note": "Difference between receipt total and bank transaction"
+                "note": "Automatisk difference (fra kvittering)"
             })
 
-    # Use the existing split_allocation function
-    return split_allocation(posting_id, splits)
+        return split_allocation(posting_id, splits)
+
+
+def auto_link_receipts(min_date: str | None = None, max_date: str | None = None) -> int:
+    """
+    Scans un-split Postings for matches with imported receipts and automatically links and splits them.
+    """
+    from .kvitteringer_service import link_peng_transaction_to_receipt
+    linked_count = 0
+
+    with Session(engine) as db:
+        query = select(Posting).where(col(Posting.amount_minor) < 0)
+        
+        if min_date:
+            query = query.where(col(Posting.booking_date) >= min_date)
+        if max_date:
+            query = query.where(col(Posting.booking_date) <= max_date)
+            
+        postings = db.exec(query).all()
+        
+        for posting in postings:
+            # Check if it already has more than 1 allocation or any allocation with an item_name
+            if len(posting.allocations) > 1 or any(a.item_name is not None for a in posting.allocations):
+                continue
+                
+            payload = {
+                "transaction_id": posting.id,
+                "booking_date": posting.booking_date,
+                "amount": posting.amount_minor / 100.0,
+                "description": posting.original_description,
+            }
+            
+            try:
+                result = link_peng_transaction_to_receipt(payload)
+                if result.get("linked") and not result.get("cached"):
+                    # We found a new match!
+                    receipt_id = str(result.get("receipt_id"))
+                    link_receipt_to_transaction(posting.id, receipt_id, is_auto=True)
+                    linked_count += 1
+            except Exception as e:
+                print(f"Error auto-linking posting {posting.id}: {e}")
+                
+    return linked_count

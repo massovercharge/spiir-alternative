@@ -406,11 +406,15 @@ def create_app() -> FastAPI:
     def storebox_import_link(payload: dict[str, Any]) -> dict[str, object]:
         """Download and import Storebox receipts from a URL."""
         from .storebox_service import process_storebox_link
+        from .transaction_service import auto_link_receipts
         url = payload.get("url")
         if not url:
             raise HTTPException(status_code=400, detail="URL is required")
         try:
-            return process_storebox_link(url)
+            result = process_storebox_link(url)
+            linked = auto_link_receipts()
+            result["auto_linked"] = linked
+            return result
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -418,9 +422,13 @@ def create_app() -> FastAPI:
     async def storebox_import_file(file: UploadFile = File(...)) -> dict[str, object]:
         """Upload and import a Storebox ZIP or JSON file."""
         from .storebox_service import process_storebox_file
+        from .transaction_service import auto_link_receipts
         try:
             content = await file.read()
-            return process_storebox_file(content, file.filename or "")
+            result = process_storebox_file(content, file.filename or "")
+            linked = auto_link_receipts()
+            result["auto_linked"] = linked
+            return result
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
