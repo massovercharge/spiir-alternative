@@ -579,26 +579,26 @@ def auto_link_receipts(min_date: str | None = None, max_date: str | None = None)
 
     with Session(engine) as db:
         query = select(Posting).where(col(Posting.amount_minor) < 0)
-        
+
         if min_date:
             query = query.where(col(Posting.booking_date) >= min_date)
         if max_date:
             query = query.where(col(Posting.booking_date) <= max_date)
-            
+
         postings = db.exec(query).all()
-        
+
         for posting in postings:
             # Check if it already has more than 1 allocation or any allocation with an item_name
             if len(posting.allocations) > 1 or any(a.item_name is not None for a in posting.allocations):
                 continue
-                
+
             payload = {
                 "transaction_id": posting.id,
                 "booking_date": posting.booking_date,
                 "amount": posting.amount_minor / 100.0,
                 "description": posting.original_description,
             }
-            
+
             try:
                 result = link_peng_transaction_to_receipt(payload)
                 if result.get("linked") and not result.get("cached"):
@@ -608,5 +608,5 @@ def auto_link_receipts(min_date: str | None = None, max_date: str | None = None)
                     linked_count += 1
             except Exception as e:
                 print(f"Error auto-linking posting {posting.id}: {e}")
-                
+
     return linked_count
