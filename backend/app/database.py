@@ -54,18 +54,27 @@ def create_db_and_tables() -> None:
         from sqlalchemy import text
         with contextlib.suppress(Exception):
             session.exec(text("ALTER TABLE posting ADD COLUMN custom_date VARCHAR;"))
+            session.commit()
 
         with contextlib.suppress(Exception):
             session.exec(text("ALTER TABLE category ADD COLUMN expense_type VARCHAR DEFAULT 'Variable';"))
+            session.commit()
 
         with contextlib.suppress(Exception):
             session.exec(text("ALTER TABLE account ADD COLUMN owner_name VARCHAR;"))
-
-        with contextlib.suppress(Exception):
-            session.exec(text("ALTER TABLE account ADD COLUMN owner_name VARCHAR;"))
+            session.commit()
 
         with contextlib.suppress(Exception):
             session.exec(text("ALTER TABLE categorizationrule ADD COLUMN partial_match BOOLEAN DEFAULT 0;"))
+            session.commit()
+
+        with contextlib.suppress(Exception):
+            session.exec(text("ALTER TABLE postingallocation ADD COLUMN item_name VARCHAR;"))
+            session.commit()
+
+        with contextlib.suppress(Exception):
+            session.exec(text("ALTER TABLE postingallocation ADD COLUMN item_cluster_id VARCHAR;"))
+            session.commit()
 
         # PSD2 Posting fields
         for col_def in [
@@ -79,6 +88,7 @@ def create_db_and_tables() -> None:
             col_def.split()[0]
             with contextlib.suppress(Exception):
                 session.exec(text(f"ALTER TABLE posting ADD COLUMN {col_def};"))
+                session.commit()
 
         try:
             # Data migration for category expense_type
@@ -418,6 +428,8 @@ class PostingAllocation(SQLModel, table=True):
 
     amount_minor: int  # Must sum to parent posting's amount_minor
     note: Optional[str] = None
+    item_name: Optional[str] = None
+    item_cluster_id: Optional[str] = Field(default=None, index=True)
     is_extraordinary: bool = Field(default=False)
 
     created_at: str = Field(default_factory=_utcnow_iso)

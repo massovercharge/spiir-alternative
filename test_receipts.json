@@ -1,0 +1,7775 @@
+[ {
+  "receiptId" : "08p9sixdiwk2a0pwf4s37zxea22ti295",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Søborg Hovedgade 27, 2860, Søborg, dk",
+  "purchaseDate" : "2025-06-22",
+  "totalPrice" : "63.25",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "31607233",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "COOKIE DOUGH SW",
+    "price" : "27.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.95",
+    "currency" : null
+  }, {
+    "name" : "SOMMER ISVAFLER",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : null
+  }, {
+    "name" : "LUMBERJACK",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "FLASKEPANT",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "VÅDSERVIETTER",
+    "price" : "12.25",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "0j5zd62hzm7eoy7vfqa1xnqfxgmtn95t",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2024-11-03",
+  "totalPrice" : "200",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "36870020132",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GB HAVREDRIK ØKO",
+    "price" : "225.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-25.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "0own056827gy9ihotn4txzkfeioi5zw4",
+  "storeName" : "Netto",
+  "storeAddress" : "HERLEV HOVEDGADE 25, 2730, HERLEV, dk",
+  "purchaseDate" : "2023-01-07",
+  "totalPrice" : "120",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "25650010196",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HAVRE DRIK 1L",
+    "price" : "155.4",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-35.4",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "0xkqi195hyqoic92yuhcx02172rey8o1",
+  "storeName" : "Netto",
+  "storeAddress" : "Blåvandsvej 36, dk",
+  "purchaseDate" : "2024-02-20",
+  "totalPrice" : "112.91",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "6070010073",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NÆMT STREET CÆSAR",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "COLA 1 STK",
+    "price" : "3.73",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "NÆMT STREET CÆSAR",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "MATILDE 200ML",
+    "price" : "2.0",
+    "currency" : null
+  }, {
+    "name" : "NÆMT SKYR HINDBÆR",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "APOLLINARIS CIT 0,5L",
+    "price" : "2.38",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "EGELYKKE KAKAO 200ML",
+    "price" : "3.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO BANAN 4STK",
+    "price" : "8.8",
+    "currency" : null
+  }, {
+    "name" : "PEANUTBUTTER CRUNCHY",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "NÆMT COUSCOUS",
+    "price" : "25.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "1kznlfqlhtfhptlirph06okyx8utsxc8",
+  "storeName" : "Netto",
+  "storeAddress" : "EREMITAGEPARKEN 353-357, 2800, LYNGBY, dk",
+  "purchaseDate" : "2025-06-04",
+  "totalPrice" : "95.4",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "11",
+  "orderNumber" : "99710110095",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TAFFEL ORIGINAL",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "ØGO KYLLINGEPØLSE",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "DET GODE SOLSIKKEBOL",
+    "price" : "25.5",
+    "currency" : null
+  }, {
+    "name" : "KLASSISK PANDEKAGE",
+    "price" : "19.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "1rxbwyh0xfdayi4axhumju7fthkuoxnp",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-05-23",
+  "totalPrice" : "32.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "37110020339",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GESTUS PIZZADEJ",
+    "price" : "10.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PIZZADEJ",
+    "price" : "10.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PIZZADEJ",
+    "price" : "10.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "1vrfcdyqagy186dfglvb312nsg3tficw",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-11-04",
+  "totalPrice" : "63.9",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "158139",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "3 STIKDÅSE M JORD U KABEL HVID",
+    "price" : "38.95",
+    "currency" : null
+  }, {
+    "name" : "HYBRIDSTIKPROP                ",
+    "price" : "24.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "43td8eas0uxpjw7egrhbaazwpj9j70gx",
+  "storeName" : "SPAR",
+  "storeAddress" : "Carl Jacobsensvej 191, dk",
+  "purchaseDate" : "2024-03-29",
+  "totalPrice" : "67.25",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "23590030470",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SBUX TRIPLESHOT ESPR",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.95",
+    "currency" : null
+  }, {
+    "name" : "FIRST PRICE PEANUTS",
+    "price" : "9.25",
+    "currency" : null
+  }, {
+    "name" : "GESTUS SANDW.MED LAK",
+    "price" : "30.0",
+    "currency" : null
+  }, {
+    "name" : "GESTUS SANDW.MED LAK",
+    "price" : "-30.0",
+    "currency" : null
+  }, {
+    "name" : "GESTUS SANDW.MED LAK",
+    "price" : "0.0",
+    "currency" : null
+  }, {
+    "name" : "GESTUS SANDW.MED LAK",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH SKINKE & OS",
+    "price" : "30.0",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH SKINKE & OS",
+    "price" : "-30.0",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH SKINKE & OS",
+    "price" : "0.0",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH SKINKE & OS",
+    "price" : "20.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "46t2xi8kqq8fdwsj42elzhn1w0lme5l8",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-01-17",
+  "totalPrice" : "16.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "35840020279",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FARIN BRUN",
+    "price" : "16.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "54bl40pa6u61zu17oe6lamgawrmciicu",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2023-04-16",
+  "totalPrice" : "139.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "12870020003",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SLANGE TUDS TIL Ø50",
+    "price" : "99.95",
+    "currency" : null
+  }, {
+    "name" : "GRENRØR 50-50-4",
+    "price" : "39.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "57tass4hqjxhr4q8icvqicqcl7gdp912",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "EJBY INDUSTRIVEJ 25, 2600, GLOSTRUP, dk",
+  "purchaseDate" : "2024-02-23",
+  "totalPrice" : "71.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "125107",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SMART ENERGIMÅLER M. WIFI     ",
+    "price" : "68.0",
+    "currency" : null
+  }, {
+    "name" : "NORDTHY MÜSLIBAR XL 50G ASSORT",
+    "price" : "3.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "5b1ldylwyzcpzy4r39eit0szx84tzbeq",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2025-03-02",
+  "totalPrice" : "161.02",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "19730030403",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "DANMULD PLANTESÆK",
+    "price" : "169.5",
+    "currency" : null
+  }, {
+    "name" : "Ældresagen rabat",
+    "price" : "-8.48",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "5e5ybjgzxj14s9h9j9t1zh7myjb7hucn",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Hovedvejen 155, 2600, Glostrup, dk",
+  "purchaseDate" : "2025-03-16",
+  "totalPrice" : "351.45",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "5",
+  "orderNumber" : "38710050097",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SUPREME FINISH 03",
+    "price" : "369.95",
+    "currency" : null
+  }, {
+    "name" : "Ældresagen rabat",
+    "price" : "-18.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "6756opl5hna99v63735q4nbssrndmbdy",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-11-06",
+  "totalPrice" : "115.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "11260020102",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SAMLEMUFFE CLICK IN",
+    "price" : "55.95",
+    "currency" : null
+  }, {
+    "name" : "PAKNINGSSÆT 125 DELE",
+    "price" : "59.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "6a9g0mj9thqzok4cg6pbzg2vcsy2razw",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2024-02-23",
+  "totalPrice" : "274.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "16000010322",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FITTINGCLIPS OFFWHIT",
+    "price" : "124.95",
+    "currency" : null
+  }, {
+    "name" : "FODPANEL TIL CLIPS",
+    "price" : "149.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "75drzv8g63yjflvbt0een8e9w5h63i7e",
+  "storeName" : "MENY",
+  "storeAddress" : "Badevej 1, Søndervig, v/Sø, Supermarked ApS, dk",
+  "purchaseDate" : "2024-10-31",
+  "totalPrice" : "51",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "47940020366",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HARMONIE LETMÆLK",
+    "price" : "14.25",
+    "currency" : null
+  }, {
+    "name" : "HARMONIE LETMÆLK",
+    "price" : "14.25",
+    "currency" : null
+  }, {
+    "name" : "VANILLE IS",
+    "price" : "22.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "7juuyq49vz7y43jkjf06ol2jh0yxj4ax",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-05-30",
+  "totalPrice" : "33.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "37180020306",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PREMIER IS GULDHORN",
+    "price" : "50.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-25.0",
+    "currency" : null
+  }, {
+    "name" : "PEPSI LIME 33 CL",
+    "price" : "7.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "81ugi3uzysu8rktli05qoy8kkapwwnc2",
+  "storeName" : "Carls Jr.",
+  "storeAddress" : "STOREBÆLTSVEJ 7A, 5800, NYBORG, dk",
+  "purchaseDate" : "2025-01-10",
+  "totalPrice" : "35",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "22810010020",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SMALL COFFEE",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "LARGE TEA",
+    "price" : "20.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "8gv097rmpuu1z0tblvtoqt58mbt8rz37",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-11-13",
+  "totalPrice" : "227.75",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "647023",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SMART ENERGIMÅLER M. WIFI     ",
+    "price" : "68.0",
+    "currency" : null
+  }, {
+    "name" : "3 STIKDÅSE M/J GRÅ            ",
+    "price" : "38.95",
+    "currency" : null
+  }, {
+    "name" : "GENNEMGANGSAFBRYDER HVID      ",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "VINKELSTIKPROP HVID           ",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "GENNEMGANGSAFBRYDER HVID      ",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "VINKELSTIKPROP HVID           ",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "GENNEMGANGSAFBRYDER HVID      ",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "VINKELSTIKPROP HVID           ",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "GENNEMGANGSAFBRYDER HVID      ",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "LEDNING FLAD 2X0,75 10 M HVID ",
+    "price" : "24.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "92y8gesh1h7ggfemd5bz9vcjqmx9f34k",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-11-02",
+  "totalPrice" : "414.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "5",
+  "orderNumber" : "11220050026",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "REPARATIONSMØRTEL",
+    "price" : "114.95",
+    "currency" : null
+  }, {
+    "name" : "FLEXSLANGE ALU",
+    "price" : "169.95",
+    "currency" : null
+  }, {
+    "name" : "MURERHAMMER 600",
+    "price" : "129.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "98pubiq9v3ugpiz9x1e3ysh4gqy0qibw",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-11-05",
+  "totalPrice" : "402.75",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "11250040418",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SLANGE VINKEL Ø50",
+    "price" : "99.95",
+    "currency" : null
+  }, {
+    "name" : "PP-VANDLÅS 40MM-UNIV",
+    "price" : "139.95",
+    "currency" : null
+  }, {
+    "name" : "REDUKTION 50-40",
+    "price" : "32.95",
+    "currency" : null
+  }, {
+    "name" : "PP-TILSL.NING 11/2\"-",
+    "price" : "69.95",
+    "currency" : null
+  }, {
+    "name" : "GRENRØR 50-50-8",
+    "price" : "59.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "9b8ekf41eqyghf947qdh4d9h0dd76k3t",
+  "storeName" : "Løvbjerg",
+  "storeAddress" : "Strevelinsvej 11, 7000, Fredericia, dk",
+  "purchaseDate" : "2025-06-06",
+  "totalPrice" : "11.5",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "21501",
+  "orderNumber" : "0000021501000090668",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SALTET CHIPS",
+    "price" : "11.5",
+    "currency" : "DKK"
+  } ]
+}, {
+  "receiptId" : "9iinj29xmdz79k1qog2oripmk55b35bb",
+  "storeName" : "Netto",
+  "storeAddress" : "SILKEBORGVEJ 650, 8220, BRABRAND, dk",
+  "purchaseDate" : "2024-09-07",
+  "totalPrice" : "70",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "48610010192",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO VANDMELON",
+    "price" : "35.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO VANDMELON",
+    "price" : "35.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "9s41psrrd3pe8clepv5u0z37z3xy4j50",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Korsgade 6, 5560, Aarup, dk",
+  "purchaseDate" : "2025-07-06",
+  "totalPrice" : "242.8",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "13249365",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO. LETMÆLK",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO. LETMÆLK",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "X-LARGE BLEER",
+    "price" : "59.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-5.95",
+    "currency" : null
+  }, {
+    "name" : "GRILLPØLSER",
+    "price" : "32.95",
+    "currency" : null
+  }, {
+    "name" : "GRILLPØLSE M/OST",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "MAJS",
+    "price" : "18.0",
+    "currency" : null
+  }, {
+    "name" : "AUBERGINER",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "AUBERGINER",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "OTRIVIN",
+    "price" : "52.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "9w1nfnprgg66c5uxk8hvk1vkh23vgex2",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2023-03-21",
+  "totalPrice" : "8.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "32820020309",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FP KOKOSMÆLK 5-7% 40",
+    "price" : "8.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "a08r1cobo3ekvfglv6h04nw3w9einwlt",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Dandyvej 9, 7100, Vejle, dk",
+  "purchaseDate" : "2024-08-11",
+  "totalPrice" : "129.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "73810010034",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BONUS SÅRBALSAM",
+    "price" : "129.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "a6cztockuv90z9zjmh3n2uylx452dpcq",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2023-12-09",
+  "totalPrice" : "90",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "15240040030",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TILSKÆRING PR.SNIT",
+    "price" : "90.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "a8u28z1qblairxjor77wgqafabwnhgtn",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-08-07",
+  "totalPrice" : "59",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "21600020390",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO INDIAN TONIC",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "2.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO BRUNE CHAMPIGNON",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO PEBER",
+    "price" : "16.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "as4cjqypsatiiicu3gqk9ah69irq108l",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-11-08",
+  "totalPrice" : "-99.9",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "163352",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "T-HYLDEKNÆGT HVID 200X250MM   ",
+    "price" : "-49.95",
+    "currency" : null
+  }, {
+    "name" : "T-HYLDEKNÆGT HVID 200X250MM   ",
+    "price" : "-49.95",
+    "currency" : null
+  }, {
+    "name" : "Retur på faktura:155496 221102",
+    "price" : "0.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ax1al7ybviyiq5p0qvbptu5gba7e1q7f",
+  "storeName" : "Netto",
+  "storeAddress" : "Vestensborg Alle 29, 4800, Nykøbing Falster, dk",
+  "purchaseDate" : "2024-08-01",
+  "totalPrice" : "52.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "62120010306",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NÆMT COUSCOUS",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "ØGO PASTA M. TOMAT",
+    "price" : "27.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ayb7uh6tytgc81byd8y9pcnnxd0bc5yd",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-11-17",
+  "totalPrice" : "194.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "652303",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CYKELSLANGE 26X6X1.50-1.75    ",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "SMART ENERGIMÅLER M. WIFI     ",
+    "price" : "68.0",
+    "currency" : null
+  }, {
+    "name" : "FORLÆNGERLED RUND HVID        ",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "SMART ENERGIMÅLER M. WIFI     ",
+    "price" : "68.0",
+    "currency" : null
+  }, {
+    "name" : "HYBRIDSTIKPROP DK TIL PINDJORD",
+    "price" : "24.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "b9fmaty6ljx91qp5b1sd9emm37s26oj6",
+  "storeName" : "Føtex",
+  "storeAddress" : "KLOSTERPARKS ALLÉ 10, 4100, RINGSTED, dk",
+  "purchaseDate" : "2022-08-28",
+  "totalPrice" : "25",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "5",
+  "orderNumber" : "54780050110",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "DELI SANDWICH",
+    "price" : "25.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "bbmxm7grcpllb0mbr8cpi96cym7roxfq",
+  "storeName" : "Biltema",
+  "storeAddress" : "Hermods Allé 8, 2600, Glostrup, se",
+  "purchaseDate" : "2022-11-06",
+  "totalPrice" : "109.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "693418",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TOPNØGLESÆT 1/4\", LANGE, 10X",
+    "price" : "109.0",
+    "currency" : "DKK"
+  } ]
+}, {
+  "receiptId" : "cors54p4hv6mmwsm3l72rqnyxbrhxeaa",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2025-02-20",
+  "totalPrice" : "27.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "39840020277",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GESTUS MANDEHØRM PEA",
+    "price" : "15.95",
+    "currency" : null
+  }, {
+    "name" : "FRUGT MARKED",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "d4d8w6a98bd1teq8sdib6ibm996kxsr2",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2025-05-29",
+  "totalPrice" : "149.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "20610020163",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HORNUM PLANTESÆ",
+    "price" : "149.85",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "de3125j8x0qjob45u6uvbki4m26y0brv",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-05-22",
+  "totalPrice" : "109.15",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "24470020493",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GELATO SANDWICH",
+    "price" : "31.95",
+    "currency" : null
+  }, {
+    "name" : "HELLO SENSITIVE BLE",
+    "price" : "59.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO GRÆSKARKERNER",
+    "price" : "17.25",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "dr3dhe6s4ho2sgxaix11czi73zlpxq3q",
+  "storeName" : "SPAR",
+  "storeAddress" : "Parallelvej 68, Hvid, Sande Nord, dk",
+  "purchaseDate" : "2024-11-01",
+  "totalPrice" : "59.02",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "41660030530",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KARTOFLER",
+    "price" : "4.07",
+    "currency" : null
+  }, {
+    "name" : "SVAMPE BØGEHATTE",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "SVANSØ ANSJOSFILETER",
+    "price" : "39.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ds50e4i7tcvi8q9tu4asq8bq4lrlhsrm",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-11-05",
+  "totalPrice" : "119.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "159484",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MONTERINGSSÆT 127MM MED SPJÆLD",
+    "price" : "119.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "dvhqczugna2igjbqc0uc54zn29ocj1w7",
+  "storeName" : "Netto",
+  "storeAddress" : "Kirke Værløsevej 8, 3500, Værløse, dk",
+  "purchaseDate" : "2024-08-23",
+  "totalPrice" : "15.7",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "99050020145",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "APOLLINARIS 0,5L",
+    "price" : "2.4",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-0.15",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "HELLO SENSITIVE BABY",
+    "price" : "11.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "dxoiaxp4zymxq1mfkpc10z2blkdlxr66",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2025-05-12",
+  "totalPrice" : "163.2",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "38770030253",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "AUBERGINER STK",
+    "price" : "50.85",
+    "currency" : null
+  }, {
+    "name" : "ØKO-TOMATER 400 G",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO-KORIANDER 20 G",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "GB HAVREDRIK ØKO",
+    "price" : "11.25",
+    "currency" : null
+  }, {
+    "name" : "GB HAVREDRIK ØKO",
+    "price" : "11.25",
+    "currency" : null
+  }, {
+    "name" : "GESTUS MANDEHØRM CHI",
+    "price" : "21.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO-BASILIKUM 1 PT",
+    "price" : "22.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "e5h0bxi4h8qw1th3bj5lfbdpgfm8tusu",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-03-26",
+  "totalPrice" : "134.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "338687",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIGEKROG 28CM 2-PAK          ",
+    "price" : "134.85",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ef85mr18ddm0l9jm5q9ilq4yd9k7fcku",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Hovedvejen 155, 2600, Glostrup, dk",
+  "purchaseDate" : "2025-04-25",
+  "totalPrice" : "343.6",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "14",
+  "orderNumber" : "39110140048",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KLEMLISTER 25X5",
+    "price" : "23.8",
+    "currency" : null
+  }, {
+    "name" : "FUGEMASSE",
+    "price" : "319.8",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "f714n41f67iibzu5rekxbjai5wemtbzr",
+  "storeName" : "Netto",
+  "storeAddress" : "Jorisvej 1, 2300, Kobenhavn S, dk",
+  "purchaseDate" : "2025-06-15",
+  "totalPrice" : "32",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "11660011217",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "COCA COLA",
+    "price" : "17.0",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "SFB GROVCHIPS SALT",
+    "price" : "13.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "fb5v0fisi9iyk1i9f8cvzuv8qehgtbd9",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2024-11-23",
+  "totalPrice" : "250.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "37070030389",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FP ISTE FERSKEN 1,5",
+    "price" : "5.0",
+    "currency" : null
+  }, {
+    "name" : "DGS VEGGIE SALAMI ME",
+    "price" : "17.5",
+    "currency" : null
+  }, {
+    "name" : "DGS VEGGIE PÅLÆG PEB",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "STEFF-H RISENGRØD",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.95",
+    "currency" : null
+  }, {
+    "name" : "STEFF-H RISENGRØD",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.95",
+    "currency" : null
+  }, {
+    "name" : "STEFF-H RISENGRØD",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.95",
+    "currency" : null
+  }, {
+    "name" : "LEVEBRØD MØRK KERNEG",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.95",
+    "currency" : null
+  }, {
+    "name" : "WASA KNÆKBRØD SURDEG",
+    "price" : "28.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.95",
+    "currency" : null
+  }, {
+    "name" : "LEVEBRØD MULTIKERNEB",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.0",
+    "currency" : null
+  }, {
+    "name" : "LEVEBRØD CHIA BOLLER",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.0",
+    "currency" : null
+  }, {
+    "name" : "GULE BANANER STK",
+    "price" : "24.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.5",
+    "currency" : null
+  }, {
+    "name" : "K-SALAT MAYONNAISE 3",
+    "price" : "22.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.5",
+    "currency" : null
+  }, {
+    "name" : "DG SURDEJSBRØD 650 G",
+    "price" : "28.5",
+    "currency" : null
+  }, {
+    "name" : "HARBOE COLA 50 CL",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "PANT B, 1 STK",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "HARBOE COLA 50 CL",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "PANT B, 1 STK",
+    "price" : "1.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "fv8d4xuxkedm3qzhy8i1kj7rg1vk6j54",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-12-10",
+  "totalPrice" : "316.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "687630",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MÜSLIBARS HASSELNØD 6-PAK     ",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "F-STIK TIL 7MM KABEL 2-PAK    ",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "ANTENNEKABELSAMLER TIL F-STIK ",
+    "price" : "14.0",
+    "currency" : null
+  }, {
+    "name" : "SMART ENERGIMÅLER M. WIFI     ",
+    "price" : "68.0",
+    "currency" : null
+  }, {
+    "name" : "PRO ANTENNEKABEL 25M          ",
+    "price" : "199.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "fwnyaaesysefwdj4e4y4gc9oupd3huqy",
+  "storeName" : "Netto",
+  "storeAddress" : "Svinget 1, 7160, Tørring, dk",
+  "purchaseDate" : "2023-05-27",
+  "totalPrice" : "79",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "85860010297",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "RS MANDEL/ORANGE MØR",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "CANTALOUP MELON",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "CASHEW",
+    "price" : "32.0",
+    "currency" : null
+  }, {
+    "name" : "DONUTFERSKNER",
+    "price" : "15.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "g7o0apdcdu81106r5bmw4zndizpjdjg4",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2023-12-09",
+  "totalPrice" : "288.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "9",
+  "orderNumber" : "15240090015",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "RADIATA KRYDSFINER 6",
+    "price" : "288.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "gqf84hstbh8uyu5q949e9888t6dny83j",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2024-02-05",
+  "totalPrice" : "5",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "27060020584",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PÆRER, LØSE",
+    "price" : "5.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "grgzohodf5q6yczxfmb9r8edjlc2snns",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-10-30",
+  "totalPrice" : "55.9",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "151290",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BRYSTNIPPEL GALV. 1/2''       ",
+    "price" : "27.95",
+    "currency" : null
+  }, {
+    "name" : "BRYSTNIPPEL GALV. 1/2''       ",
+    "price" : "27.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "h4fb38yqh7ch35awapg8sfk547igar71",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Stengårds Allé 118, 2800, Lyngby, dk",
+  "purchaseDate" : "2024-02-25",
+  "totalPrice" : "334.2",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "30746495",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FLYDENDE VASK",
+    "price" : "23.95",
+    "currency" : null
+  }, {
+    "name" : "HÅNDSÆBE",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "HÅNDSÆBE",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "ICETEA FERSKEN",
+    "price" : "5.0",
+    "currency" : null
+  }, {
+    "name" : "HAVREDRIK",
+    "price" : "11.25",
+    "currency" : null
+  }, {
+    "name" : "HAVREDRIK",
+    "price" : "11.25",
+    "currency" : null
+  }, {
+    "name" : "ØKO KIKÆRTER",
+    "price" : "7.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO KIKÆRTER",
+    "price" : "7.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO KIKÆRTER",
+    "price" : "7.5",
+    "currency" : null
+  }, {
+    "name" : "BÄHNCKE KIK REMO",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "BÄHNCKE KIK REMO",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "BÄHNCKE KIK MAYO",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "BÄHNCKE KIK MAYO",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "CLEM. OLIVENOLIE",
+    "price" : "75.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO BROCCOLI",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "HARICOTS VERTS",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "SOLSIKKEOLIE",
+    "price" : "18.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO BROCCOLI",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO.DANSKE ÆRTER",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "SOLSIKKEBOLLER",
+    "price" : "25.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-15.5",
+    "currency" : null
+  }, {
+    "name" : "HVEDEMEL",
+    "price" : "11.45",
+    "currency" : null
+  }, {
+    "name" : "SOJABØNNER",
+    "price" : "14.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "h6tarrmkfxhczowuiy4dhg8qbd3k763y",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Vejers havvej 68 b, dk",
+  "purchaseDate" : "2024-02-20",
+  "totalPrice" : "65",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "33740020103",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NONFOOD",
+    "price" : "18.0",
+    "currency" : null
+  }, {
+    "name" : "SOLERO EXOTIC",
+    "price" : "22.0",
+    "currency" : null
+  }, {
+    "name" : "KAFFE, KVÆRNET",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "SNITTE",
+    "price" : "15.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "h80860ffdblvcmdqg2drmofu1y34yiii",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-09-28",
+  "totalPrice" : "29.9",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "110933",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KABELKANAL 6X7 MM 2 M HVID    ",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "KABELKANAL 6X7 MM 2 M HVID    ",
+    "price" : "14.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "hbezl9oaf6qzaf81r76rxsjvm4m4yb98",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2023-04-15",
+  "totalPrice" : "451.84",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "31200020146",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FLASKEBON",
+    "price" : "-14.0",
+    "currency" : null
+  }, {
+    "name" : "RISTORANTE PIZZA MOZ",
+    "price" : "35.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-16.95",
+    "currency" : null
+  }, {
+    "name" : "RISTORANTE PIZZA MOZ",
+    "price" : "35.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-16.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS CHERRYTOMAT T",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PESTO TOFU",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "FP HAVREGRYN FINVALS",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "FP HAVREGRYN FINVALS",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "FP HAVREGRYN FINVALS",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "ØLLINGEGAARD LETMÆLK",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "ØLLINGEGAARD LETMÆLK",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.9",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "GB RABARBERDRIK 500",
+    "price" : "18.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "GB HYLDEBLOMSTDRIK Ø",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "FP TOMATPASTA 28/30%",
+    "price" : "3.95",
+    "currency" : null
+  }, {
+    "name" : "WEIBULLS BASILLIKUM",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "KART NYE DK FRILAND",
+    "price" : "28.44",
+    "currency" : null
+  }, {
+    "name" : "GB HAVREDRIK ØKO",
+    "price" : "203.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-63.0",
+    "currency" : null
+  }, {
+    "name" : "SVAMPE MIX 250 G",
+    "price" : "28.0",
+    "currency" : null
+  }, {
+    "name" : "SQUASH STK",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "SQUASH STK",
+    "price" : "-9.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO-HVIDKÅL STK",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO-HVIDKÅL STK",
+    "price" : "-25.0",
+    "currency" : null
+  }, {
+    "name" : "AUBERGINER STK",
+    "price" : "16.95",
+    "currency" : null
+  }, {
+    "name" : "RØD PEBER STK",
+    "price" : "22.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "htr01gzmr9zmh8nmkrpjlawgmg13skue",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VEJLEVEJ 42, 8722, HEDENSTED, dk",
+  "purchaseDate" : "2022-11-26",
+  "totalPrice" : "22.75",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "222",
+  "orderNumber" : "30892220121",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FORLÆNGERLED M/JORD",
+    "price" : "22.75",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "iatoqzfyvd4rrh64adhkww0xmbq4byjr",
+  "storeName" : "Netto",
+  "storeAddress" : "Kirke Værløsevej 8, 3500, Værløse, dk",
+  "purchaseDate" : "2024-08-16",
+  "totalPrice" : "41.5",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "98980020207",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "EGELYKKE KAKAO 200ML",
+    "price" : "3.5",
+    "currency" : null
+  }, {
+    "name" : "EGELYKKE KAKAO 200ML",
+    "price" : "3.5",
+    "currency" : null
+  }, {
+    "name" : "5X ØGO ÆBLE",
+    "price" : "17.5",
+    "currency" : null
+  }, {
+    "name" : "ZAPP 60 ML",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "EGELYKKE KAKAO 200ML",
+    "price" : "3.5",
+    "currency" : null
+  }, {
+    "name" : "EGELYKKE KAKAO 200ML",
+    "price" : "3.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "if6toqopjl7xr0pku754hit22l2h8imr",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-04-22",
+  "totalPrice" : "215.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "373491",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VIKING HULSAVADAPTER Ø14-250MM",
+    "price" : "55.0",
+    "currency" : null
+  }, {
+    "name" : "VIKING HULSAV Ø60MM           ",
+    "price" : "75.0",
+    "currency" : null
+  }, {
+    "name" : "VIKING HULSAV Ø76MM           ",
+    "price" : "85.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ihuq986g43qfmwksbx5qs4mjcb1tq6s7",
+  "storeName" : "Netto",
+  "storeAddress" : "Taastrup Stationscenter, 2630, Taastrup, dk",
+  "purchaseDate" : "2025-02-22",
+  "totalPrice" : "275.65",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "80960030056",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "390.15",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-186.15",
+    "currency" : null
+  }, {
+    "name" : "ØGO ØLANDSHVEDEMEL 1",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO KETCHUP",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "HAVREKIKS FRUGT 260G",
+    "price" : "17.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "j63njhwwxy16vmn25x5tknbzk4i779lf",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Stengårds Allé 118, 2800, Lyngby, dk",
+  "purchaseDate" : "2024-10-07",
+  "totalPrice" : "50.0",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "30764753",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MOU KARTOFFEL -",
+    "price" : "37.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-12.95",
+    "currency" : null
+  }, {
+    "name" : "JORDSKOKSUPPE",
+    "price" : "37.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-12.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "k006ptikwvm68wbgrylamhbehgrt8ld3",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-12-17",
+  "totalPrice" : "37",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "39190020189",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO-SNACKRØDDER",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "PALERMO PEBER 400 G",
+    "price" : "19.0",
+    "currency" : null
+  }, {
+    "name" : "FRUGT MARKED",
+    "price" : "6.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "kf8ctp548zd4vwov18e9lngyq36twdw1",
+  "storeName" : "Netto",
+  "storeAddress" : "DYVELÅSEN 2-4, 2765, SMØRUM, dk",
+  "purchaseDate" : "2024-06-20",
+  "totalPrice" : "18",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "70990030470",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ÆBLER, LØSE",
+    "price" : "5.0",
+    "currency" : null
+  }, {
+    "name" : "COCA-COLA REG. 0,33",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "kq4kpssw4egxn6pm8e1m2qqzfpcwqd1g",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-10-30",
+  "totalPrice" : "362.65",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "11190030049",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "G TEE 1/2\"",
+    "price" : "21.95",
+    "currency" : null
+  }, {
+    "name" : "REDUKTION PP 50",
+    "price" : "32.95",
+    "currency" : null
+  }, {
+    "name" : "FORSKR. VINKELL.",
+    "price" : "89.95",
+    "currency" : null
+  }, {
+    "name" : "MINI KUGLEHANE MN 1/",
+    "price" : "78.95",
+    "currency" : null
+  }, {
+    "name" : "GRENRØR 50-50-4",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "MINI KUGLEHANE MN 1/",
+    "price" : "78.95",
+    "currency" : null
+  }, {
+    "name" : "BØJNING 50-45MM",
+    "price" : "19.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "krc3shh6w7gecfy8mfhu8gtnf2v3a2zx",
+  "storeName" : "MENY",
+  "storeAddress" : "Bredgade 44-46, dk",
+  "purchaseDate" : "2025-07-06",
+  "totalPrice" : "326.98",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "40450030416",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HARIBO CHAMALLOWS BB",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "HARIBO CHAMALLOWS BB",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.9",
+    "currency" : null
+  }, {
+    "name" : "SALTVERK ISLANDSK FL",
+    "price" : "37.95",
+    "currency" : null
+  }, {
+    "name" : "DET GODE SOLSIKKERUG",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : null
+  }, {
+    "name" : "PISTACIENØDDER RIST/",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "KALAMATA OLIVEN MED",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.18",
+    "currency" : null
+  }, {
+    "name" : "KALAMATA OLIVEN MED",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.18",
+    "currency" : null
+  }, {
+    "name" : "GRØNNE OLIVEN MED ST",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.18",
+    "currency" : null
+  }, {
+    "name" : "GRØNNE OLIVEN MED ST",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.18",
+    "currency" : null
+  }, {
+    "name" : "GRØNT",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "AGURKER",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "AGURKER",
+    "price" : "-12.0",
+    "currency" : null
+  }, {
+    "name" : "MAJS",
+    "price" : "48.0",
+    "currency" : null
+  }, {
+    "name" : "NORDIC SODA OMBYTNIN",
+    "price" : "69.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "la2xh4s9hghl5j9ix9ow9h2jf0k0wdy4",
+  "storeName" : "Netto",
+  "storeAddress" : "Kolt Skovvej 1, 8361, Hasselager, dk",
+  "purchaseDate" : "2024-07-28",
+  "totalPrice" : "31",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "20610010230",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NÆMT BULGUR/PERS.",
+    "price" : "13.0",
+    "currency" : null
+  }, {
+    "name" : "SPORK",
+    "price" : "2.5",
+    "currency" : null
+  }, {
+    "name" : "ARLA PRO. HIND 500ML",
+    "price" : "15.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "lwakws10k3p3eg3dd3lxdtddgh20etpg",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-10-09",
+  "totalPrice" : "1898.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "125059",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIGA KOMPOSTKVÆRN BIO SI 2500",
+    "price" : "1898.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "m5ilv9lt843ann8ctzeonbs3qmom2o29",
+  "storeName" : "Føtex",
+  "storeAddress" : "HERLEV HOVEDGADE 25, 2730, HERLEV, dk",
+  "purchaseDate" : "2023-01-14",
+  "totalPrice" : "581.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "6",
+  "orderNumber" : "25660060101",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO FULDKORN FUSILLI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO FULDKORN FUSILLI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO FULDKORN FUSILLI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO FULDKORN FUSILLI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "KERNEBOLLER",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "KERNEBOLLER",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "KERNEBOLLER",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "KERNEBOLLER",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH LB",
+    "price" : "26.25",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH LB",
+    "price" : "-26.25",
+    "currency" : null
+  }, {
+    "name" : "SANDWICH LB",
+    "price" : "11.0",
+    "currency" : null
+  }, {
+    "name" : "LEVEBRØD ØKO KERNEGR",
+    "price" : "13.0",
+    "currency" : null
+  }, {
+    "name" : "SEMPER GRØD M. HINDB",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "SEMPER GRØD M. HINDB",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "SEMPER GRØD M. HINDB",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "GRØNNE OLIVEN U/STEN",
+    "price" : "8.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.0",
+    "currency" : null
+  }, {
+    "name" : "OATLY",
+    "price" : "10.25",
+    "currency" : null
+  }, {
+    "name" : "SORTE OLIVEN U/STEN",
+    "price" : "8.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.0",
+    "currency" : null
+  }, {
+    "name" : "DIEGO DE AL. HVID",
+    "price" : "23.0",
+    "currency" : null
+  }, {
+    "name" : "SORTE OLIVEN U/STEN",
+    "price" : "8.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.0",
+    "currency" : null
+  }, {
+    "name" : "GRØNNE OLIVEN U/STEN",
+    "price" : "8.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.0",
+    "currency" : null
+  }, {
+    "name" : "GRANOVITA MANDEL SMØ",
+    "price" : "68.95",
+    "currency" : null
+  }, {
+    "name" : "HUMMUS",
+    "price" : "27.95",
+    "currency" : null
+  }, {
+    "name" : "SORT OLIVEN TAPENADE",
+    "price" : "19.0",
+    "currency" : null
+  }, {
+    "name" : "SALLING CHERRYTOMAT",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.0",
+    "currency" : null
+  }, {
+    "name" : "SALLING CHERRYTOMAT",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.0",
+    "currency" : null
+  }, {
+    "name" : "SALLING CHERRYTOMAT",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.0",
+    "currency" : null
+  }, {
+    "name" : "SALLING CHERRYTOMAT",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.0",
+    "currency" : null
+  }, {
+    "name" : "SALLING ØKO KIKÆRTER",
+    "price" : "8.25",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.25",
+    "currency" : null
+  }, {
+    "name" : "SALLING ØKO KIKÆRTER",
+    "price" : "8.25",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.25",
+    "currency" : null
+  }, {
+    "name" : "TOMATPESTO",
+    "price" : "33.95",
+    "currency" : null
+  }, {
+    "name" : "SMØREPÅLÆG",
+    "price" : "15.95",
+    "currency" : null
+  }, {
+    "name" : "SMØREPÅLÆG",
+    "price" : "15.95",
+    "currency" : null
+  }, {
+    "name" : "BASILIKUMPESTO",
+    "price" : "33.95",
+    "currency" : null
+  }, {
+    "name" : "TOMATPURE 140G",
+    "price" : "4.35",
+    "currency" : null
+  }, {
+    "name" : "TOMATPURE 140G",
+    "price" : "4.35",
+    "currency" : null
+  }, {
+    "name" : "TOMATPURE 140G",
+    "price" : "4.35",
+    "currency" : null
+  }, {
+    "name" : "TOMATPURE 140G",
+    "price" : "4.35",
+    "currency" : null
+  }, {
+    "name" : "ØKO HAVREGRYN FIN",
+    "price" : "55.8",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-19.8",
+    "currency" : null
+  }, {
+    "name" : "ØKO HAVREGRYN FIN",
+    "price" : "13.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO HAVREGRYN FIN",
+    "price" : "-13.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "SANDWICHSPREAD",
+    "price" : "31.75",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-15.75",
+    "currency" : null
+  }, {
+    "name" : "LØSE PORRER, ØKO",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "LØSE PORRER, ØKO",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "ÆGTE FRUGT DUO",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO MJ AHORNSIRUP",
+    "price" : "41.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "m9q2esuy68oi05iklw4st51i8epx5ktr",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 65, 2860, SØBORG, dk",
+  "purchaseDate" : "2024-05-19",
+  "totalPrice" : "376.9",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "54930010518",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "WRAPS MAJS",
+    "price" : "17.95",
+    "currency" : null
+  }, {
+    "name" : "WRAPS MAJS",
+    "price" : "17.95",
+    "currency" : null
+  }, {
+    "name" : "VEGGIE FARS 350G",
+    "price" : "22.4",
+    "currency" : null
+  }, {
+    "name" : "VEGGIE FARS 350G",
+    "price" : "22.4",
+    "currency" : null
+  }, {
+    "name" : "CHEF DE POMME",
+    "price" : "17.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO TOMATER 400 G",
+    "price" : "16.0",
+    "currency" : null
+  }, {
+    "name" : "MEGA BURGERBOLLER",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "SPIDSKÅL",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØGO TOMATPURE",
+    "price" : "4.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO CHAMPIGNON 200 G",
+    "price" : "17.0",
+    "currency" : null
+  }, {
+    "name" : "VANDMELON",
+    "price" : "35.0",
+    "currency" : null
+  }, {
+    "name" : "FORÅRSLØG, BUNDT",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "PÆRER, LØSE",
+    "price" : "2.5",
+    "currency" : null
+  }, {
+    "name" : "BARILLA PESTO",
+    "price" : "28.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO ASPARGES 250G",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "SKUMFIDUSER",
+    "price" : "35.0",
+    "currency" : null
+  }, {
+    "name" : "RØDLØG 1 KG",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "DONUTFERSKNER 500G",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "DK AGURK",
+    "price" : "9.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-2.0",
+    "currency" : null
+  }, {
+    "name" : "GB JORD/FIGNE/RØDBED",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO LØG 750G",
+    "price" : "11.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "meyl808fefws8njqphl9mjuyvxja9eqz",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Stengårds Allé 118, 2800, Lyngby, dk",
+  "purchaseDate" : "2024-09-13",
+  "totalPrice" : "75.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12586004",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LIMFJORDSALE",
+    "price" : "15.0",
+    "currency" : null
+  }, {
+    "name" : "FLASKEPANT",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "1664 BLANC",
+    "price" : "9.9",
+    "currency" : null
+  }, {
+    "name" : "FLASKEPANT",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "KIMS SNACK CHIPS",
+    "price" : "28.5",
+    "currency" : null
+  }, {
+    "name" : "KARTOFFELSTICKS",
+    "price" : "8.95",
+    "currency" : null
+  }, {
+    "name" : "GROVCHIPS SALT",
+    "price" : "11.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "mh711wwau1irrzgfjr3qv4y9hmsnrixt",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2024-06-22",
+  "totalPrice" : "51.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "5",
+  "orderNumber" : "17200050059",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KOBLING T/REGNTØNDE",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "KOBLING T/REGNTØNDE",
+    "price" : "25.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "n2sz7jvjcwxiceccwjeqdqqx96dxvf2p",
+  "storeName" : "Carls Jr.",
+  "storeAddress" : "STOREBÆLTSVEJ 7A, 5800, NYBORG, dk",
+  "purchaseDate" : "2025-03-28",
+  "totalPrice" : "16",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "11",
+  "orderNumber" : "23580110030",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ÆBLEJUICE",
+    "price" : "16.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "n90encvqejspcdo8y10np64vf4fsg3ds",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-15",
+  "totalPrice" : "78.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "925542",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ADANO VÆKSTDUG 2X10M HVID     ",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "UKRUDTSDUG 1X15M 80G SORT     ",
+    "price" : "49.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "nwz7tklifay031pkui9h0du7zrole93p",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2025-03-22",
+  "totalPrice" : "132.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "19930040279",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BASIC MINIRULLE",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "SC MINIRULLESÆT FIN",
+    "price" : "99.95",
+    "currency" : null
+  }, {
+    "name" : "Ældresagen rabat",
+    "price" : "-7.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "nxfzgk3hrtxlgbqkzqzsbzu4dwysw8wx",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-12",
+  "totalPrice" : "33.6",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "20730020268",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SPIR PLANTEPOSTEJ",
+    "price" : "19.35",
+    "currency" : null
+  }, {
+    "name" : "LA CAMPAGNA HUMMUS",
+    "price" : "14.25",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ognfaben85e7e6ezl2xfkmb6yyotbyo0",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2024-06-22",
+  "totalPrice" : "333.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "5",
+  "orderNumber" : "17200050060",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "REGNTØNDE 210L GRÅ",
+    "price" : "333.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ojzaqaalpcnuh22cbxgjim2x06qtp2py",
+  "storeName" : "Netto",
+  "storeAddress" : "Svinget 1, 7160, Tørring, dk",
+  "purchaseDate" : "2024-06-28",
+  "totalPrice" : "68.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "11",
+  "orderNumber" : "89840110176",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SFB GROVCHIPS SALT",
+    "price" : "13.5",
+    "currency" : null
+  }, {
+    "name" : "SWEET/SALTY NØDDEMIX",
+    "price" : "40.0",
+    "currency" : null
+  }, {
+    "name" : "PROTEIN LAB JO 500ML",
+    "price" : "14.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "oqo081cuevauijuqx5irflbbtwiap6uq",
+  "storeName" : "MENY",
+  "storeAddress" : "Blåvandsvej 26, dk",
+  "purchaseDate" : "2024-02-21",
+  "totalPrice" : "65.4",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "33140040195",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KNÆKBRØD MULTIKERNE",
+    "price" : "28.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-8.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS MANDEHØRM PEA",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS CASHEW NØDDER",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "FP SALTET CHIPS",
+    "price" : "10.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "otkmcq8vxkaxku2r3ofk6qxnf10gwdfh",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2024-01-27",
+  "totalPrice" : "439.01",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "34060030162",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO HJERTE SALAT 2 S",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "CASHEW FERMENT BLOOM",
+    "price" : "49.95",
+    "currency" : null
+  }, {
+    "name" : "RUSTIK CIABATTA",
+    "price" : "31.95",
+    "currency" : null
+  }, {
+    "name" : "GROV CIABATTA",
+    "price" : "30.95",
+    "currency" : null
+  }, {
+    "name" : "AJVAR STÆRK",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "BARRAL OLIVEN TAPENA",
+    "price" : "27.95",
+    "currency" : null
+  }, {
+    "name" : "GB RULLEPØLSE ØKO",
+    "price" : "17.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PESTO TOFU",
+    "price" : "28.5",
+    "currency" : null
+  }, {
+    "name" : "GEDERULLE HVID",
+    "price" : "49.95",
+    "currency" : null
+  }, {
+    "name" : "GEDERULLE HVID",
+    "price" : "49.95",
+    "currency" : null
+  }, {
+    "name" : "ELSTAR ÆBLER 8 STK",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS HUMMUS",
+    "price" : "15.56",
+    "currency" : null
+  }, {
+    "name" : "GESTUS HOT CHILI PES",
+    "price" : "28.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO-AVOCADO 2 STK",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "GESTUS TZATZIKI",
+    "price" : "17.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "pjinxf1i0pusqswjyhphkwyz1brath4k",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2025-02-12",
+  "totalPrice" : "12",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "39760020288",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GRØNT",
+    "price" : "12.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "qu8ef4vtwtfdulmlhot691jvwuotmikd",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-12-17",
+  "totalPrice" : "30.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "696921",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MÜSLIBARS HASSELNØD 6-PAK     ",
+    "price" : "30.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "r0yi0s05wcwii0ptogqdp5m2r9qeiu3a",
+  "storeName" : "jem & fix",
+  "storeAddress" : "EJBY INDUSTRIVEJ 15-17, 2600, GLOSTRUP, dk",
+  "purchaseDate" : "2024-02-23",
+  "totalPrice" : "197.5",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "772",
+  "orderNumber" : "54697720451",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SPHAGNUM RHODODENDRO",
+    "price" : "49.5",
+    "currency" : null
+  }, {
+    "name" : "SPARTELMASSE MEDIUM",
+    "price" : "89.0",
+    "currency" : null
+  }, {
+    "name" : "PROFILLISTE OMBUK",
+    "price" : "59.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "r5t3uwsi67ln7m8jv37iquhv4mv6pzbc",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Ndr. Fasanvej 176, 2000, Frederiksberg, dk",
+  "purchaseDate" : "2024-10-17",
+  "totalPrice" : "38.0",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "11839924",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MANGOFRUGT",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO. KIWI",
+    "price" : "18.0",
+    "currency" : null
+  }, {
+    "name" : "FAIRTRADE BANAN",
+    "price" : "10.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "rb5wdq8myl782yi9fyoyimkz67fkayau",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VIRKEHOLM 2, 2730, HERLEV, dk",
+  "purchaseDate" : "2025-03-02",
+  "totalPrice" : "49",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "732",
+  "orderNumber" : "64977320369",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KOSTESKAFT TRÆ 2,4 X",
+    "price" : "29.0",
+    "currency" : null
+  }, {
+    "name" : "METALKOSTESKAFT,2,3X",
+    "price" : "20.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "re9k8hi5feb7ur50q6wecn0tqjuaxxev",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Jernbanevej 1, 5580, Nørre Aaby, dk",
+  "purchaseDate" : "2024-07-26",
+  "totalPrice" : "52.0",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12983587",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "RETUR PANT",
+    "price" : "-15.0",
+    "currency" : null
+  }, {
+    "name" : "KIMS SNACK CHIPS",
+    "price" : "28.5",
+    "currency" : null
+  }, {
+    "name" : "FRANSKE KARTOF.",
+    "price" : "10.5",
+    "currency" : null
+  }, {
+    "name" : "Z GORDAL  OLIVEN",
+    "price" : "28.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "rgbjpzqzdwgkum6z1jr48my3z2x5iuzb",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-11-08",
+  "totalPrice" : "-59.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "8",
+  "orderNumber" : "11280080091",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PAKNINGSSÆT 125 DELE",
+    "price" : "-59.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ruufnn9yx0dbp23gr5ouke53j71yjdux",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Lupinvej 1, Bøtø, dk",
+  "purchaseDate" : "2024-08-01",
+  "totalPrice" : "357.35",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "35320010491",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LIBERO TOUCH PANT ST",
+    "price" : "146.95",
+    "currency" : null
+  }, {
+    "name" : "HARBOE APOLLINARIS C",
+    "price" : "4.0",
+    "currency" : null
+  }, {
+    "name" : "PANT B, 1 STK",
+    "price" : "1.5",
+    "currency" : null
+  }, {
+    "name" : "DAVA RAPSOLIE SPRAY",
+    "price" : "42.95",
+    "currency" : null
+  }, {
+    "name" : "BORDPEBER I STRØDÅSE",
+    "price" : "14.75",
+    "currency" : null
+  }, {
+    "name" : "BORDSALT I STRØDÅSE",
+    "price" : "8.25",
+    "currency" : null
+  }, {
+    "name" : "HONNING MELON",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "MELON PIEL DE SAPO",
+    "price" : "30.0",
+    "currency" : null
+  }, {
+    "name" : "STEFF HOULBERG GRILL",
+    "price" : "37.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-17.95",
+    "currency" : null
+  }, {
+    "name" : "KETTLE C. CHIPS HAVS",
+    "price" : "24.95",
+    "currency" : null
+  }, {
+    "name" : "BANANER LYS",
+    "price" : "7.0",
+    "currency" : null
+  }, {
+    "name" : "AVOCADO I BAKKE KL1",
+    "price" : "32.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "thlwwr0adyyuix91thcfrd2ti33thwvj",
+  "storeName" : "Bilka",
+  "storeAddress" : "Hobrovej 450, 9200, Aalborg SV, dk",
+  "purchaseDate" : "2024-06-29",
+  "totalPrice" : "10",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "65",
+  "orderNumber" : "65910650086",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CROISSANT",
+    "price" : "10.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "txebpx8y4025srbc50a1c4b0yjxt0iyl",
+  "storeName" : "MENY",
+  "storeAddress" : "Gymnasievej 29, dk",
+  "purchaseDate" : "2025-07-13",
+  "totalPrice" : "300.7",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "37880030358",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STUDENTERMIX",
+    "price" : "109.95",
+    "currency" : null
+  }, {
+    "name" : "PEPPA PIG FRUITBAR S",
+    "price" : "16.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.5",
+    "currency" : null
+  }, {
+    "name" : "BEAUV SNACK CUP MAC",
+    "price" : "18.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-13.95",
+    "currency" : null
+  }, {
+    "name" : "BEAUV SNACK CUP LAGS",
+    "price" : "18.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-13.95",
+    "currency" : null
+  }, {
+    "name" : "CORNY MUSLI BAR CHOK",
+    "price" : "26.95",
+    "currency" : null
+  }, {
+    "name" : "BEAUVAIS SNACK CUP C",
+    "price" : "18.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-13.95",
+    "currency" : null
+  }, {
+    "name" : "RUMMO 152 MEZZI PACC",
+    "price" : "24.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : null
+  }, {
+    "name" : "SIGDAL KNÆKBRØD GODT",
+    "price" : "28.95",
+    "currency" : null
+  }, {
+    "name" : "MUTTI PASTA SAUCE&GR",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "SPICEFIELD MINIMAJS",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "JAKA COCKTAILPØLSER",
+    "price" : "12.95",
+    "currency" : null
+  }, {
+    "name" : "MAGNUM UTOPIA DOU CH",
+    "price" : "52.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-20.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "u6ao4lz7vz4pv0d6flue7lwd3mz4azpz",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2025-05-29",
+  "totalPrice" : "-319.8",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "8",
+  "orderNumber" : "20610080074",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FUGEMASSE",
+    "price" : "-319.8",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ud9ui8nmopf1039g7ef1un90k12guu7p",
+  "storeName" : "MENY",
+  "storeAddress" : "Lyngby Hovedgade 80, dk",
+  "purchaseDate" : "2024-03-27",
+  "totalPrice" : "458.65",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "33950030229",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ANARKIST CRISP N COO",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "ANARKIST FIZZY LIME",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "ANARKIST MIGHTY MILD",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "ANARKIST MEALKY DREA",
+    "price" : "24.95",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "ANARKIST VACATION FO",
+    "price" : "29.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-44.75",
+    "currency" : null
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.0",
+    "currency" : null
+  }, {
+    "name" : "FP FULDKORNSBAGUETTE",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "LINDT GULD HARE",
+    "price" : "33.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-8.95",
+    "currency" : null
+  }, {
+    "name" : "FP FULDKORNSBAGUETTE",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "16.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "16.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "-16.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "-16.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "0.0",
+    "currency" : null
+  }, {
+    "name" : "GESTUS FULDKORNSSAND",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "DET GODE SIGNATURBRØ",
+    "price" : "28.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-12.95",
+    "currency" : null
+  }, {
+    "name" : "FP FULDKORNSBAGUETTE",
+    "price" : "11.95",
+    "currency" : null
+  }, {
+    "name" : "NISO SHINSHU RED",
+    "price" : "34.95",
+    "currency" : null
+  }, {
+    "name" : "GULD THEM 45+ ML",
+    "price" : "69.95",
+    "currency" : null
+  }, {
+    "name" : "GB KIKÆRTER ØKO",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PESTO CALIABR",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "GESTUS PESTO TOFU",
+    "price" : "25.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-11.9",
+    "currency" : null
+  }, {
+    "name" : "FISKEFRIKKADELLER PO",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO-ÆBLER 6 STK.",
+    "price" : "30.0",
+    "currency" : null
+  }, {
+    "name" : "10  ØKO.ÆG STR.M",
+    "price" : "31.8",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.8",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "udyb9ikzxnmz29mw1mifok1o9464l9yf",
+  "storeName" : "Netto",
+  "storeAddress" : "Kirke Værløsevej 8, 3500, Værløse, dk",
+  "purchaseDate" : "2025-06-20",
+  "totalPrice" : "90.4",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "42060010888",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HELLO SENSITIVE GEL",
+    "price" : "21.0",
+    "currency" : null
+  }, {
+    "name" : "SENSITIV SÆBE 500ML",
+    "price" : "10.5",
+    "currency" : null
+  }, {
+    "name" : "BAKERSFIELD PØLSEBRØ",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "BF HVIDLØGSBAGUETTE",
+    "price" : "15.95",
+    "currency" : null
+  }, {
+    "name" : "BF HVIDLØGSBAGUETTE",
+    "price" : "15.95",
+    "currency" : null
+  }, {
+    "name" : "BF HVIDLØGSBAGUETTE",
+    "price" : "-15.95",
+    "currency" : null
+  }, {
+    "name" : "UURU BANANER ØKO",
+    "price" : "18.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO AGURK",
+    "price" : "10.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "ujq8uag6t8rz43aphh4n63td9m97r3sb",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VIRKEHOLM 2, 2730, HERLEV, dk",
+  "purchaseDate" : "2024-04-13",
+  "totalPrice" : "205.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "732",
+  "orderNumber" : "61747320557",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PLANTESÆK 40L",
+    "price" : "205.85",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "v0m2mw22hzxsmxm1zqh1ux1e0bzce04v",
+  "storeName" : "MENY",
+  "storeAddress" : "Blåvandsvej 26, dk",
+  "purchaseDate" : "2024-02-18",
+  "totalPrice" : "18",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "6",
+  "orderNumber" : "33110060068",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BAGUETTE",
+    "price" : "18.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "vsa0tka24w1yx82yya6stm4jn1w913nf",
+  "storeName" : "Netto",
+  "storeAddress" : "VESTERGADE 39, RÅDHUSPLADSEN, 1456, KØBENHAVN K., dk",
+  "purchaseDate" : "2024-03-02",
+  "totalPrice" : "11.3",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "33140010509",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PÆRER, LØSE",
+    "price" : "2.5",
+    "currency" : null
+  }, {
+    "name" : "ØKO BANAN 4STK",
+    "price" : "8.8",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "vubimeiu6rdeaviqop4o7fu0ocj0w0wr",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2023-12-02",
+  "totalPrice" : "20.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "676967",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CYKELSLANGE 26X6X1.50-1.75    ",
+    "price" : "20.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "vwe1kcbx67s91ej241d25wdldg7tdie5",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Korsørvej 59, 4200, Slagelse, dk",
+  "purchaseDate" : "2024-09-28",
+  "totalPrice" : "227.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "13088851",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "OPVASKETABS",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "WASA RUNDA",
+    "price" : "20.0",
+    "currency" : null
+  }, {
+    "name" : "FULDKORNPIZZADEJ",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "FULDKORNPIZZADEJ",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "FISKEFRIKADELLER",
+    "price" : "12.95",
+    "currency" : null
+  }, {
+    "name" : "FISKEFRIKADELLER",
+    "price" : "12.95",
+    "currency" : null
+  }, {
+    "name" : "ØKO. KYL.POSTEJ",
+    "price" : "14.95",
+    "currency" : null
+  }, {
+    "name" : "PHILADELPHIA",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-12.75",
+    "currency" : null
+  }, {
+    "name" : "BLÅ SMOOTHIE",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "BLÅ SMOOTHIE",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "MINI OVNRULLER",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "MINI OVNRULLER",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "RØD SMOOTHIE",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "RØD SMOOTHIE",
+    "price" : "10.0",
+    "currency" : null
+  }, {
+    "name" : "MULTIKERNEBOLLER",
+    "price" : "25.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "welcvqtgw4hakuk0e4jgvflgjhoidb8i",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-26",
+  "totalPrice" : "47.35",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "20870010249",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SFB GROVCHIPS SALT",
+    "price" : "12.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO ARLA LETMÆLK 1L",
+    "price" : "12.95",
+    "currency" : null
+  }, {
+    "name" : "KERNEBOLLER",
+    "price" : "22.4",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "wik84hwinkztr22rqdg07na1ckali48m",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-04-04",
+  "totalPrice" : "37.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "36620020290",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LB MULTIKERNESANDWIC",
+    "price" : "24.25",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.25",
+    "currency" : null
+  }, {
+    "name" : "DAVA FRILANDSÆG M/L",
+    "price" : "19.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "wrlw9xr995wi13htke9x5lavoxjjooi6",
+  "storeName" : "Lagkagehuset",
+  "storeAddress" : "Banegårdspladsen 3, 7100, Vejle, dk",
+  "purchaseDate" : "2022-07-09",
+  "totalPrice" : "45.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "715-715_1-416541",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "Tebolle m/choko",
+    "price" : "45.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "wss6b6kkyp2oucchsij7qt5qq9q6143s",
+  "storeName" : "Netto",
+  "storeAddress" : "Blåvandsvej 36, dk",
+  "purchaseDate" : "2022-10-23",
+  "totalPrice" : "61.25",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "11",
+  "orderNumber" : "1220110040",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "RICOTTA TORTELLONI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "RICOTTA TORTELLONI",
+    "price" : "12.5",
+    "currency" : null
+  }, {
+    "name" : "GRØNTSAGS BOUILLON T",
+    "price" : "4.25",
+    "currency" : null
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.25",
+    "currency" : null
+  }, {
+    "name" : "SOLTØRREDE TOMATER",
+    "price" : "10.75",
+    "currency" : null
+  }, {
+    "name" : "ØKO LØG 750G",
+    "price" : "8.0",
+    "currency" : null
+  }, {
+    "name" : "ØKO SQUASH",
+    "price" : "9.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "x5vmde1xu239vkbov7d8zx3vfw2b07v5",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-07-06",
+  "totalPrice" : "173.4",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "37550020242",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO-VANDMELON",
+    "price" : "35.0",
+    "currency" : null
+  }, {
+    "name" : "GB ØKOLOGISKE ÆG M/L",
+    "price" : "31.8",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.8",
+    "currency" : null
+  }, {
+    "name" : "GESTUS HUMMUS",
+    "price" : "22.95",
+    "currency" : null
+  }, {
+    "name" : "ANTONS GRØDBOLLER",
+    "price" : "24.95",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : null
+  }, {
+    "name" : "LB MULTIKERNESANDWIC",
+    "price" : "24.25",
+    "currency" : null
+  }, {
+    "name" : "FIRST PRICE APP.JUIC",
+    "price" : "19.95",
+    "currency" : null
+  }, {
+    "name" : "DET GODE SIGNATURBRØ",
+    "price" : "25.25",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "y35tq6qvxf1x6z9to2me9z0j19gko9xu",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2024-07-30",
+  "totalPrice" : "138.0",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "986449",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VANDDUNK 15L FOLDBAR PLAST    ",
+    "price" : "48.0",
+    "currency" : null
+  }, {
+    "name" : "VOLLEYBALL                    ",
+    "price" : "40.0",
+    "currency" : null
+  }, {
+    "name" : "SIDDEUNDERLAG 38X28 CM.       ",
+    "price" : "25.0",
+    "currency" : null
+  }, {
+    "name" : "SIDDEUNDERLAG 38X28 CM.       ",
+    "price" : "25.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "y5j9gltdr8j4xro9xb2yolemcj0d6t9c",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-13",
+  "totalPrice" : "36.65",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "20740010654",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO HVIDLØG",
+    "price" : "12.25",
+    "currency" : null
+  }, {
+    "name" : "LØGISMOSE FYNSKE ÆBL",
+    "price" : "23.4",
+    "currency" : null
+  }, {
+    "name" : "PANT",
+    "price" : "1.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "yfjsg1znyckv9nw9hjhjker4e141jihi",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-11-05",
+  "totalPrice" : "185.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "159190",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "UNIPAK PAKSALVE 250G          ",
+    "price" : "108.0",
+    "currency" : null
+  }, {
+    "name" : "VÅNDLÅS FLEX 1 1/2'' X 40/50MM",
+    "price" : "77.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "yl10ayl4dgzx007shct17lnj0mh9fcpj",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-10-30",
+  "totalPrice" : "-294.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "8",
+  "orderNumber" : "11190080007",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BALLOFIX MELLEMSTYKK",
+    "price" : "-294.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "z7id8sf4vozib2abq33wkboxtcxbpn2o",
+  "storeName" : "Netto",
+  "storeAddress" : "Dalstrøget 133, 2870, Dyssegård, dk",
+  "purchaseDate" : "2023-10-29",
+  "totalPrice" : "191.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "96660010343",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO ÆG 10 M/L",
+    "price" : "31.85",
+    "currency" : null
+  }, {
+    "name" : "HAVRE DRIK 1L",
+    "price" : "232.0",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-72.0",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "zd77zjjjknjtczm29ej51rf8ugr6n16q",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Solnavej 71, dk",
+  "purchaseDate" : "2024-01-17",
+  "totalPrice" : "16.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "35840020281",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FARIN BRUN",
+    "price" : "16.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "zjn746cof9s6v13us3a5iidb2sh79m5d",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-10-29",
+  "totalPrice" : "384.9",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "11180040016",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FORSKR. VINKELL.",
+    "price" : "89.95",
+    "currency" : null
+  }, {
+    "name" : "BALLOFIX MELLEMSTYKK",
+    "price" : "294.95",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "zjyu4sogo7fkfbr8xb1uucp5dqpm04zs",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-26",
+  "totalPrice" : "28.5",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "20870020438",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ITALIENSK WOK, 400 G",
+    "price" : "20.5",
+    "currency" : null
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.5",
+    "currency" : null
+  }, {
+    "name" : "ØGO CREME FR. DRESS.",
+    "price" : "18.5",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "zoey1q30b4j4ilz6o9y8acw1uqyf6mj2",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VIRKEHOLM 2, 2730, HERLEV, dk",
+  "purchaseDate" : "2025-02-23",
+  "totalPrice" : "268.35",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "732",
+  "orderNumber" : "64907320127",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆG VANGE 100CM - HV",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "VÆG VANGE 100CM - HV",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "VÆG VANGE 100CM - HV",
+    "price" : "39.95",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  }, {
+    "name" : "HYLDEKNÆGT RS 27CM -",
+    "price" : "24.75",
+    "currency" : null
+  } ]
+}, {
+  "receiptId" : "01ypi1h2aguhckmrh9uc916j83h57a23",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-10-30",
+  "totalPrice" : "585.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "655434",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PHILIPS PÆRE 17,5W E27 A67    ",
+    "price" : "84.95",
+    "currency" : ""
+  }, {
+    "name" : "PHILIPS PÆRE 17,5W E27 A67    ",
+    "price" : "84.95",
+    "currency" : ""
+  }, {
+    "name" : "SÆKKEVOGN 250 KG              ",
+    "price" : "248.00",
+    "currency" : ""
+  }, {
+    "name" : "MØBELHUND MAKS 400 KG 29X59 CM",
+    "price" : "119.00",
+    "currency" : ""
+  }, {
+    "name" : "MØBELHUND MAKS 150KG 29X58 CM ",
+    "price" : "49.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "191up3jv7fajcgx0yo4qpewq8ieqriv0",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2020-10-11",
+  "totalPrice" : "99.80",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "3710020138",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MULTISTOLPE 5X5",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "MULTISTOLPE 5X5",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "MULTISTOLPE 5X5",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "MULTISTOLPE 5X5",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "2hxywk7p9ueyatn09jjuubmrrcpmj1uy",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-10-30",
+  "totalPrice" : "104.50",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "655432",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ROCKFORT KODEHÆNGELÅS 40MM    ",
+    "price" : "79.50",
+    "currency" : ""
+  }, {
+    "name" : "PLANTEUNDERSKÅL PÅ HJUL Ø33   ",
+    "price" : "25.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "2i1rd7g76ww5j009kft350j1zni6k8sp",
+  "storeName" : "Netto",
+  "storeAddress" : "Svinget 1, 7160, Tørring, dk",
+  "purchaseDate" : "2019-12-22",
+  "totalPrice" : "24.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "73760010389",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PROTEX",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "2ks8ig6bm04stp6wi2w5b4holmfvmbpv",
+  "storeName" : "Netto",
+  "storeAddress" : "LYNGBYGÅRDSVEJ 141, 2800, KGS. LYNGBY, dk",
+  "purchaseDate" : "2019-12-09",
+  "totalPrice" : "15.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "8520010690",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KARTOFLER 2 KG LAVP.",
+    "price" : "15.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "2l7u4ygkgaowf3s4mrei74nthp9om7y5",
+  "storeName" : "Uno-X",
+  "storeAddress" : "Hovedvejen 141, 2600, Glostrup, dk",
+  "purchaseDate" : "2020-05-03",
+  "totalPrice" : "179.22",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "32894142",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "Blyfri 95 E10",
+    "price" : "179.22",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "306ksclsrna3emocpcpzeldw0umq1wno",
+  "storeName" : "Matas",
+  "storeAddress" : "Buddinge CentretSøborg Hovedga, 2860, Søborg, dk",
+  "purchaseDate" : "2020-02-18",
+  "totalPrice" : "212.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "9220020129",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "Natur Aloe Vera hånd",
+    "price" : "79.95",
+    "currency" : ""
+  }, {
+    "name" : "Natur Deo Roll on UP",
+    "price" : "52.95",
+    "currency" : ""
+  }, {
+    "name" : "Natur Aloe Vera 400",
+    "price" : "79.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "339cmou1v0ssw00v6ju4agcp7bgfet6k",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-07-17",
+  "totalPrice" : "7.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14570010561",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TANDPASTA",
+    "price" : "3.50",
+    "currency" : ""
+  }, {
+    "name" : "TANDPASTA",
+    "price" : "3.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "3h1gounskbfrc8z7ksu4fbccnquj32bd",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-04-19",
+  "totalPrice" : "16.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "870028",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIKPROP RUND MED JORD HVID   ",
+    "price" : "16.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "3k48njrdyuqc97s8mqahxx405luq5l9g",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-10-14",
+  "totalPrice" : "153.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "634826",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PHILIPS PÆRE 17,5W E27 A67    ",
+    "price" : "84.95",
+    "currency" : ""
+  }, {
+    "name" : "TRYKSPRØJTE 5 LITER           ",
+    "price" : "69.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "3yme1wa8l9vu2eld77yay3n786ivurxg",
+  "storeName" : "Min Købmand",
+  "storeAddress" : "Vejers havvej 68 b, dk",
+  "purchaseDate" : "2019-12-29",
+  "totalPrice" : "21.70",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "18600020334",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HARBOE JULEBRYG 33 C",
+    "price" : "5.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "CERES HAVSKUM 33 CL",
+    "price" : "13.75",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "5hn1w1l8e6my2ion2w533utbvh15t8sc",
+  "storeName" : "Føtex",
+  "storeAddress" : "Lyngby Storcenter 53, 2800, Kongens Lyngby, dk",
+  "purchaseDate" : "2020-06-12",
+  "totalPrice" : "71.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "42380030116",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BLOMMETOMATER 500G",
+    "price" : "16.00",
+    "currency" : ""
+  }, {
+    "name" : "CHAMPIGNON 500G",
+    "price" : "16.00",
+    "currency" : ""
+  }, {
+    "name" : "PEBERMIX 500G",
+    "price" : "18.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO ICEBERG",
+    "price" : "13.00",
+    "currency" : ""
+  }, {
+    "name" : "DK ØKO AGURK",
+    "price" : "8.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "69gqs3hev5777slhcsun65zdlc9o4zzu",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-11",
+  "totalPrice" : "83.70",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "594134",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PP SKYDEMUFFE 50 MM           ",
+    "price" : "16.00",
+    "currency" : ""
+  }, {
+    "name" : "PP REDUKTIONSRØR 50 X 32 MM   ",
+    "price" : "19.75",
+    "currency" : ""
+  }, {
+    "name" : "OVERGANGSNIPPEL 1/2'X3/4' KROM",
+    "price" : "47.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "6n1wh5sk8s00uaqi9jsb4ke50ii59j8b",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-10-10",
+  "totalPrice" : "89.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "15420010107",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KOHBERG SOLSIKKERUG",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "DELICATA MANDLER",
+    "price" : "79.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "6n8zd0ew2vwbn6mhzykh6lg0mrmsa0o6",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-05-22",
+  "totalPrice" : "271.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "932374",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PENSELSÆT T/AKRYL-& VANDFARVER",
+    "price" : "30.00",
+    "currency" : ""
+  }, {
+    "name" : "DROPPEN UNIVERSALLIM 24ML 2KOM",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "CADIZ STABELSTOL SORT RATTAN  ",
+    "price" : "48.00",
+    "currency" : ""
+  }, {
+    "name" : "CADIZ STABELSTOL SORT RATTAN  ",
+    "price" : "144.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "6rlep95fk0z5q6l73yfiqae1lyersote",
+  "storeName" : "Netto",
+  "storeAddress" : "Stengaards Allé 195B, 2860, Søborg, dk",
+  "purchaseDate" : "2021-08-13",
+  "totalPrice" : "72.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "87510030112",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO PIZZA SALAMI",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO VERDURE WHOLEGRA",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "GROVVALSET HAVREGRYN",
+    "price" : "12.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "6ylsedcfjjnud202ou88lu3wxyx9dtcl",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-10-11",
+  "totalPrice" : "145.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "171861",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HAVEHEGN 60CM 20M 5X10CM SORT ",
+    "price" : "145.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "76ucco25k113gb5csmqejlpjzell6508",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-05-17",
+  "totalPrice" : "113.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "924407",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "WC DUCK ACTIV GEL CITRON 750ML",
+    "price" : "14.00",
+    "currency" : ""
+  }, {
+    "name" : "STÅLREOL 172X75X30 4 HYLDER   ",
+    "price" : "99.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "7d7zgtl77rbuhssu49pui5m44du8il1k",
+  "storeName" : "jem & fix",
+  "storeAddress" : "RUGMARKEN 11, 3520, FARUM, dk",
+  "purchaseDate" : "2020-09-26",
+  "totalPrice" : "149.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "342",
+  "orderNumber" : "16703420181",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "RODALON SKIMMEL PLUS",
+    "price" : "149.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "7d9ghjp8qbdussctcva78jahhq5a8mlz",
+  "storeName" : "Netto",
+  "storeAddress" : "Gentoftegade 35, 2820, Gentofte, dk",
+  "purchaseDate" : "2019-11-23",
+  "totalPrice" : "15.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "62880040061",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO LØGISMO. SKYR 1L",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "82lpm6qwbycla970uqzgewv213cn3ics",
+  "storeName" : "Netto",
+  "storeAddress" : "RYVANGS ALLÉ 87, 2900, HELLERUP, dk",
+  "purchaseDate" : "2020-01-24",
+  "totalPrice" : "35.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "40150010805",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO GULERØDDER",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO HVIDE CHAMPIGNON",
+    "price" : "25.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "84t8kxq5fgdrbckitexexdosajkh9w74",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-23",
+  "totalPrice" : "105.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "608548",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "OVERGANGSNIPPEL 1/2'X3/4' KROM",
+    "price" : "47.95",
+    "currency" : ""
+  }, {
+    "name" : "AFLØBSFORSKRUNING ENKELT 1''  ",
+    "price" : "57.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "8ia5v4ggwumazlro1dohkqxjkkrkep7l",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-05-24",
+  "totalPrice" : "440.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "936714",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MØBELOVERTRÆK 112X132X160 SORT",
+    "price" : "228.00",
+    "currency" : ""
+  }, {
+    "name" : "BORDOVERTRÆK H75 X Ø125CM SORT",
+    "price" : "128.00",
+    "currency" : ""
+  }, {
+    "name" : "STØVMASKE FFP2 M/VENTIL 3-PAK ",
+    "price" : "38.00",
+    "currency" : ""
+  }, {
+    "name" : "MITSUTOMO LIMPISTOL 11MM      ",
+    "price" : "39.50",
+    "currency" : ""
+  }, {
+    "name" : "***  3 ÅRS GARANTI PÅ         ",
+    "price" : "0.00",
+    "currency" : ""
+  }, {
+    "name" : "*** OVENSTÅENDE VARE.         ",
+    "price" : "0.00",
+    "currency" : ""
+  }, {
+    "name" : "LIMSTIFTER 11X100MM 6 STK     ",
+    "price" : "6.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "8o2x9qq69hrozj6xy51jipg25iwfqipu",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-05-17",
+  "totalPrice" : "44.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "925213",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIGEKROG 28CM 2 STK          ",
+    "price" : "44.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "95i7hoyzmpnpo4jixpgoj4xguvv3r8dh",
+  "storeName" : "Netto",
+  "storeAddress" : "Dalstrøget 133, 2870, Dyssegård, dk",
+  "purchaseDate" : "2021-01-24",
+  "totalPrice" : "91.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "86570010231",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PANODIL ZAPP",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "GB ØKO IPA",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "GB ØKO WITBIER",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "FJORDGLIMT 45+",
+    "price" : "40.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "98wsjsqvycxygum2cza1vebw9950ciwv",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Herlev Hovedgade 129, 2730, Herlev, dk",
+  "purchaseDate" : "2020-07-30",
+  "totalPrice" : "86.00",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12410788",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FRANSKE KARTOF.",
+    "price" : "6.25",
+    "currency" : ""
+  }, {
+    "name" : "KATTEGRUS",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 SMØRCR",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 SMØRCR",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 OPVASK",
+    "price" : "7.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 OPVASK",
+    "price" : "7.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "9qy2dyw0w1zm35wv9vrs3ebgksxv1dvy",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2020-04-11",
+  "totalPrice" : "179.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "1880010063",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SAVKLINGE L:50MM",
+    "price" : "179.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "9xhp0gntnzfbd0p1bb55qx0rv2a9dqia",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-03",
+  "totalPrice" : "138.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "908017",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KABELKANAL 18X18 MM 2 M HVID  ",
+    "price" : "21.95",
+    "currency" : ""
+  }, {
+    "name" : "CRIMPTANG T. NETVÆRKSSTIK RJ45",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "RJ45 NETVÆRKSSTIK 10-PAK      ",
+    "price" : "35.00",
+    "currency" : ""
+  }, {
+    "name" : "RJ45 NETVÆRKSKABEL SAMLER     ",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "SEMPER SMOOTHIE 90G ASSORTERET",
+    "price" : "8.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "a41plq9mmkmlz7qgst3rtz4nxonuyq3y",
+  "storeName" : "Føtex",
+  "storeAddress" : "SLOTSGADE 8-14, 9000, AALBORG, dk",
+  "purchaseDate" : "2019-11-13",
+  "totalPrice" : "15.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "38580030543",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CLASSIC ØKO",
+    "price" : "6.50",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "CLASSIC ØKO",
+    "price" : "6.50",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "aaf6z6gybwo61zr8e7gymjwa3vn02fmf",
+  "storeName" : "Uno-X",
+  "storeAddress" : "Eremitageparken 315, 2800, Lyngby, dk",
+  "purchaseDate" : "2021-02-25",
+  "totalPrice" : "314.42",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "40217315",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "Blyfri 95 E10",
+    "price" : "314.42",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "akgyd5f3o77668j80vih2g2pzwg9l7ao",
+  "storeName" : "Netto",
+  "storeAddress" : "HERLEV HOVEDGADE 25, 2730, HERLEV, dk",
+  "purchaseDate" : "2021-07-25",
+  "totalPrice" : "217.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "20470010278",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NAN PRO 1",
+    "price" : "78.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "SVESKEGRØD",
+    "price" : "7.50",
+    "currency" : ""
+  }, {
+    "name" : "BELLAFONDE BROMBÆR",
+    "price" : "8.65",
+    "currency" : ""
+  }, {
+    "name" : "HUMMUS SPICY",
+    "price" : "17.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATUR. BLOK 200G",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "PEANUTBUTTER ØKO CRU",
+    "price" : "39.00",
+    "currency" : ""
+  }, {
+    "name" : "SALATMEST. REMOULADE",
+    "price" : "8.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "aoy9g8j5kto71l5qooqonphwbz0ftcs5",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-07",
+  "totalPrice" : "83.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "588831",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TRYKSPRØJTE 5 LITER           ",
+    "price" : "69.00",
+    "currency" : ""
+  }, {
+    "name" : "UNITAPE 12MM                  ",
+    "price" : "14.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "bjhb5jbn6i3n46pcrg95i7rbgr8a89rh",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-23",
+  "totalPrice" : "138.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "607975",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIKPROP RUND MED JORD HVID   ",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "PROP 1/2'' MESSING            ",
+    "price" : "27.95",
+    "currency" : ""
+  }, {
+    "name" : "KUGLEHANE 1/2'' KOLDT         ",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "ALASKA HÅNDSPRIT 1 L          ",
+    "price" : "69.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "bt5v50hvbydizmexxoerngmffrbda4pz",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-03-19",
+  "totalPrice" : "104.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "816716",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "AKRYLFARVESÆT 12 X 12 ML      ",
+    "price" : "22.00",
+    "currency" : ""
+  }, {
+    "name" : "PENSELSÆT TIL AKRYL- OG OLIE  ",
+    "price" : "30.00",
+    "currency" : ""
+  }, {
+    "name" : "AKRYLFARVESÆT 6X75ML          ",
+    "price" : "52.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "cbpbshaik4k05io5mgtafhzh70zlmwji",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 65, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-04-14",
+  "totalPrice" : "226.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "40400010774",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NACHIPS",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PRINGLES ORIGINAL",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "0.00",
+    "currency" : ""
+  }, {
+    "name" : "HJERTEPRALINER I ÆSK",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-5.00",
+    "currency" : ""
+  }, {
+    "name" : "BOH SORT TE",
+    "price" : "7.00",
+    "currency" : ""
+  }, {
+    "name" : "NATURENS ENERGI",
+    "price" : "45.00",
+    "currency" : ""
+  }, {
+    "name" : "FINAX HUMMUS CHILI",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.00",
+    "currency" : ""
+  }, {
+    "name" : "FINAX HUMMUS",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "0.00",
+    "currency" : ""
+  }, {
+    "name" : "PEANUTBUTTER",
+    "price" : "50.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO MILKLIFE KOLDSKÅ",
+    "price" : "3.00",
+    "currency" : ""
+  }, {
+    "name" : "KOHBERG SOLSIKKEBOLL",
+    "price" : "18.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.95",
+    "currency" : ""
+  }, {
+    "name" : "OLLINEO 1L",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "KATJES EVENTYRSLAND",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "KATJES EVENTYR SOUR",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO. OLIVEN",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "ÆBLEMOST 1 L",
+    "price" : "10.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "cmg1b4agiyayry6wqm2yr6yyrhc2vmkk",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-09-20",
+  "totalPrice" : "228.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "14750020816",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT JORDBÆR 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "FJORDGLIMT 45+",
+    "price" : "50.00",
+    "currency" : ""
+  }, {
+    "name" : "LA CAM CHILI HUMMUS",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "MAMONE PINJEKERNER",
+    "price" : "23.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO FLØDEOST NATUREL",
+    "price" : "11.95",
+    "currency" : ""
+  }, {
+    "name" : "VARMRØGET MAKREL",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "SPINAT 250 G",
+    "price" : "22.00",
+    "currency" : ""
+  }, {
+    "name" : "SPINAT 250 G",
+    "price" : "22.00",
+    "currency" : ""
+  }, {
+    "name" : "RØDLØG",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO LØG 750G",
+    "price" : "9.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "cnbinjgbcnbpta6nj0e3hjgczty1upuc",
+  "storeName" : "Normal",
+  "storeAddress" : "Østergade 25B, 5600, Faaborg, dk",
+  "purchaseDate" : "2021-07-12",
+  "totalPrice" : "8.00",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "000000P482000006399",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TWISTER SOLBÆR 80ML",
+    "price" : "8.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "cp7kyjpviwquoig4uwp0v6c3nw79cwrs",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-05-21",
+  "totalPrice" : "77.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "13530010947",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PLANTEBASERET PIZZA",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.95",
+    "currency" : ""
+  }, {
+    "name" : "PIZZA M/OST",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "ØGO ÆG 10 M/L",
+    "price" : "27.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "d9k99pghv6u5ma2o7prd797wpknff4gq",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-06-06",
+  "totalPrice" : "224.35",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "459247",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIKPROP FLAD GRÅ ",
+    "price" : "8.95",
+    "currency" : ""
+  }, {
+    "name" : "FORGRENINGSDÅSE 75X75 STÆNKTÆT",
+    "price" : "83.40",
+    "currency" : ""
+  }, {
+    "name" : "SKRUENØGLE 300MM ",
+    "price" : "62.50",
+    "currency" : ""
+  }, {
+    "name" : "MITSUTOMO PANSKRUE 4,0X40 100 ",
+    "price" : "69.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "dxgku0dtp6or4vxz0qepnyifwyioftuu",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-05-08",
+  "totalPrice" : "79.35",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "914791",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NETVÆRKSKABEL CAT6 1M UTP     ",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "NETVÆRKSKABEL CAT6 1M UTP     ",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "NETVÆRKSKABEL CAT6 1,8M UTP   ",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "NETVÆRKSSTIK CAT6 RJ45 10-PAK ",
+    "price" : "14.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "dz8s18ocebdh9ozr14o8epgd4okyvguj",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 65, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-10-24",
+  "totalPrice" : "390.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "42030010534",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CHEASY SKYR SKOV 1KG",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.95",
+    "currency" : ""
+  }, {
+    "name" : "CHEASY SKYR 0,2% 1KG",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.95",
+    "currency" : ""
+  }, {
+    "name" : "CHEASY SKYR VAN. 1KG",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.95",
+    "currency" : ""
+  }, {
+    "name" : "CHEASY SKYR 0,2% 1KG",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO HAVREDRIK 1L",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "OLLINEO 1L",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO STEAKFRIES",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "LØGISMOSE FYNSKE ÆBL",
+    "price" : "22.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-2.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "FRILANDSÆG 10STK M/L",
+    "price" : "26.50",
+    "currency" : ""
+  }, {
+    "name" : "MIX OLIVEN",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PEANUTBUTTER",
+    "price" : "24.00",
+    "currency" : ""
+  }, {
+    "name" : "ØGO SYLTEDE AGURK",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO DK TOMATER",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "OLIVEN",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO SOYASAUCE",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "MØRKSEJFILLET, 225 G",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "MØRKSEJFILLET, 225 G",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO FULDKORNSBURGERB",
+    "price" : "17.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO SUPPEHORN PASTA",
+    "price" : "7.95",
+    "currency" : ""
+  }, {
+    "name" : "SKYRBOLLE",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PORTO BELLO",
+    "price" : "24.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PORTO BELLO",
+    "price" : "24.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO RØD PEBER",
+    "price" : "13.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GÆR 50G",
+    "price" : "4.75",
+    "currency" : ""
+  }, {
+    "name" : "SNAXTERS BBQ CHIPS",
+    "price" : "11.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "e1vlrh7xp4f83rxuugzp8mb75kyhlws2",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2021-09-15",
+  "totalPrice" : "319.70",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "7070010052",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GUMMIMÅTTE SORT",
+    "price" : "109.95",
+    "currency" : ""
+  }, {
+    "name" : "KUGLEHANE CIM301 3/8",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "KUGLEHANE CIM301 3/8",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "FLEKSIBEL SLANGE DN8",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "FILTERSI M/PAKN. 20",
+    "price" : "29.95",
+    "currency" : ""
+  }, {
+    "name" : "FILTERSI M/PAKN. 20",
+    "price" : "29.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "e4novg3owr59gnz0kh3kn7pzjlfe3k03",
+  "storeName" : "Bilka",
+  "storeAddress" : "Ishøj Lilletorv 1, 2635, Ishøj, dk",
+  "purchaseDate" : "2020-12-30",
+  "totalPrice" : "258.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "20",
+  "orderNumber" : "49340200125",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "DASKOVLYST JUBILÆUMS",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "RODENBACH GRAND CRU",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "RODENBACH ALEXANDER",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "GALERIA 120 ML",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "GALERIA 120 ML",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "GALERIA 120 ML",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "GALERIA 120 ML",
+    "price" : "49.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "e4xcbjom5g4k5bonb8vo0zy0lue62pvi",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-19",
+  "totalPrice" : "39.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "603828",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PP SKYDEMUFFE 50 MM           ",
+    "price" : "17.95",
+    "currency" : ""
+  }, {
+    "name" : "PP REDUKTIONSRØR 50 X 32 MM   ",
+    "price" : "21.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "egq2tw19ud93lva0wgxp7nn27dni3fyh",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-12-05",
+  "totalPrice" : "236.80",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "711148",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FEJEBAKKESÆT                  ",
+    "price" : "79.00",
+    "currency" : ""
+  }, {
+    "name" : "SKURESTICK KALKSTEN MED GREB  ",
+    "price" : "38.00",
+    "currency" : ""
+  }, {
+    "name" : "PP SKYDEMUFFE 50 MM           ",
+    "price" : "17.95",
+    "currency" : ""
+  }, {
+    "name" : "PHILIPS PÆRE E27 A60 DÆMPBAR  ",
+    "price" : "39.95",
+    "currency" : ""
+  }, {
+    "name" : "STANLEY SURFORM KLINGE 140MM  ",
+    "price" : "39.95",
+    "currency" : ""
+  }, {
+    "name" : "PP REDUKTIONSRØR 50 X 32 MM   ",
+    "price" : "21.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "egq5y7hvny8igq8a0awc7dm7i52eulkw",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-02-02",
+  "totalPrice" : "424.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "753842",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆGBESLAG KL21G-44T 32-55\"    ",
+    "price" : "149.00",
+    "currency" : ""
+  }, {
+    "name" : "RULLESKAFT KORT 25CM          ",
+    "price" : "28.00",
+    "currency" : ""
+  }, {
+    "name" : "VALSE PRO HVID/BLÅ 25CM       ",
+    "price" : "38.00",
+    "currency" : ""
+  }, {
+    "name" : "RULLESKAFT KORT 25CM          ",
+    "price" : "28.00",
+    "currency" : ""
+  }, {
+    "name" : "DECORA MALERTAPE 38MM X 25M   ",
+    "price" : "17.95",
+    "currency" : ""
+  }, {
+    "name" : "VALSE PRO HVID/BLÅ 25CM       ",
+    "price" : "38.00",
+    "currency" : ""
+  }, {
+    "name" : "MALEBAKKE 25 CM               ",
+    "price" : "24.00",
+    "currency" : ""
+  }, {
+    "name" : "MALEBAKKE 25 CM               ",
+    "price" : "24.00",
+    "currency" : ""
+  }, {
+    "name" : "TELESKOP VINKELSÆT 3 DELE SORT",
+    "price" : "78.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "el8dl20flq44ub0xht3s25et8jbeagmo",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Stengårds Allé 118, 2800, Lyngby, dk",
+  "purchaseDate" : "2020-07-19",
+  "totalPrice" : "30.00",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "11374523",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "REMA 1000 SMØRCR",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 SMØRCR",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 SMØRCR",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-6.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "f59rkmlyliykatlhoxrbca6zp19a7tej",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2020-04-10",
+  "totalPrice" : "1149.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "1870030547",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MULTICUTTER GOP 30-2",
+    "price" : "870.00",
+    "currency" : ""
+  }, {
+    "name" : "SLIBESÆT M/SAVKL ALL",
+    "price" : "279.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ffefltdtpo6kvfocqacyj4mi0rdxz1lc",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-03-06",
+  "totalPrice" : "422.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "797016",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TRÆBRIKETTER CA. 10KG         ",
+    "price" : "88.50",
+    "currency" : ""
+  }, {
+    "name" : "FIRELIGHTERS TÆNDBLOK 6X32 STK",
+    "price" : "49.00",
+    "currency" : ""
+  }, {
+    "name" : "KIMS SNACK CHIPS 90G          ",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "FIRELIGHTERS TÆNDBLOK 6X32 STK",
+    "price" : "245.00",
+    "currency" : ""
+  }, {
+    "name" : "KIMS SNACK CHIPS 90G          ",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PINDE TIL OPTÆNDING CA. 5L    ",
+    "price" : "19.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "frcnd54p6rpb32sb4ekvm92uv0tmozo1",
+  "storeName" : "jem & fix",
+  "storeAddress" : "NYVANG 6B, 5500, MIDDELFART, dk",
+  "purchaseDate" : "2021-12-23",
+  "totalPrice" : "319.00",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "202",
+  "orderNumber" : "63332020995",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "OLIERADIATOR 5 RIB 1",
+    "price" : "319.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "g6iiv1apiwnl4b79wnaw9at5txv6flyb",
+  "storeName" : "Netto",
+  "storeAddress" : "Stengaards Allé 195B, 2860, Søborg, dk",
+  "purchaseDate" : "2021-09-15",
+  "totalPrice" : "66.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "87840010118",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BORUP EDDIKESYRE",
+    "price" : "10.95",
+    "currency" : ""
+  }, {
+    "name" : "MAJSSTIVELSE",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "LOTUS TOILET 12RL",
+    "price" : "29.00",
+    "currency" : ""
+  }, {
+    "name" : "PIZZASNEGL TOMAT OST",
+    "price" : "10.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "gc0zyqrvc7pqpymwtpplt6sm9atpzazf",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-10-06",
+  "totalPrice" : "15.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14910010902",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SALTEDE CHIPS",
+    "price" : "7.50",
+    "currency" : ""
+  }, {
+    "name" : "SALTEDE CHIPS",
+    "price" : "7.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "gjybcffdhky91z7fln4a3ppmjsocf7ok",
+  "storeName" : "Netto",
+  "storeAddress" : "Gentoftegade 35, 2820, Gentofte, dk",
+  "purchaseDate" : "2020-01-09",
+  "totalPrice" : "57.30",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "63350040441",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "CHAMPIGNON 500G",
+    "price" : "14.50",
+    "currency" : ""
+  }, {
+    "name" : "ØKO BLADSELLERI 300G",
+    "price" : "14.00",
+    "currency" : ""
+  }, {
+    "name" : "AUBERGINER",
+    "price" : "9.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "gprvyjce0o4n0of6vkn2t1spk9ygdaqy",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2021-01-10",
+  "totalPrice" : "160.35",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "16340010267",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "JOE'KURT NATUREL 1L",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HUMMUS BIO",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "SPINAT HELBLAD. 750G",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "RØD KARRYPASTA",
+    "price" : "11.00",
+    "currency" : ""
+  }, {
+    "name" : "VARMRØGET MAKREL",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO SOLSIKKERUGBRØD",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.95",
+    "currency" : ""
+  }, {
+    "name" : "FISKEFRIKADE",
+    "price" : "11.95",
+    "currency" : ""
+  }, {
+    "name" : "POSE",
+    "price" : "4.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "gwse2go1i3w6mus3deeyq5de3a6v6lld",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2021-03-08",
+  "totalPrice" : "231.80",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "23520030025",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NATURLI JOE KURT PÆR",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "MARMITE YEAST EKSTRA",
+    "price" : "69.95",
+    "currency" : ""
+  }, {
+    "name" : "FÆTTER KRAS 45+ L",
+    "price" : "57.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-18.00",
+    "currency" : ""
+  }, {
+    "name" : "NATURLI JOE KURT NAT",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "HUMMUS MED CHILI 200",
+    "price" : "22.95",
+    "currency" : ""
+  }, {
+    "name" : "MUHAMMARA 150 GR.",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "LØG 1KG",
+    "price" : "9.00",
+    "currency" : ""
+  }, {
+    "name" : "NORDKAPER KITMODNET",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-14.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "h3ovdbuuhhmd8wmx9mj1bz0ke6dkvf4p",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Algade 1, 5592, Ejby, dk",
+  "purchaseDate" : "2021-08-11",
+  "totalPrice" : "89.70",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12335063",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LOVEMADE RIS",
+    "price" : "44.85",
+    "currency" : ""
+  }, {
+    "name" : "LOVEMADE PASTA",
+    "price" : "44.85",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "hau61jigwa1kb1of3lshkgc8gb6kix2q",
+  "storeName" : "Føtex",
+  "storeAddress" : "Ringkøbingvej 1, 6800, Varde, dk",
+  "purchaseDate" : "2020-09-01",
+  "totalPrice" : "11.50",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "14",
+  "orderNumber" : "72830140137",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "EGEKILDE 0,5",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "higgxhajyyxw48upvpg06aqif2aqmtfh",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "HERLEV HOVEDGADE 23, 2730, HERLEV, dk",
+  "purchaseDate" : "2021-07-25",
+  "totalPrice" : "21.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "864180",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FORLÆNGERLED RUND M/JORD HVID ",
+    "price" : "21.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "hukpdjbxs4c26nc67u3h5hb0uzje9qwy",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-01-18",
+  "totalPrice" : "667.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "770680",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "GUMMIKABELTROMLE 3G1,5 40 M   ",
+    "price" : "568.00",
+    "currency" : ""
+  }, {
+    "name" : "STÅLREOL 4 HYLDER 172X75X30 CM",
+    "price" : "99.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "if9e5dvxxh03zfz20q6srm5zbcjj30es",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-06-01",
+  "totalPrice" : "296.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "951979",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KABELTROMLE 25 M              ",
+    "price" : "74.00",
+    "currency" : ""
+  }, {
+    "name" : "MELLEMLED                     ",
+    "price" : "34.00",
+    "currency" : ""
+  }, {
+    "name" : "HOZELOCK SUPERHOZE 15 M       ",
+    "price" : "188.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ih10fmqxslqj3jjaeit6a1gdmfj0cvq7",
+  "storeName" : "Netto",
+  "storeAddress" : "HERLEV HOVEDGADE 25, 2730, HERLEV, dk",
+  "purchaseDate" : "2020-06-20",
+  "totalPrice" : "260.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "16540010234",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BLACK COFFEE FT ØKO",
+    "price" : "57.50",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.50",
+    "currency" : ""
+  }, {
+    "name" : "BKI BLACK COFFEE",
+    "price" : "95.00",
+    "currency" : ""
+  }, {
+    "name" : "MÜSLI +",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "MYSLIBAR APPELSIN",
+    "price" : "9.00",
+    "currency" : ""
+  }, {
+    "name" : "MYSLIBAR",
+    "price" : "9.00",
+    "currency" : ""
+  }, {
+    "name" : "SERENO DRY ROAST PEA",
+    "price" : "10.95",
+    "currency" : ""
+  }, {
+    "name" : "FINTON'S SALT KIKS",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "FINTON'S SALT KIKS",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "STEAM BEER FL",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "STEAM BEER FL",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "GALIA/CANTALOUP",
+    "price" : "15.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ijy9zl1a9pqceakvpvtd6z7ag827tn8z",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2020-02-01",
+  "totalPrice" : "449.96",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "1180040337",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LADY VÆG 10",
+    "price" : "449.96",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ikj8axosjo43jpyv8bqzura15fmba53e",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-07-05",
+  "totalPrice" : "38.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "016636",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MOTIP SPRAYMALING PRIMER GRÅ  ",
+    "price" : "38.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "infum0xxca0stm7iq31kow2zpnieugjy",
+  "storeName" : "Netto",
+  "storeAddress" : "SØBORG HOVEDGADE 121, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-09-12",
+  "totalPrice" : "39.20",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14670010130",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MAMONE KOKOS MEL",
+    "price" : "11.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO ÆG 10 M/L",
+    "price" : "27.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "jhqdmxejt4y2ny3az78fp4d3120pswlr",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-04-12",
+  "totalPrice" : "16.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "856426",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "STIKPROP RUND MED JORD HVID   ",
+    "price" : "16.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "k8pdkkw6b0eeglbru3ycpxnoxxpuva7f",
+  "storeName" : "Netto",
+  "storeAddress" : "Tagensvej 47, 2200, København N., dk",
+  "purchaseDate" : "2020-06-30",
+  "totalPrice" : "27.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "63990041251",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "DONUTFERSKNER 500G",
+    "price" : "14.00",
+    "currency" : ""
+  }, {
+    "name" : "PEANUTS CHILI",
+    "price" : "13.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "kbm4mc9pzr3320w0xx7xtuwxcavxsbzr",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-10-16",
+  "totalPrice" : "34.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "638132",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MOTIP SPRAYMALING HVID BLANK  ",
+    "price" : "34.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "kkh5ed6qavvb1tjm6lmt7o2xewleeae5",
+  "storeName" : "Netto",
+  "storeAddress" : "Hollænderdybet 3, 2300, København S, dk",
+  "purchaseDate" : "2020-02-16",
+  "totalPrice" : "48.75",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "82510010251",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SATINELLE BIND",
+    "price" : "13.50",
+    "currency" : ""
+  }, {
+    "name" : "SATINELLE BIND",
+    "price" : "13.50",
+    "currency" : ""
+  }, {
+    "name" : "MEJSE JORDBÆR 1KG",
+    "price" : "12.50",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-2.50",
+    "currency" : ""
+  }, {
+    "name" : "ØKO LØGISMOSE YOG",
+    "price" : "11.75",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "knth0x7w8wfmeljb0ib4l6c77809buj1",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-07-18",
+  "totalPrice" : "39.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14580010263",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BRIKETTER",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "BRIKETTER",
+    "price" : "19.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ko17p1ega60x5biq087lmkxfanvezf4u",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-02-20",
+  "totalPrice" : "112.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "811881",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SAMLEBOKS 12,2X31,3X21,5 CM   ",
+    "price" : "88.00",
+    "currency" : ""
+  }, {
+    "name" : "FORLÆNGERLED SLAGFAST MED JORD",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ksu9byvbbu2mwu90j3e7avqr63o1qmud",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-02-08",
+  "totalPrice" : "149.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "762423",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆGBESLAG KL21G-44T 32-55\"    ",
+    "price" : "149.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "kvrpwdek6ktyr0ynjj68k88ubvjii9xy",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-03-09",
+  "totalPrice" : "38.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "331565",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FORLÆNGERLED RUND M/JORD HVID ",
+    "price" : "21.95",
+    "currency" : ""
+  }, {
+    "name" : "STIKPROP RUND MED JORD HVID   ",
+    "price" : "16.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "l9o8ls1ntik5dkf9ntg5fy8po8ntdpo8",
+  "storeName" : "Føtex",
+  "storeAddress" : "GENTOFTEGADE 10, 2820, GENTOFTE, dk",
+  "purchaseDate" : "2019-12-03",
+  "totalPrice" : "38.33",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "10",
+  "orderNumber" : "12410100212",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO KARTOFLER 1 KG",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-2.40",
+    "currency" : ""
+  }, {
+    "name" : "ØKO ARLA A38 MINI",
+    "price" : "15.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.19",
+    "currency" : ""
+  }, {
+    "name" : "ZAPP ELEKTRON LIGHT.",
+    "price" : "3.95",
+    "currency" : ""
+  }, {
+    "name" : "ZAPP ELEKTRON LIGHT.",
+    "price" : "-3.95",
+    "currency" : ""
+  }, {
+    "name" : "ZAPP ELEKTRON LIGHT.",
+    "price" : "15.97",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "m928wke98njrw88qzfqhymk5myab985y",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-07-22",
+  "totalPrice" : "213.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "046537",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PARASOLOVERTRÆK T/ Ø400CM SORT",
+    "price" : "64.50",
+    "currency" : ""
+  }, {
+    "name" : "FISKARS CLASSIC LUGEKLO 493   ",
+    "price" : "79.50",
+    "currency" : ""
+  }, {
+    "name" : "OVERTRÆK TIL KUGLEGRILL BG470 ",
+    "price" : "69.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "mblida5h44bsyu8fv2u4n4fypnfck0fk",
+  "storeName" : "Netto",
+  "storeAddress" : "Gentoftegade 35, 2820, Gentofte, dk",
+  "purchaseDate" : "2020-01-20",
+  "totalPrice" : "19.80",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "63460041092",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "mj2zw5gvjt9y0wkyw29l2wdhz3qwlwyv",
+  "storeName" : "Netto",
+  "storeAddress" : "Gentoftegade 35, 2820, Gentofte, dk",
+  "purchaseDate" : "2020-01-24",
+  "totalPrice" : "32.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "63500010745",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "-25.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "-1.00",
+    "currency" : ""
+  }, {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "-25.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "-1.00",
+    "currency" : ""
+  }, {
+    "name" : "BREWDOG ELVIS JUICE",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ml6slre3awbl7letkl3mx9o7jdtywg1e",
+  "storeName" : "Netto",
+  "storeAddress" : "Nørrevoldgade 94-96, 1358, København K, dk",
+  "purchaseDate" : "2020-01-08",
+  "totalPrice" : "19.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "82350011873",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CARLSBERG HUMLE 0,5L",
+    "price" : "18.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "mmvgwalu92povfbvlqr1lejzz5kfrvlu",
+  "storeName" : "Netto",
+  "storeAddress" : "AMAGERFÆLLEDVEJ 170, 2300, København S, dk",
+  "purchaseDate" : "2019-11-22",
+  "totalPrice" : "50.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "3700011604",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MAMMEN GULD 45+ ML",
+    "price" : "69.56",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-39.56",
+    "currency" : ""
+  }, {
+    "name" : "PREMIEUR PIZZA MEAT",
+    "price" : "20.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "na6nfqrpamwssyfn9u1gli73pulxza7a",
+  "storeName" : "MENY",
+  "storeAddress" : "SØBORG HOVEDGADE 108, dk",
+  "purchaseDate" : "2021-01-13",
+  "totalPrice" : "95.85",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "22980010317",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HANCOCK GAMBRINUS MØ",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "JULE ØL",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "MENY JULEØL 5,3% ØKO",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "CLEAN HANDS HANDSANI",
+    "price" : "39.95",
+    "currency" : ""
+  }, {
+    "name" : "SIERRA NEVADA X BITB",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT A, 1 STK",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "nltfb26e53fxc2q277wmvnkc35u0y2wa",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2022-05-01",
+  "totalPrice" : "79.95",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "9350040079",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SPUN+ CLIMATE T",
+    "price" : "79.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "o9pei3e7ke6cfgj8v07j0b7k8u159h0i",
+  "storeName" : "Netto",
+  "storeAddress" : "Sydfrontvej 2, 2860, Søborg, dk",
+  "purchaseDate" : "2021-02-28",
+  "totalPrice" : "182.05",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "90640030062",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO CRUNCHY PEANUTBU",
+    "price" : "21.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO CRUNCHY PEANUTBU",
+    "price" : "21.95",
+    "currency" : ""
+  }, {
+    "name" : "OATLY HAVRE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "OATLY HAVRE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "OATLY HAVRE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "OATLY HAVRE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "OATLY HAVRE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ARLA A38 LETMÆLK 1L",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-5.95",
+    "currency" : ""
+  }, {
+    "name" : "HELLO SENSITIVE BLE",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "HELLO SENSITIVE BLE",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO ÆG 10 M/L",
+    "price" : "27.25",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "oblpkefo5vl537i4nnfra4avlx0t8gj0",
+  "storeName" : "Biltema",
+  "storeAddress" : "Hermods Allé 8, 2600, Glostrup, se",
+  "purchaseDate" : "2020-06-06",
+  "totalPrice" : "105.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "217",
+  "orderNumber" : "5676",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆRKTØJSTAVLE BLÅ, 595 X 595MM",
+    "price" : "105.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "oj1kzvjbk3g55k9wxugm0c1j02g5m329",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VEJLEVEJ 42, 8722, HEDENSTED, dk",
+  "purchaseDate" : "2020-11-21",
+  "totalPrice" : "49.90",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "222",
+  "orderNumber" : "23542220598",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HYBRIDSTIKPROP HVID",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "HYBRIDSTIKPROP HVID",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "oph8vqmbkkbpmvk0dpmrqgjy39gnqf7r",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-07-28",
+  "totalPrice" : "30.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "056793",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PEANUTS 900 G                 ",
+    "price" : "30.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ozle8qttd28tlmljea489psrd81n0c60",
+  "storeName" : "Netto",
+  "storeAddress" : "Dalstrøget 133, 2870, Dyssegård, dk",
+  "purchaseDate" : "2021-03-27",
+  "totalPrice" : "123.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "87190020135",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SOIGNON GEDERULLE",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GÅRDÆG 8 M/L",
+    "price" : "27.95",
+    "currency" : ""
+  }, {
+    "name" : "EGELYKKE AGNES XL",
+    "price" : "58.95",
+    "currency" : ""
+  }, {
+    "name" : "TRIO HUMMUS",
+    "price" : "17.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "p1ajm8uq5bx79sgb2y22erp2q4inj6he",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-09",
+  "totalPrice" : "24.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "591083",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KUGLEHANE 1/2'' KOLDT         ",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "p6llb09vzda9o8q883y7y7nemgs9nqd2",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-03-21",
+  "totalPrice" : "89.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "818722",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HØJTTALERKABEL 2X1,5 25M HVID ",
+    "price" : "89.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "pm2kvoyt2ijltixoijeh0ok6odeg2qbr",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-03-13",
+  "totalPrice" : "99.90",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "838748",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HULRUMSDYVEL METAL 5X52 4 STK ",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "HULRUMSDYVEL METAL 5X52 4 STK ",
+    "price" : "49.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "q2gxjjpyqlco5azja79dfmq1qy1ltuw4",
+  "storeName" : "Netto",
+  "storeAddress" : "Gentoftegade 35, 2820, Gentofte, dk",
+  "purchaseDate" : "2020-01-11",
+  "totalPrice" : "128.80",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "63370040433",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "CHEASY SKYR KOKOS 1K",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.95",
+    "currency" : ""
+  }, {
+    "name" : "SPIR SOYA NAT. 500G",
+    "price" : "11.95",
+    "currency" : ""
+  }, {
+    "name" : "CHEASY HINDB/GRAN",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO SPIR HAVREDR 1L",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "BRUN FARIN",
+    "price" : "9.50",
+    "currency" : ""
+  }, {
+    "name" : "LYS SIRUP",
+    "price" : "15.95",
+    "currency" : ""
+  }, {
+    "name" : "OLLINEO RAPSOLIE 1L",
+    "price" : "11.50",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GÆR 50G",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO HVIDLØG",
+    "price" : "11.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PASTINAK",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "HVIDKÅL",
+    "price" : "15.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "qfa6z5kdyjygz1sq9ee4uepfrmdfjajo",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Søborg Hovedgade 27, 2860, Søborg, dk",
+  "purchaseDate" : "2020-12-12",
+  "totalPrice" : "88.80",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "31001159",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SOLSIKKE RUGB.",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI BLOK",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "POTASKE",
+    "price" : "6.95",
+    "currency" : ""
+  }, {
+    "name" : "HAVREGRYN",
+    "price" : "18.95",
+    "currency" : ""
+  }, {
+    "name" : "LYS SIRUP",
+    "price" : "15.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKOLOGISKE ÆG",
+    "price" : "20.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "rdqmyn97izh6zhhbyy3klhoo71iavwuk",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-10-18",
+  "totalPrice" : "179.75",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "15500010660",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "SORTE BØNNER ØKO",
+    "price" : "11.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "ØGO KIKÆRTER",
+    "price" : "6.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HAKKEDE TOMATER",
+    "price" : "5.25",
+    "currency" : ""
+  }, {
+    "name" : "TOMATSUPPE",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "MILD KARRYSUPPE",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "MILD KARRYSUPPE",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "KART/PORRERSUPPE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-5.00",
+    "currency" : ""
+  }, {
+    "name" : "SLT CHILINØDDER",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GRØNTSAGSBOUILLO",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO TOMATPASTA",
+    "price" : "7.95",
+    "currency" : ""
+  }, {
+    "name" : "SHINE AFSPÆNDIG 1L",
+    "price" : "14.50",
+    "currency" : ""
+  }, {
+    "name" : "ØGO HUMMUS BIO",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "LA CAMPAGNA OLIVEN",
+    "price" : "4.75",
+    "currency" : ""
+  }, {
+    "name" : "CHESTFORD MORNAY",
+    "price" : "16.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "rvxrqd92q6qyw8x7kulyifq6syowuldy",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-02-15",
+  "totalPrice" : "21.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "13030010056",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SKRALD-LET",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "DET GODE SOLSIKKERUG",
+    "price" : "20.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-8.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "t0mkvs97e1wkqs1xwcajpvf9v1uvhvai",
+  "storeName" : "Netto",
+  "storeAddress" : "Vangede Bygade 101, 2820, Gentofte, dk",
+  "purchaseDate" : "2021-02-24",
+  "totalPrice" : "170.75",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "84500010137",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "LIBRESSE NIGHT BIND",
+    "price" : "45.00",
+    "currency" : ""
+  }, {
+    "name" : "LIBRESSE",
+    "price" : "45.00",
+    "currency" : ""
+  }, {
+    "name" : "HELLO SENSITIVE BLE",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "SPIR ØKO POSTEJ",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "SPIR ØKO POSTEJ",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "SPIR ØKO POSTEJ",
+    "price" : "12.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATUR. BLOK 200G",
+    "price" : "16.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "t1jbe9zr3ljcloddx5rm8xg8wawlydix",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-03-06",
+  "totalPrice" : "-245.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "797018",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FIRELIGHTERS TÆNDBLOK 6X32 STK",
+    "price" : "-245.00",
+    "currency" : ""
+  }, {
+    "name" : "Retur på faktura:797016 200306",
+    "price" : "0.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "tfgp9nfd8knhtior9oqhlmu6qdnh11x6",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-07-17",
+  "totalPrice" : "198.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14570010555",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BROOKLYN IPA",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "BROOKLYN SUMMER",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "GUINNESS 44CL",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "PHILADELPHIA PURLØG",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "KOKOSMÆLK 8%",
+    "price" : "10.95",
+    "currency" : ""
+  }, {
+    "name" : "SUN L. ØKO ÆBLE 6PK",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "BRAIN BITES HINDBÆR",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GULERØDDER",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "PORT SALUT 320 G",
+    "price" : "35.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO RØD PEBER",
+    "price" : "13.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO KARTOFLER 1 KG",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "SALATMEST. REMOULADE",
+    "price" : "8.95",
+    "currency" : ""
+  }, {
+    "name" : "MAYONNAISE",
+    "price" : "8.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO BROCCOLI",
+    "price" : "15.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "tjmc5nfp2qzp1zst3bo9vch9m0bo2q9w",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-10-15",
+  "totalPrice" : "198.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "636404",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BORDOVERTRÆK 75X90X200 SORT   ",
+    "price" : "198.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "trsac2uquvv3hbb6cc9l6sjyiy47rrwx",
+  "storeName" : "jem & fix",
+  "storeAddress" : "VIRKEHOLM 2, 2730, HERLEV, dk",
+  "purchaseDate" : "2020-07-30",
+  "totalPrice" : "139.80",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "732",
+  "orderNumber" : "48217320783",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TÆTNINGSLISTE P-PROF",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "RUNDSTOK NR 160 FYR",
+    "price" : "50.85",
+    "currency" : ""
+  }, {
+    "name" : "SYSTEMBOX M/LÅG 32 L",
+    "price" : "39.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "tugqf722i5ct9m2wgncbjlgbzb21bwun",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-03-25",
+  "totalPrice" : "16.50",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "825942",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FORGRENINGSDÅSE 85X85 AP9 HVID",
+    "price" : "16.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "ty1rd79qhp9i8yq1n7ytgmr5zvvrczfl",
+  "storeName" : "Føtex",
+  "storeAddress" : "GENTOFTEGADE 10, 2820, GENTOFTE, dk",
+  "purchaseDate" : "2020-02-04",
+  "totalPrice" : "51.42",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "13040030032",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "OLIVEN",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "OLIVEN",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-3.90",
+    "currency" : ""
+  }, {
+    "name" : "LEVEVIS TOMATER",
+    "price" : "4.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-0.99",
+    "currency" : ""
+  }, {
+    "name" : "ANSJOSER I OLIE 90/5",
+    "price" : "15.95",
+    "currency" : ""
+  }, {
+    "name" : "KAPERS",
+    "price" : "9.95",
+    "currency" : ""
+  }, {
+    "name" : "LEVEVIS SPAGHETTI",
+    "price" : "6.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-1.39",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "tzot7gjxbirdd3chy1z9yeimpy69mpnq",
+  "storeName" : "Netto",
+  "storeAddress" : "LEVYSGADE 2, 8700, HORSENS, dk",
+  "purchaseDate" : "2020-11-21",
+  "totalPrice" : "117.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "26550020204",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HUGS & KISSES 0,33 L",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "ALFHEIM SNEFRID",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "SECRET BRUNE 33CL",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "STENBRUGGE BRUNE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "STENBRUGGE BRUNE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "TB SAINT PETER",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "VUUR & VLAM 0,33 L",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "u0ylvbfrpey9qoy9h9qcbgcit95527ez",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-02-02",
+  "totalPrice" : "249.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "754564",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆGBESLAG LP42-69T 60-100\"    ",
+    "price" : "249.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "u3qp3on82xuwqoyl65znnr771msqc09j",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Overholmvej 1, 8722, Hedensted, dk",
+  "purchaseDate" : "2019-12-21",
+  "totalPrice" : "6.16",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "11750510",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FRANSKE KARTOF.",
+    "price" : "6.16",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "utl1lv653n267t1c484kyy173ts5ojo0",
+  "storeName" : "Løvbjerg",
+  "storeAddress" : "Strevelinsvej 11, 7000, Fredericia, dk",
+  "purchaseDate" : "2021-10-09",
+  "totalPrice" : "56.96",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "30683399",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SEMPER MEAL POUCH",
+    "price" : "41.97",
+    "currency" : ""
+  }, {
+    "name" : "ORGANIX BABYMOS",
+    "price" : "14.99",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "uux3bwb44b7kx5yv3peragnfe70mbymg",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-03-15",
+  "totalPrice" : "85.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "840893",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "FILLER EKSTRA INDE/UDE 250 G  ",
+    "price" : "48.00",
+    "currency" : ""
+  }, {
+    "name" : "3 STIKDÅSE FORSTÆRKET GRØN    ",
+    "price" : "37.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "uvx4nr46ugu67sdv98tohe458ohc1ruz",
+  "storeName" : "Netto",
+  "storeAddress" : "Sydfrontvej 2, 2860, Søborg, dk",
+  "purchaseDate" : "2021-02-11",
+  "totalPrice" : "101.20",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "90470030579",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO NATURLI HAVREDRI",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-7.95",
+    "currency" : ""
+  }, {
+    "name" : "ØGO ÆG 10 M/L",
+    "price" : "27.25",
+    "currency" : ""
+  }, {
+    "name" : "FISKEFRIKADE",
+    "price" : "11.95",
+    "currency" : ""
+  }, {
+    "name" : "VARMRØGET MAKREL",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-4.95",
+    "currency" : ""
+  }, {
+    "name" : "BAGUETTE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "FOUNDERS ALL DAY IPA",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-8.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "vin4ldeclmqv15k9uag5ds7g9pva77zo",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-07-14",
+  "totalPrice" : "449.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "033047",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "MITSUTOMO SKUFFEREOL          ",
+    "price" : "149.00",
+    "currency" : ""
+  }, {
+    "name" : "ADANO UKRUDTSBRÆNDER 2000W 3I1",
+    "price" : "169.00",
+    "currency" : ""
+  }, {
+    "name" : "UNIVERSAL ADAPTER 3000 MA     ",
+    "price" : "78.00",
+    "currency" : ""
+  }, {
+    "name" : "GENNEMGANGSAFBRYDER HVID      ",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "STIKPROP RUND MED JORD GRÅ    ",
+    "price" : "16.95",
+    "currency" : ""
+  }, {
+    "name" : "FORLÆNGERLED RUND MED JORD GRÅ",
+    "price" : "21.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "vt2l9gq9vwth6h0dgzb5295635sxd8hd",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Algade 1, 5592, Ejby, dk",
+  "purchaseDate" : "2021-08-11",
+  "totalPrice" : "91.40",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12335062",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "DANSKVAND BRUS",
+    "price" : "18.00",
+    "currency" : ""
+  }, {
+    "name" : "FLASKEPANT",
+    "price" : "13.50",
+    "currency" : ""
+  }, {
+    "name" : "REMA 1000 ØKO AP",
+    "price" : "16.00",
+    "currency" : ""
+  }, {
+    "name" : "FLASKEPANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "SOMMERSALAT",
+    "price" : "8.95",
+    "currency" : ""
+  }, {
+    "name" : "REMOULADE",
+    "price" : "7.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO. TOMATER",
+    "price" : "13.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO. TOMATER",
+    "price" : "13.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "vwk1k9cv4lk8s82uj8tyn502teofkm0s",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-08-13",
+  "totalPrice" : "89.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "556512",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HANEKOBLING 22MM INDENDØRS    ",
+    "price" : "89.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "w216ojcyllualy8fbo8030ch334zpkat",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-03-04",
+  "totalPrice" : "109.45",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "826932",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VINKEL MED GRADMÅLER 300MM    ",
+    "price" : "49.95",
+    "currency" : ""
+  }, {
+    "name" : "SKRUETVINGE 300MM             ",
+    "price" : "59.50",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "wcs1077filn78onxdhwe3ona5non4jei",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-28",
+  "totalPrice" : "39.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "615061",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "TRYKSPRØJTE 1,5L              ",
+    "price" : "39.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "wh8uk6wcxylsz8fx5o2aphnr26j1g8wy",
+  "storeName" : "MENY",
+  "storeAddress" : "Lyngby Hovedgade 80, dk",
+  "purchaseDate" : "2021-04-12",
+  "totalPrice" : "95.00",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "4",
+  "orderNumber" : "23160040268",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "NATURLI JOE KURT NAT",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "NATURLI JOE KURT JOR",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "NATURLI PÆRE-BANAN",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "NATURLI JOE KURT NAT",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "NATURLI JOE KURT NAT",
+    "price" : "24.95",
+    "currency" : ""
+  }, {
+    "name" : "Rabat",
+    "price" : "-9.95",
+    "currency" : ""
+  }, {
+    "name" : "KONFEKTURE",
+    "price" : "20.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "wjrs29z7f3p6584fomkjbbj6ryuncd2b",
+  "storeName" : "MENY",
+  "storeAddress" : "Kennedy Arkaden, J.F., Kennedys Plads 1, dk",
+  "purchaseDate" : "2019-11-14",
+  "totalPrice" : "11.80",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "18220020045",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BANANER",
+    "price" : "11.80",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "wqinxqzy4992u58qn7xrfzl4nzcvz6c5",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2021-09-09",
+  "totalPrice" : "166.85",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "591082",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PP AFLØBSRØR 50X500MM         ",
+    "price" : "20.50",
+    "currency" : ""
+  }, {
+    "name" : "PP AFLØBSRØR 50X1000MM        ",
+    "price" : "28.75",
+    "currency" : ""
+  }, {
+    "name" : "PP AFLØBSRØR 50X1000MM        ",
+    "price" : "28.75",
+    "currency" : ""
+  }, {
+    "name" : "VINKEL GALV. 90G 3/4'' I+U GEV",
+    "price" : "27.95",
+    "currency" : ""
+  }, {
+    "name" : "VINKEL GALV. 90G 3/4'' I GEV  ",
+    "price" : "22.95",
+    "currency" : ""
+  }, {
+    "name" : "NIPPELRØR 3/4'' X 200MM GALV. ",
+    "price" : "37.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "wuaeksfhxuz8ekd479a3h9zbab6pnu0k",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2022-03-22",
+  "totalPrice" : "129.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "850076",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "HULRUMSDYVEL MED SKRUE 100 STK",
+    "price" : "129.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "x0po08vtnbpxquc5ayey3wsdtlq4l3y4",
+  "storeName" : "Netto",
+  "storeAddress" : "HERMODS ALLE 7-9, 2600, GLOSTRUP, dk",
+  "purchaseDate" : "2020-06-06",
+  "totalPrice" : "147.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "18360030417",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "BROOKLYN DEFENDER",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "INDSLEV SORT HVEDE",
+    "price" : "19.95",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "GUINESS NITRO 44CL",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "FREJDAHL SIGURD 66CL",
+    "price" : "20.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO HYLDEBL/IN 0,33L",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO APPELSIN 0,33L",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO APPELSIN 0,33L",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO HYLDEBL/IN 0,33L",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "DIV. SNIT",
+    "price" : "25.00",
+    "currency" : ""
+  }, {
+    "name" : "DIV. SNIT",
+    "price" : "25.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "xv7i7f9hfee7quvj9emt1kzr9qzdr9av",
+  "storeName" : "BAUHAUS",
+  "storeAddress" : "Turbinevej 4-6, 2860, Søborg, dk",
+  "purchaseDate" : "2021-10-16",
+  "totalPrice" : "349.35",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "7380030320",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "AFLØBSRØR PP 11",
+    "price" : "109.95",
+    "currency" : ""
+  }, {
+    "name" : "PROP 110 MM HT",
+    "price" : "239.40",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "y4q1moq17he399hd4dm6t8u2jajdmpk2",
+  "storeName" : "REMA1000",
+  "storeAddress" : "Søborg Hovedgade 27, 2860, Søborg, dk",
+  "purchaseDate" : "2021-01-26",
+  "totalPrice" : "81.50",
+  "currency" : null,
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "12320539",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "PÅGEN KÄRNSUND",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "CACADE DARK ALE",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "DÅSEPANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "EARLY BIRD",
+    "price" : "14.05",
+    "currency" : ""
+  }, {
+    "name" : "DÅSEPANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "WHITE CHRISTMAS",
+    "price" : "16.00",
+    "currency" : ""
+  }, {
+    "name" : "DÅSEPANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "HAKKET TOMATER",
+    "price" : "4.15",
+    "currency" : ""
+  }, {
+    "name" : "HAKKET TOMATER",
+    "price" : "4.15",
+    "currency" : ""
+  }, {
+    "name" : "HAKKET TOMATER",
+    "price" : "4.15",
+    "currency" : ""
+  }, {
+    "name" : "ØKO. ROSMARIN",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "HVIDLØG",
+    "price" : "4.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "zhva1l1209vewe3raqm8yv6pvtu5ag9m",
+  "storeName" : "Netto",
+  "storeAddress" : "Sydfrontvej 2, 2860, Søborg, dk",
+  "purchaseDate" : "2021-01-14",
+  "totalPrice" : "21.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "2",
+  "orderNumber" : "90190020118",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "ALFHEIM GALAR",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "PANT",
+    "price" : "1.00",
+    "currency" : ""
+  }, {
+    "name" : "TOMATPASTA I TUBE",
+    "price" : "5.00",
+    "currency" : ""
+  }, {
+    "name" : "TOMATPASTA I TUBE",
+    "price" : "5.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "zjkf0jj85uwzmo81skvjc2xi11b9jqce",
+  "storeName" : "Føtex",
+  "storeAddress" : "Lyngby Storcenter 53, 2800, Kongens Lyngby, dk",
+  "purchaseDate" : "2021-07-02",
+  "totalPrice" : "24.95",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "3",
+  "orderNumber" : "46100030004",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SALLING VERDURE",
+    "price" : "24.95",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "zl0bripfa2l2ytvbulco1v1ros2cxiwc",
+  "storeName" : "Bilka",
+  "storeAddress" : "Stormgade 157, 6715, Esbjerg N, dk",
+  "purchaseDate" : "2021-10-03",
+  "totalPrice" : "-99.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "35",
+  "orderNumber" : "36370350086",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "KINGSTON 64GB SDKORT",
+    "price" : "-99.00",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "zop9tojfxxze3q86gojwtvubi22xtje3",
+  "storeName" : "Netto",
+  "storeAddress" : "KOLLEGIEBAKKEN 7, 2800, LYNGBY, dk",
+  "purchaseDate" : "2020-07-18",
+  "totalPrice" : "166.65",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : "1",
+  "orderNumber" : "14580010260",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "SURDEJSBOLLER M.SPEL",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO FØDS.BOLLER",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO FØDS.BOLLER",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO FØDS.BOLLER",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØGO RØRSUKKER ØKO",
+    "price" : "14.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PIZZAMEL",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO FØDS.BOLLER",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "DANSUKKER ØKO SUKKER",
+    "price" : "15.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PIZZAMEL",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "ØKO PIZZAMEL",
+    "price" : "12.00",
+    "currency" : ""
+  }, {
+    "name" : "RYNKEBY APPELSIN",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "RYNKEBY ÆBLE",
+    "price" : "10.00",
+    "currency" : ""
+  }, {
+    "name" : "EGELYKKE SALT. SMØR",
+    "price" : "15.95",
+    "currency" : ""
+  }, {
+    "name" : "ØKO GÆR 50G",
+    "price" : "4.75",
+    "currency" : ""
+  } ]
+}, {
+  "receiptId" : "zs6mcrqm122p6vcssn5nw7tym0h2xhuv",
+  "storeName" : "Harald Nyborg",
+  "storeAddress" : "GLADSAXEVEJ 367-371, 2860, SØBORG, dk",
+  "purchaseDate" : "2020-02-02",
+  "totalPrice" : "-149.00",
+  "currency" : "DKK",
+  "note" : null,
+  "receiptType" : "MERCHANT",
+  "terminalId" : null,
+  "orderNumber" : "754532",
+  "summary" : null,
+  "lines" : [ {
+    "name" : "VÆGBESLAG KL21G-44T 32-55\"    ",
+    "price" : "-149.00",
+    "currency" : ""
+  }, {
+    "name" : "Retur på faktura:753842 200202",
+    "price" : "0.00",
+    "currency" : ""
+  } ]
+} ]

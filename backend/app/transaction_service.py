@@ -358,9 +358,12 @@ def split_allocation(posting_id: str, splits: list[dict[str, Any]]) -> dict[str,
         for s in splits:
             alloc = PostingAllocation(
                 posting_id=posting_id,
+                household_id=posting.household_id,
                 category_id=s.get("category_id"),
                 amount_minor=int(s.get("amount_minor", 0)),
                 note=s.get("note"),
+                item_name=s.get("item_name"),
+                item_cluster_id=s.get("item_cluster_id"),
                 is_extraordinary=bool(s.get("is_extraordinary", False)),
                 created_at=now,
                 updated_at=now,
@@ -424,6 +427,8 @@ def _serialize_posting(
                 "amount": format_amount(a.amount_minor),
                 "amount_minor": a.amount_minor,
                 "note": a.note or "",
+                "item_name": a.item_name,
+                "item_cluster_id": a.item_cluster_id,
                 "tags": (tags_map or {}).get(a.id, []),
                 "is_extraordinary": a.is_extraordinary,
             }
@@ -482,3 +487,85 @@ def apply_rule_retroactively(rule_id: str) -> int:
             db.commit()
 
     return updated_count
+
+def link_receipt_to_transaction(posting_id: str, receipt_id: str) -> dict[str, Any]:
+    from .kvitteringer_service import get_receipt, link_peng_transaction_to_receipt
+
+    receipt_data = get_receipt(receipt_id)
+    if not receipt_data:
+        raise ValueError(f"Receipt {receipt_id} not found in Storebox DB")
+
+    with Session(engine) as db:
+        posting = db.get(Posting, posting_id)
+        if not posting:
+            raise ValueError(f"Posting {posting_id} not found")
+
+        # Save the link in the kvitteringer db using existing function
+        link_peng_transaction_to_receipt({
+            "transaction_id": posting_id,
+            "receipt_id": receipt_id,
+            "confidence": "manual",
+            "reason": "user_linked",
+            "transaction_payload_json": "{}"
+        })
+
+        # Calculate splits
+        occurrences = receipt_data.get("occurrences", [])
+        if not occurrences:
+            raise ValueError("Receipt has no items to split")
+
+        splits = []
+        sum_items = 0
+
+        # Most receipts are positive totals. If posting is a negative expense, invert signs
+        receipt_total = receipt_data["receipt"].get("receipt_total_minor", 0)
+        multiplier = -1 if posting.amount_minor < 0 and receipt_total > 0 else 1
+
+        from app.rules_service import evaluate_text
+
+        for occ in occurrences:
+            # net_total_minor is the item's total including item-level discounts
+            amt = occ.get("net_total_minor", 0) * multiplier
+            sum_items += amt
+
+            item_name = occ.get("display_name")
+            category_id = None
+            if item_name:
+                category_id = evaluate_text(item_name)
+
+            splits.append({
+                "amount_minor": amt,
+                "item_name": item_name,
+                "item_cluster_id": occ.get("cluster_id"),
+                "category_id": category_id,
+                "note": None
+            })
+
+        # Distribute unassigned discounts
+        unassigned_discount = receipt_data["receipt"].get("unassigned_discount_total_minor", 0) * multiplier
+        if unassigned_discount != 0 and splits:
+            total_abs = sum(abs(s["amount_minor"]) for s in splits)
+            if total_abs != 0:
+                distributed_sum = 0
+                for i, s in enumerate(splits):
+                    if i == len(splits) - 1:
+                        dist_amt = unassigned_discount - distributed_sum
+                    else:
+                        dist_amt = int(unassigned_discount * (abs(s["amount_minor"]) / total_abs))
+                    s["amount_minor"] += dist_amt
+                    distributed_sum += dist_amt
+                    sum_items += dist_amt
+
+        # Difference line
+        diff = posting.amount_minor - sum_items
+        if diff != 0:
+            splits.append({
+                "amount_minor": diff,
+                "item_name": "Difference / Gebyr",
+                "item_cluster_id": None,
+                "category_id": None,
+                "note": "Difference between receipt total and bank transaction"
+            })
+
+    # Use the existing split_allocation function
+    return split_allocation(posting_id, splits)

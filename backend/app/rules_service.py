@@ -433,37 +433,20 @@ def get_compiled_regex(rule: CategorizationRule) -> re.Pattern | None:
     return compiled
 
 
-def evaluate_posting(
-    posting: Posting,
+def evaluate_text(
+    primary_text: str,
+    extra_text: str = "",
     rules: list[CategorizationRule] | None = None,
 ) -> str | None:
-    """Evaluate a posting against all active rules and return the best match.
-
-    The description is pre-processed (lowered, dates/prefixes stripped) before
-    matching. Rules are evaluated in priority order (lower number first).
-    The first match wins.
-
-    If `rules` is provided, those are used (useful for batch processing).
-    Otherwise, rules are fetched from the database.
-
-    Returns:
-        The matching category_id, or None if no rule matches.
-    """
-    raw_desc = posting.original_description or ""
-    if not raw_desc.strip():
+    """Evaluate raw text against rules, optionally with extra context text."""
+    if not primary_text.strip():
         return None
 
-    cleaned = preprocess_description(raw_desc)
+    cleaned = preprocess_description(primary_text)
     if not cleaned:
         return None
 
-    # Also check creditor name and remittance info
-    extra_text = " ".join(filter(None, [
-        posting.creditor_name,
-        posting.remittance_information,
-    ])).lower()
-
-    search_text = f"{cleaned} {extra_text}".strip()
+    search_text = f"{cleaned} {extra_text.lower()}".strip()
 
     if rules is None:
         with Session(engine) as db:
@@ -483,6 +466,18 @@ def evaluate_posting(
                 return rule.category_id
 
     return None
+
+
+def evaluate_posting(
+    posting: Posting,
+    rules: list[CategorizationRule] | None = None,
+) -> str | None:
+    """Evaluate a posting against all active rules and return the best match."""
+    extra_text = " ".join(filter(None, [
+        posting.creditor_name,
+        posting.remittance_information,
+    ]))
+    return evaluate_text(posting.original_description or "", extra_text, rules)
 
 
 # ---------------------------------------------------------------------------
