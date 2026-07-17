@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from .database import Category, Transaction, engine
+from .database import Category, PostingAllocation, engine
 
 # ---------------------------------------------------------------------------
 # Default Taxonomy
@@ -128,6 +128,7 @@ def list_categories() -> list[dict[str, Any]]:
             "mainCategoryName": cat.main_name,
             "categoryName": cat.sub_name,
             "categoryType": cat.category_type,
+            "expenseType": cat.expense_type,
         }
         for cat in categories
     ]
@@ -141,8 +142,8 @@ def get_taxonomy_response() -> dict[str, Any]:
     usage_counts: dict[str, int] = {}
     with Session(engine) as db:
         rows = db.exec(
-            select(Transaction.category_id)
-            .where(Transaction.category_id.is_not(None))  # type: ignore[union-attr]
+            select(PostingAllocation.category_id)
+            .where(PostingAllocation.category_id.is_not(None))  # type: ignore[union-attr]
         ).all()
         for cat_id in rows:
             if cat_id:

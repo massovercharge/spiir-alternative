@@ -1,23 +1,19 @@
+"""Peng configuration — environment-driven settings for data paths and runtime behavior.
+
+All data paths default to ``<project_root>/data`` and can be overridden via
+environment variables. The ``PENG_DATA_DIR`` variable is the primary override
+for the data root directory.
+"""
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
-@dataclass(frozen=True)
-class SpiirRuntimeSettings:
-    cutover_date: str = "2026-01-01"
-
-
-@dataclass(frozen=True)
-class RuntimeSettings:
-    spiir: SpiirRuntimeSettings
-
-
 def _env(*names: str) -> str | None:
+    """Return the first non-empty value from the given environment variable names."""
     for name in names:
         value = os.getenv(name)
         if value:
@@ -26,6 +22,7 @@ def _env(*names: str) -> str | None:
 
 
 def _path_from_env(names: tuple[str, ...], default: Path) -> Path:
+    """Resolve a path from environment variables, falling back to a default."""
     value = _env(*names)
     if not value:
         return default
@@ -33,28 +30,33 @@ def _path_from_env(names: tuple[str, ...], default: Path) -> Path:
 
 
 def get_data_dir() -> Path:
-    return _path_from_env(("SPIIR_ALT_DATA_DIR",), ROOT_DIR / "data")
+    """Return the root data directory for Peng.
+
+    Controlled by ``PENG_DATA_DIR`` (or legacy ``SPIIR_ALT_DATA_DIR``).
+    Defaults to ``<project_root>/data``.
+    """
+    return _path_from_env(("PENG_DATA_DIR", "SPIIR_ALT_DATA_DIR"), ROOT_DIR / "data")
 
 
-def get_storebox_source_dir() -> Path:
-    return _path_from_env(("STOREBOX_SOURCE_DIR", "SPIIR_ALT_STOREBOX_SOURCE_DIR"), get_data_dir() / "storebox")
+def get_enable_banking_app_id() -> str:
+    """Return the Enable Banking application ID from environment."""
+    app_id = _env("ENABLEBANKING_APP_ID")
+    if not app_id:
+        raise RuntimeError("Set ENABLEBANKING_APP_ID before calling Enable Banking")
+    return app_id
 
 
-def get_kvitteringer_data_dir() -> Path:
-    return get_data_dir() / "kvitteringer"
+def get_enable_banking_key_path() -> Path:
+    """Return the path to the Enable Banking RSA private key."""
+    configured = _env("ENABLEBANKING_PRIVATE_KEY_PATH")
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return get_data_dir() / "local_secrets" / "enablebanking" / f"{get_enable_banking_app_id()}.pem"
 
 
-def get_kvitteringer_category_overrides_file() -> Path:
-    return get_kvitteringer_data_dir() / "category_overrides.json"
-
-
-def get_kvitteringer_db_path() -> Path:
-    return _path_from_env(("KVITTERINGER_DB_PATH", "SPIIR_ALT_KVITTERINGER_DB_PATH"), get_kvitteringer_data_dir() / "kvitteringer.sqlite3")
-
-
-def get_runtime_settings() -> RuntimeSettings:
-    return RuntimeSettings(
-        spiir=SpiirRuntimeSettings(
-            cutover_date=_env("SPIIR_CUTOVER_DATE", "SPIIR_ALT_CUTOVER_DATE") or "2026-01-01",
-        ),
-    )
+def get_enable_banking_redirect_url() -> str:
+    """Return the Enable Banking OAuth redirect URL."""
+    url = _env("ENABLEBANKING_REDIRECT_URL")
+    if not url:
+        raise RuntimeError("Set ENABLEBANKING_REDIRECT_URL for Enable Banking")
+    return url

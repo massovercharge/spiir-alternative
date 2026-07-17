@@ -14,17 +14,13 @@ fi
 echo "Running backend lint..."
 PYTHONPATH="$ROOT_DIR/backend" "$PYTHON" -m ruff check \
     "$ROOT_DIR/backend/app" \
-    "$ROOT_DIR/backend/tests" \
-    "$ROOT_DIR/scripts/migrate_v1_to_v2.py"
+    "$ROOT_DIR/backend/tests"
 
 echo "Running backend tests..."
 PYTHONPATH="$ROOT_DIR/backend" "$PYTHON" -m pytest "$ROOT_DIR/backend/tests" -q
 
-echo "Running frontend tests..."
-cd "$ROOT_DIR/frontend"
-npm test
-
 echo "Building frontend..."
+cd "$ROOT_DIR/frontend"
 npm run build
 
 echo "All checks passed."

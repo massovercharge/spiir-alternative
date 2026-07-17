@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 SERVER="root@192.168.50.5" # Your docker server
-REMOTE_DIR="/root/spiir-alternative"
+REMOTE_DIR="/root/peng"
 
 cd "$ROOT_DIR"
 
@@ -18,7 +18,7 @@ echo "Deploying spiir-alternative to $SERVER..."
 ssh $SERVER "mkdir -p $REMOTE_DIR"
 
 # Rsync the runnable codebase to the server, excluding local docs, caches, secrets, and generated data.
-rsync -avz \
+rsync -avz --delete \
     --exclude 'node_modules' \
     --exclude '.venv' \
     --exclude '__pycache__' \
@@ -34,6 +34,17 @@ rsync -avz \
     ./ $SERVER:$REMOTE_DIR/
 
 # Trigger a rebuild and restart on the remote server
-ssh $SERVER "cd $REMOTE_DIR && docker compose build && docker compose up -d"
+echo "Executing remote deployment steps..."
+ssh $SERVER << EOF
+  set -e
+  echo "Navigating to remote directory..."
+  cd $REMOTE_DIR
 
-echo "Deployment complete!"
+  echo "Rebuilding and starting the new container stack..."
+  docker compose up --build -d --remove-orphans
+
+  echo "Cleaning up dangling images to prevent disk-bloat..."
+  docker image prune -f
+
+  echo "Deployment successful!"
+EOF

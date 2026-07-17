@@ -1,0 +1,546 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import { useTheme } from '../theme/ThemeProvider';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag } from 'lucide-react';
+import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUploadStoreboxFile, useImportStoreboxLink } from '../api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Button } from '../components/ui/Button';
+import { useHousehold } from '../context/HouseholdContext';
+import { Users, Mail } from 'lucide-react';
+
+export default function SettingsPage() {
+  const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
+  
+  const { data: bankConnections, isLoading: isLoadingBanks } = useBankConnections();
+  const connectBankMutation = useConnectBank();
+  const startSyncMutation = useStartSync();
+  const queryClient = useQueryClient();
+  const [isPollingSync, setIsPollingSync] = React.useState(false);
+  
+  const { data: syncStatus } = useSyncStatus(isPollingSync);
+  
+  React.useEffect(() => {
+    if (isPollingSync && syncStatus) {
+      if (syncStatus.status === 'succeeded' || syncStatus.status === 'completed_with_errors' || syncStatus.status === 'failed') {
+        setIsPollingSync(false);
+        
+        if (syncStatus.status === 'succeeded' || syncStatus.status === 'completed_with_errors') {
+          queryClient.invalidateQueries({ queryKey: ['transactions'] });
+          queryClient.invalidateQueries({ queryKey: ['accounts'] });
+          queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+          queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
+          
+          if (syncStatus.error || syncStatus.status === 'completed_with_errors') { 
+             toast.warning(syncStatus.error || 'Synkronisering fuldført med fejl på nogle konti');
+          } else {
+             toast.success('Synkronisering fuldført!');
+          }
+        } else {
+          toast.error(syncStatus.error || 'Synkronisering fejlede');
+        }
+      }
+    }
+  }, [syncStatus, isPollingSync, queryClient]);
+
+  const uploadSpiirExportMutation = useUploadSpiirExport();
+  
+  const { data: userRules = [], isLoading: isLoadingRules } = useRules('user');
+  const deleteRuleMutation = useDeleteRule();
+  
+  const { activeHouseholdId, households } = useHousehold();
+  const { data: members = [] } = useHouseholdMembers(activeHouseholdId || '');
+  const inviteMemberMutation = useInviteHouseholdMember();
+  const createHouseholdMutation = useCreateHousehold();
+  
+  const [inviteEmail, setInviteEmail] = React.useState('');
+  const [newHouseholdName, setNewHouseholdName] = React.useState('');
+  const [importResult, setImportResult] = React.useState<any>(null);
+
+  const uploadStoreboxMutation = useUploadStoreboxFile();
+  const importStoreboxLinkMutation = useImportStoreboxLink();
+  const [storeboxLink, setStoreboxLink] = React.useState('');
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    uploadSpiirExportMutation.mutate(file, {
+      onSuccess: (data) => {
+        setImportResult(data);
+      }
+    });
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+    localStorage.setItem('peng-lang', lang);
+  };
+
+  const handleConnectBank = () => {
+    connectBankMutation.mutate(window.location.origin + '/dashboard', {
+      onSuccess: (data) => {
+        if (data.auth_url) {
+          window.location.href = data.auth_url;
+        }
+      }
+    });
+  };
+
+  const handleSync = () => {
+    startSyncMutation.mutate(undefined, {
+      onSuccess: () => {
+        setIsPollingSync(true);
+        toast.info('Synkronisering startet...');
+      },
+      onError: (error) => {
+        toast.error('Kunne ikke starte synkronisering: ' + error.message);
+      }
+    });
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-4 md:p-8 max-w-4xl mx-auto space-y-6"
+    >
+      <div className="mb-8">
+        <motion.h1 
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-3xl font-bold text-[hsl(var(--text-primary))]"
+        >
+          {t('app.settings')}
+        </motion.h1>
+        <motion.p 
+          initial={{ y: -5, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="text-muted mt-2"
+        >
+          {t('settings.description')}
+        </motion.p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sun size={20} className="text-[hsl(var(--brand-primary))]" />
+                {t('settings.appearance')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border ${theme === 'light' ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.05)] text-[hsl(var(--brand-primary))]' : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-muted'}`}
+                >
+                  <Sun size={24} />
+                  <span className="text-sm font-medium">{t('settings.light')}</span>
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border ${theme === 'dark' ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.05)] text-[hsl(var(--brand-primary))]' : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-muted'}`}
+                >
+                  <Moon size={24} />
+                  <span className="text-sm font-medium">{t('settings.dark')}</span>
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border ${theme === 'system' ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.05)] text-[hsl(var(--brand-primary))]' : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-muted'}`}
+                >
+                  <Monitor size={24} />
+                  <span className="text-sm font-medium">{t('settings.system')}</span>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages size={20} className="text-[hsl(var(--brand-primary))]" />
+                {t('settings.language')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleLanguageChange('da')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${i18n.language === 'da' ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.05)] text-[hsl(var(--brand-primary))]' : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-muted'}`}
+                >
+                  {t('settings.danish')}
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${i18n.language === 'en' ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.05)] text-[hsl(var(--brand-primary))]' : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-muted'}`}
+                >
+                  {t('settings.english')}
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users size={20} className="text-[hsl(var(--brand-primary))]" />
+              Husstand
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium mb-3">Medlemmer</h3>
+              <div className="space-y-2">
+                {members.map((member: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
+                    <div>
+                      <p className="font-medium text-sm">{member.name || member.email}</p>
+                      <p className="text-xs text-muted">{member.email}</p>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
+                      {member.role}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+              <h3 className="text-sm font-medium mb-3">Invitér til husstand</h3>
+              <div className="flex gap-2">
+                <input 
+                  type="email"
+                  placeholder="bruger@email.dk"
+                  className="flex-1 px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+                <Button 
+                  onClick={() => {
+                    if (activeHouseholdId && inviteEmail) {
+                      inviteMemberMutation.mutate({ householdId: activeHouseholdId, email: inviteEmail }, {
+                        onSuccess: () => setInviteEmail('')
+                      });
+                    }
+                  }}
+                  disabled={!inviteEmail || inviteMemberMutation.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Mail size={16} />
+                  Invitér
+                </Button>
+              </div>
+              {inviteMemberMutation.isError && (
+                <p className="text-red-500 text-xs mt-2">{inviteMemberMutation.error?.message}</p>
+              )}
+            </div>
+            
+            <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+              <h3 className="text-sm font-medium mb-3">Opret ny husstand</h3>
+              <div className="flex gap-2">
+                <input 
+                  type="text"
+                  placeholder="F.eks. Sommerhuset"
+                  className="flex-1 px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
+                  value={newHouseholdName}
+                  onChange={(e) => setNewHouseholdName(e.target.value)}
+                />
+                <Button 
+                  onClick={() => {
+                    if (newHouseholdName) {
+                      createHouseholdMutation.mutate(newHouseholdName, {
+                        onSuccess: () => setNewHouseholdName('')
+                      });
+                    }
+                  }}
+                  disabled={!newHouseholdName || createHouseholdMutation.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Opret
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListFilter size={20} className="text-[hsl(var(--brand-primary))]" />
+              Dine Kategoriseringsregler
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingRules ? (
+              <p className="text-sm text-muted">Henter regler...</p>
+            ) : userRules.length === 0 ? (
+              <p className="text-sm text-muted">Du har ikke oprettet nogen personlige regler endnu.</p>
+            ) : (
+              <div className="space-y-3">
+                {userRules.map((rule: any) => {
+                  const catParts = (rule.category_id || '').split('|');
+                  const catName = catParts[1] ? catParts[1] : catParts[0];
+                  return (
+                    <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
+                      <div>
+                        <p className="font-medium">"{rule.match_pattern}"</p>
+                        <p className="text-xs text-muted capitalize mt-0.5">
+                          → {catName.replace('-', ' ')}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-error hover:bg-[hsla(var(--error),0.1)]"
+                        onClick={() => {
+                          if (confirm('Er du sikker på du vil slette denne regel? (Allerede ændrede transaktioner ændres ikke tilbage)')) {
+                            deleteRuleMutation.mutate(rule.id);
+                          }
+                        }}
+                        disabled={deleteRuleMutation.isPending}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 size={20} className="text-[hsl(var(--brand-primary))]" />
+                  Bankforbindelser
+                </CardTitle>
+                <p className="text-sm text-muted">
+                  Forbind dine bankkonti for automatisk import af transaktioner
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleSync}
+                  disabled={startSyncMutation.isPending || isPollingSync}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-[hsl(var(--border-color))] rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+                >
+                  <RefreshCw size={16} className={startSyncMutation.isPending || isPollingSync ? 'animate-spin' : ''} />
+                  {isPollingSync ? 'Synkroniserer...' : 'Synkroniser'}
+                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button
+                    onClick={handleConnectBank}
+                    disabled={connectBankMutation.isPending}
+                    className="btn btn-primary disabled:opacity-50"
+                  >
+                    <Plus size={16} />
+                    Forbind til bank
+                  </button>
+                  {connectBankMutation.isError && (
+                    <span className="text-xs text-red-500">
+                      Fejl: {connectBankMutation.error?.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingBanks ? (
+              <div className="py-8 text-center text-muted animate-pulse">Henter forbindelser...</div>
+            ) : bankConnections?.length === 0 ? (
+              <div className="py-8 text-center text-muted border-2 border-dashed border-[hsl(var(--border-color))] rounded-lg">
+                Ingen aktive bankforbindelser endnu.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {bankConnections?.map((conn: any) => (
+                  <div key={conn.id} className="flex items-center justify-between p-4 border border-[hsl(var(--border-color))] rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-[hsl(var(--bg-tertiary))] rounded-full">
+                        <Building2 size={20} className="text-[hsl(var(--text-secondary))]" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-[hsl(var(--text-primary))]">{conn.bank_name}</div>
+                        <div className="text-xs text-muted">Forbundet: {new Date(conn.created_at).toLocaleDateString()} &middot; Status: {conn.status}</div>
+                      </div>
+                    </div>
+                    <button className="p-2 text-[hsl(var(--text-secondary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Spiir Import Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="text-[hsl(var(--brand-primary))]" size={24} />
+              Importér Spiir-data
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted leading-relaxed">
+              Upload dit historiske CSV-udtræk fra Spiir. Vi fletter dine gamle transaktioner sammen med de nye og bevarer dine eksisterende kategoriseringer uden at skabe dubletter.
+            </p>
+            
+            {importResult ? (
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg flex items-start gap-3">
+                <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
+                <div>
+                  <h4 className="font-semibold text-green-700 dark:text-green-400">Import fuldført!</h4>
+                  <ul className="text-sm text-green-600 dark:text-green-300 mt-1 space-y-1">
+                    <li>Læste {importResult.total_rows} transaktioner</li>
+                    <li>Importerede {importResult.imported_new} nye transaktioner</li>
+                    <li>Opdaterede/flettede {importResult.merged_existing} transaktioner</li>
+                    <li>Sprang {importResult.skipped} over</li>
+                    {importResult.accounts_created > 0 && (
+                      <li>Oprettede {importResult.accounts_created} historiske konti</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                  disabled={uploadSpiirExportMutation.isPending}
+                />
+                <button 
+                  className={`w-full py-3 px-4 border-2 border-dashed border-[hsl(var(--border-color))] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${uploadSpiirExportMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:border-[hsl(var(--brand-primary))] hover:bg-[hsl(var(--brand-primary))]/5'}`}
+                >
+                  {uploadSpiirExportMutation.isPending ? (
+                    <>
+                      <RefreshCw className="animate-spin" size={18} />
+                      Importerer data...
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={18} />
+                      Vælg Spiir CSV-fil
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {/* Storebox Import Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBag className="text-[hsl(var(--brand-primary))]" size={24} />
+              Importér Storebox-data
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-sm text-muted leading-relaxed">
+              Importér dine digitale kvitteringer fra Storebox (Nexi). Du kan enten uploade den ZIP- eller JSON-fil, du har fået, eller indsætte det "DOWNLOAD DATA"-link du har modtaget i din e-mail.
+            </p>
+
+            <div className="space-y-4 pt-2">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Mulighed 1: Indsæt download-link</h4>
+                <div className="flex gap-2">
+                  <input 
+                    type="url"
+                    placeholder="https://..."
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
+                    value={storeboxLink}
+                    onChange={(e) => setStoreboxLink(e.target.value)}
+                  />
+                  <Button 
+                    onClick={() => {
+                      if (storeboxLink) {
+                        importStoreboxLinkMutation.mutate(storeboxLink, {
+                          onSuccess: () => {
+                            toast.success('Storebox kvitteringer blev importeret!');
+                            setStoreboxLink('');
+                          },
+                          onError: (err) => {
+                            toast.error('Kunne ikke importere fra link: ' + err.message);
+                          }
+                        });
+                      }
+                    }}
+                    disabled={!storeboxLink || importStoreboxLinkMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {importStoreboxLinkMutation.isPending ? <RefreshCw className="animate-spin" size={16} /> : <LinkIcon size={16} />}
+                    Hent fra link
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative pt-4 border-t border-[hsl(var(--border-color))]">
+                <h4 className="text-sm font-medium mb-2">Mulighed 2: Upload ZIP eller JSON</h4>
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    accept=".zip,.json"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      uploadStoreboxMutation.mutate(file, {
+                        onSuccess: () => {
+                          toast.success('Storebox kvitteringer blev importeret!');
+                        },
+                        onError: (err) => {
+                          toast.error('Kunne ikke importere fil: ' + err.message);
+                        }
+                      });
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                    disabled={uploadStoreboxMutation.isPending}
+                  />
+                  <button 
+                    className={`w-full py-3 px-4 border-2 border-dashed border-[hsl(var(--border-color))] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${uploadStoreboxMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:border-[hsl(var(--brand-primary))] hover:bg-[hsl(var(--brand-primary))]/5'}`}
+                  >
+                    {uploadStoreboxMutation.isPending ? (
+                      <>
+                        <RefreshCw className="animate-spin" size={18} />
+                        Importerer fil...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={18} />
+                        Vælg Storebox export (ZIP/JSON)
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
+  );
+}
