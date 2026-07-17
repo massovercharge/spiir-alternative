@@ -238,7 +238,7 @@ export function TransactionFilters({
             </button>
 
             {showPeriodDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-80 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg p-4 z-30 animate-fade-in">
+              <div className="absolute top-full left-0 mt-1 min-w-[20rem] w-max max-w-[90vw] bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg p-4 z-30 animate-fade-in">
                 <h3 className="text-lg text-primary mb-4 font-light">Måneder</h3>
                 
                 <div className="flex items-center gap-2 mb-4">

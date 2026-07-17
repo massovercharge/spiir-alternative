@@ -59,6 +59,7 @@ export default function SettingsPage() {
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [newHouseholdName, setNewHouseholdName] = React.useState('');
   const [importResult, setImportResult] = React.useState<any>(null);
+  const [storeboxImportResult, setStoreboxImportResult] = React.useState<any>(null);
 
   const uploadStoreboxMutation = useUploadStoreboxFile();
   const importStoreboxLinkMutation = useImportStoreboxLink();
@@ -465,7 +466,34 @@ export default function SettingsPage() {
               Importér dine digitale kvitteringer fra Storebox (Nexi). Du kan enten uploade den ZIP- eller JSON-fil, du har fået, eller indsætte det "DOWNLOAD DATA"-link du har modtaget i din e-mail.
             </p>
 
-            <div className="space-y-4 pt-2">
+            {storeboxImportResult ? (
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg flex items-start gap-3">
+                <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
+                <div>
+                  <h4 className="font-semibold text-green-700 dark:text-green-400">Storebox import fuldført!</h4>
+                  <ul className="text-sm text-green-600 dark:text-green-300 mt-1 space-y-1">
+                    <li>Læste {storeboxImportResult.raw_receipt_count} kvitteringer fra filen</li>
+                    <li>Importerede {storeboxImportResult.deduplicated_receipt_count} unikke kvitteringer</li>
+                    <li>Sprang {storeboxImportResult.duplicate_receipt_count} dubletter over</li>
+                    <li>Registrerede {storeboxImportResult.item_cluster_count} vare-produkter</li>
+                    <li>Fandt {storeboxImportResult.merchant_count} butikker</li>
+                    {storeboxImportResult.auto_linked > 0 && (
+                      <li>Autokoblede automatisk {storeboxImportResult.auto_linked} kvitteringer til dine bankposteringer!</li>
+                    )}
+                  </ul>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4 border-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-500/10"
+                    onClick={() => setStoreboxImportResult(null)}
+                  >
+                    Importér flere
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-2">
+
               <div>
                 <h4 className="text-sm font-medium mb-2">Mulighed 1: Indsæt download-link</h4>
                 <div className="flex gap-2">
@@ -480,8 +508,9 @@ export default function SettingsPage() {
                     onClick={() => {
                       if (storeboxLink) {
                         importStoreboxLinkMutation.mutate(storeboxLink, {
-                          onSuccess: () => {
+                          onSuccess: (data) => {
                             toast.success('Storebox kvitteringer blev importeret!');
+                            setStoreboxImportResult(data);
                             setStoreboxLink('');
                           },
                           onError: (err) => {
@@ -509,8 +538,9 @@ export default function SettingsPage() {
                       const file = e.target.files?.[0];
                       if (!file) return;
                       uploadStoreboxMutation.mutate(file, {
-                        onSuccess: () => {
+                        onSuccess: (data) => {
                           toast.success('Storebox kvitteringer blev importeret!');
+                          setStoreboxImportResult(data);
                         },
                         onError: (err) => {
                           toast.error('Kunne ikke importere fil: ' + err.message);
@@ -538,6 +568,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
