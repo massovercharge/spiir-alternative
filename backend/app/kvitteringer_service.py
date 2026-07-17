@@ -486,8 +486,16 @@ def _parse_purchase_timestamp(raw_receipt: dict[str, Any]) -> tuple[str, str, st
     if raw_timestamp:
         parsed = datetime.fromisoformat(str(raw_timestamp).replace("Z", "+00:00"))
     elif epoch_raw is not None:
-        parsed = datetime.fromtimestamp(int(epoch_raw) / 1000, tz=UTC)
-        raw_timestamp = parsed.isoformat().replace("+00:00", "Z")
+        if isinstance(epoch_raw, str) and "-" in epoch_raw:
+            # Handle format like '2021-10-30'
+            parsed = datetime.fromisoformat(epoch_raw)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=UTC)
+            epoch_raw = int(parsed.timestamp() * 1000)
+            raw_timestamp = parsed.isoformat().replace("+00:00", "Z")
+        else:
+            parsed = datetime.fromtimestamp(int(epoch_raw) / 1000, tz=UTC)
+            raw_timestamp = parsed.isoformat().replace("+00:00", "Z")
     else:
         raise ValueError("Receipt is missing purchase timestamp")
     if parsed.tzinfo is None:

@@ -67,6 +67,16 @@ export async function splitTransaction(transactionId: string, splits: { amount_m
   return res.json();
 }
 
+export async function linkReceiptToTransaction(transactionId: string, receiptId: string) {
+  const res = await fetch(`${API_BASE}/api/transactions/${transactionId}/link-receipt`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ receipt_id: receiptId })
+  });
+  if (!res.ok) throw new Error('Failed to link receipt to transaction');
+  return res.json();
+}
+
 export async function fetchIncomeExpenseSeries(year?: number) {
   let url = `${API_BASE}/api/insights/income-expense-series`;
   if (year) {
@@ -357,6 +367,19 @@ export function useSplitTransaction() {
   return useMutation({
     mutationFn: ({ transactionId, splits }: { transactionId: string, splits: { amount_minor: number; category_id: string | null; note?: string }[] }) => 
       splitTransaction(transactionId, splits),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
+    }
+  });
+}
+
+export function useLinkReceiptToTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ transactionId, receiptId }: { transactionId: string, receiptId: string }) => 
+      linkReceiptToTransaction(transactionId, receiptId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });

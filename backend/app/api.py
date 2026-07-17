@@ -214,6 +214,18 @@ def create_app() -> FastAPI:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    @api_router.post("/api/transactions/{transaction_id}/link-receipt")
+    def transaction_link_receipt(transaction_id: str, payload: dict[str, Any]) -> dict[str, object]:
+        """Link a receipt to a transaction and automatically split it into items."""
+        try:
+            from app.transaction_service import link_receipt_to_transaction
+            receipt_id = payload.get("receipt_id")
+            if not receipt_id:
+                raise ValueError("receipt_id is required")
+            return link_receipt_to_transaction(transaction_id, receipt_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     @api_router.get("/api/tags")
     def tags_list() -> dict[str, list[dict[str, str]]]:
         """Get all tags created by the user."""

@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { Button } from './Button';
 import CategoryPicker from './CategoryPicker';
-import { useUpdateTransactions, useSplitTransaction } from '../../api/client';
+import { useUpdateTransactions, useSplitTransaction, useLinkReceiptToTransaction } from '../../api/client';
 
 interface TransactionDetailsSidebarProps {
   transaction: any;
@@ -23,13 +23,18 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   const [tags, setTags] = useState<string[]>(transaction.tags || []);
   const [tagInput, setTagInput] = useState('');
   
+  // Receipt linking state
+  const [isLinkingReceipt, setIsLinkingReceipt] = useState(false);
+  const [receiptIdInput, setReceiptIdInput] = useState('');
+  
   // Split state
   const isInitiallySplit = transaction.allocations && transaction.allocations.length > 1;
   const [isSplitMode, setIsSplitMode] = useState(isInitiallySplit);
-  const [splits, setSplits] = useState<{ id?: string, amount_minor: number, amount_input: string, category_id: string | null }[]>([]);
+  const [splits, setSplits] = useState<{ id?: string, amount_minor: number, amount_input: string, category_id: string | null, item_name?: string }[]>([]);
   
   const updateMutation = useUpdateTransactions();
   const splitMutation = useSplitTransaction();
+  const linkMutation = useLinkReceiptToTransaction();
 
   useEffect(() => {
     setCustomDate(transaction.custom_date || transaction.booking_date);
@@ -45,13 +50,15 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
         id: a.id,
         amount_minor: a.amount_minor,
         amount_input: (Math.abs(a.amount_minor) / 100).toString().replace('.', ','),
-        category_id: a.category_id
+        category_id: a.category_id,
+        item_name: a.item_name
       })));
     } else {
       setSplits([{
         amount_minor: transaction.amount_minor,
         amount_input: (Math.abs(transaction.amount_minor) / 100).toString().replace('.', ','),
-        category_id: transaction.category_id
+        category_id: transaction.category_id,
+        item_name: undefined
       }]);
     }
   }, [transaction]);
@@ -151,7 +158,21 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   const targetSum = Math.abs(transaction.amount_minor) / 100;
   const isSumValid = Math.abs(currentSum - targetSum) < 0.01; // Allow minor float inaccuracies
   
-  const isPending = updateMutation.isPending || splitMutation.isPending;
+  const isPending = updateMutation.isPending || splitMutation.isPending || linkMutation.isPending;
+
+  const handleLinkReceipt = () => {
+    if (!receiptIdInput.trim()) return;
+    linkMutation.mutate(
+      { transactionId: transaction.id, receiptId: receiptIdInput.trim() },
+      { 
+        onSuccess: () => {
+          setIsLinkingReceipt(false);
+          setReceiptIdInput('');
+          onClose(); // Close the sidebar, or maybe reload it. Usually easier to close it to see changes on list.
+        }
+      }
+    );
+  };
 
   // Helper to generate a better search term for "Find lignende"
   const getSearchTerm = (desc: string) => {
@@ -247,28 +268,33 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
               
               <div className="space-y-3">
                 {splits.map((split, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1">
+                  <div key={index} className="flex gap-2 items-start flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                      {split.item_name && (
+                        <div className="text-xs font-semibold mb-1 text-[hsl(var(--text-primary))]">{split.item_name}</div>
+                      )}
                       <CategoryPicker 
                         selectedCategoryId={split.category_id || undefined}
                         onSelect={(id) => updateSplit(index, 'category_id', id)}
                         className="w-full"
                       />
                     </div>
-                    <div className="w-24">
-                      <input 
-                        type="text" 
-                        value={split.amount_input}
-                        onChange={(e) => updateSplit(index, 'amount_input', e.target.value)}
-                        placeholder="Beløb"
-                        className="w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary h-[38px]"
-                      />
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <div className="w-24">
+                        <input 
+                          type="text" 
+                          value={split.amount_input}
+                          onChange={(e) => updateSplit(index, 'amount_input', e.target.value)}
+                          placeholder="Beløb"
+                          className={`w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary h-[38px] ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}
+                        />
+                      </div>
+                      {splits.length > 1 && (
+                        <button onClick={() => removeSplit(index)} className={`p-2 text-red-500 hover:bg-red-500/10 rounded-lg mt-0.5 ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}>
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
-                    {splits.length > 1 && (
-                      <button onClick={() => removeSplit(index)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg mt-0.5">
-                        <Trash2 size={16} />
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
@@ -401,6 +427,37 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
                     </Button>
                     <p className="text-xs text-center text-muted mt-2">Del transaktionen op i flere kategorier</p>
                   </>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-[hsl(var(--border-color))] space-y-3">
+                {isLinkingReceipt ? (
+                  <div className="space-y-2 bg-[hsl(var(--bg-secondary))] p-3 rounded-lg border border-[hsl(var(--border-color))]">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Storebox Receipt ID</label>
+                    <input 
+                      type="text" 
+                      value={receiptIdInput}
+                      onChange={(e) => setReceiptIdInput(e.target.value)}
+                      placeholder="fx 08p9sixdiwk2a0pwf4s37zxea..."
+                      className="w-full bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="primary" size="sm" className="flex-1" onClick={handleLinkReceipt} disabled={!receiptIdInput.trim() || linkMutation.isPending}>
+                        {linkMutation.isPending ? 'Forbinder...' : 'Forbind'}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setIsLinkingReceipt(false); setReceiptIdInput(''); }}>
+                        Annuller
+                      </Button>
+                    </div>
+                    {linkMutation.isError && (
+                      <p className="text-xs text-red-500 mt-2">{(linkMutation.error as Error).message || 'Der opstod en fejl'}</p>
+                    )}
+                  </div>
+                ) : (
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2" onClick={() => setIsLinkingReceipt(true)}>
+                    <Plus size={16} />
+                    Forbind Storebox Kvittering
+                  </Button>
                 )}
               </div>
             </div>

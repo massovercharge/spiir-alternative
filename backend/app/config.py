@@ -60,3 +60,15 @@ def get_enable_banking_redirect_url() -> str:
     if not url:
         raise RuntimeError("Set ENABLEBANKING_REDIRECT_URL for Enable Banking")
     return url
+
+def get_kvitteringer_db_path() -> Path:
+    return get_data_dir() / "kvitteringer.db"
+
+def get_kvitteringer_data_dir() -> Path:
+    return get_data_dir() / "kvitteringer"
+
+def get_kvitteringer_category_overrides_file() -> Path:
+    return get_data_dir() / "kvitteringer-categories.json"
+
+def get_storebox_source_dir() -> Path:
+    return get_data_dir() / "storebox-downloads"
