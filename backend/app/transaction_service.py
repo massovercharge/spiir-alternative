@@ -557,8 +557,8 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
                     distributed_sum += dist_amt
                     sum_items += dist_amt
 
-        if sum_items != abs(posting.amount_minor):
-            diff = abs(posting.amount_minor) - sum_items
+        if abs(sum_items) != abs(posting.amount_minor):
+            diff = abs(posting.amount_minor) - abs(sum_items)
             splits.append({
                 "amount_minor": diff * multiplier,
                 "item_name": "Difference / Gebyr",
