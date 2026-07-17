@@ -116,61 +116,99 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
                 )
             ).all())
 
-    alloc_by_posting: dict[str, PostingAllocation] = {}
+    # Map posting_id to list of allocations
+    allocs_by_posting: dict[str, list[PostingAllocation]] = {}
     for alloc in allocs:
-        if alloc.posting_id not in alloc_by_posting:
-            alloc_by_posting[alloc.posting_id] = alloc
+        if alloc.posting_id not in allocs_by_posting:
+            allocs_by_posting[alloc.posting_id] = []
+        allocs_by_posting[alloc.posting_id].append(alloc)
 
     categories = {cat["id"]: cat for cat in list_categories()}
 
-    totals: dict[str, int] = {}
+    # totals grouped by (cat_id, item_name)
+    totals: dict[tuple[str, str | None], int] = {}
+    
     for p in postings:
-        alloc = alloc_by_posting.get(p.id)
-        cat_id = (alloc.category_id if alloc else None) or "diverse|ikke-kategoriseret"
-
-        cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt", "expenseType": "Variable", "categoryType": "Expense"}
-
-        if cat["mainCategoryName"] == "Vis ikke":
-            continue
-
-        if filter_type:
-            if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
+        p_allocs = allocs_by_posting.get(p.id, [])
+        if not p_allocs:
+            cat_id = "diverse|ikke-kategoriseret"
+            cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt", "expenseType": "Variable", "categoryType": "Expense"}
+            if cat["mainCategoryName"] == "Vis ikke":
                 continue
+            if filter_type:
+                if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
+                    continue
+            key = (cat_id, None)
+            totals[key] = totals.get(key, 0) + abs(p.amount_minor)
+        else:
+            for alloc in p_allocs:
+                cat_id = alloc.category_id or "diverse|ikke-kategoriseret"
+                cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt", "expenseType": "Variable", "categoryType": "Expense"}
+                if cat["mainCategoryName"] == "Vis ikke":
+                    continue
+                if filter_type:
+                    if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
+                        continue
+                item_name = alloc.item_name
+                # If item_name has a category, we might want to capitalize it nicely or just use it
+                key = (cat_id, item_name)
+                totals[key] = totals.get(key, 0) + abs(alloc.amount_minor)
 
-        amt = alloc.amount_minor if alloc else p.amount_minor
-        totals[cat_id] = totals.get(cat_id, 0) + abs(amt)
-
+    # Build flat arrays for Plotly or custom frontend lists
     labels = ["Total"]
     parents = [""]
-    values = [0]
+    values = [0.0]
     seen_mains: set[str] = set()
+    seen_subs: set[str] = set()
 
-    for cat_id, total in sorted(totals.items(), key=lambda x: -x[1]):
-        if total == 0:
-            continue
-
+    # Pre-calculate category totals and main totals since we split by item now
+    main_totals: dict[str, float] = {}
+    sub_totals: dict[str, float] = {}
+    
+    for (cat_id, item_name), total in totals.items():
+        if total == 0: continue
         cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt"}
         main = cat["mainCategoryName"]
+        sub = cat.get("categoryName", cat_id)
+        
+        main_totals[main] = main_totals.get(main, 0.0) + total
+        sub_totals[sub] = sub_totals.get(sub, 0.0) + total
 
-        if main not in seen_mains:
-            labels.append(main)
-            parents.append("Total")
-            values.append(0)
-            seen_mains.add(main)
+    # First add all mains
+    for main, m_total in sorted(main_totals.items(), key=lambda x: -x[1]):
+        labels.append(main)
+        parents.append("Total")
+        values.append(m_total)
+        values[0] += m_total
 
-        main_idx = labels.index(main)
-        values[main_idx] += total
-        values[0] += total
-
-        labels.append(cat.get("categoryName", cat_id))
+    # Then add all subs
+    for sub, s_total in sorted(sub_totals.items(), key=lambda x: -x[1]):
+        # Find its main
+        main = next((categories.get(cid, {}).get("mainCategoryName", "Diverse") 
+                    for (cid, itm), t in totals.items() 
+                    if categories.get(cid, {}).get("categoryName", cid) == sub), "Diverse")
+        labels.append(sub)
         parents.append(main)
+        values.append(s_total)
+
+    # Then add all items
+    for (cat_id, item_name), total in sorted(totals.items(), key=lambda x: -x[1]):
+        if not item_name or total == 0: continue
+        cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt"}
+        sub = cat.get("categoryName", cat_id)
+        
+        # We need a unique label if multiple subs have same item_name, but echarts doesn't strictly need it. 
+        # Plotly might require unique labels. We'll append space if needed, or just keep it simple.
+        labels.append(item_name)
+        parents.append(sub)
         values.append(total)
 
     # Build ECharts hierarchical format (use floats: minor units / 100)
     echarts_tree: list[dict[str, Any]] = []
     main_nodes: dict[str, dict[str, Any]] = {}
+    sub_nodes: dict[tuple[str, str], dict[str, Any]] = {}
 
-    for cat_id, total in sorted(totals.items(), key=lambda x: -x[1]):
+    for (cat_id, item_name), total in sorted(totals.items(), key=lambda x: -x[1]):
         if total == 0:
             continue
         cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt"}
@@ -183,7 +221,28 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
             echarts_tree.append(main_nodes[main])
 
         main_nodes[main]["value"] = round(main_nodes[main]["value"] + amount, 2)
-        main_nodes[main]["children"].append({"name": sub, "value": amount})
+        
+        sub_key = (main, sub)
+        if sub_key not in sub_nodes:
+            sub_node = {"name": sub, "value": 0.0}
+            # Only add children array if we actually have item-level data, to avoid breaking chart layout for categories without items
+            sub_nodes[sub_key] = sub_node
+            main_nodes[main]["children"].append(sub_node)
+            
+        sub_nodes[sub_key]["value"] = round(sub_nodes[sub_key]["value"] + amount, 2)
+        
+        if item_name:
+            if "children" not in sub_nodes[sub_key]:
+                # Convert this sub_node to have children instead of just a value. 
+                # Echarts allows nodes to have both 'value' and 'children' where the value is the sum.
+                sub_nodes[sub_key]["children"] = []
+                
+            # Check if this item_name already exists under this sub_category (e.g. "Mælk" across multiple transactions)
+            existing_item = next((child for child in sub_nodes[sub_key]["children"] if child["name"] == item_name), None)
+            if existing_item:
+                existing_item["value"] = round(existing_item["value"] + amount, 2)
+            else:
+                sub_nodes[sub_key]["children"].append({"name": item_name, "value": amount})
 
     return {
         "labels": labels,
