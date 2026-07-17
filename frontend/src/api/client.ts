@@ -152,31 +152,49 @@ export async function connectBank(redirectUrl: string) {
     body: JSON.stringify({ redirect_url: redirectUrl })
   });
   if (!res.ok) throw new Error('Failed to start bank connection');
+  return res.json();
 }
 
 export async function uploadSpiirExport(file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return fetchApi('/api/import/spiir', {
+  
+  const headers = getHeaders();
+  delete headers['Content-Type']; // Let browser set multipart/form-data boundary
+
+  const res = await fetch(`${API_BASE}/api/import/spiir`, {
     method: 'POST',
+    headers,
     body: formData,
   });
+  if (!res.ok) throw new Error('Failed to upload file');
+  return res.json();
 }
 
 export async function uploadStoreboxFile(file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return fetchApi('/api/storebox/import-file', {
+
+  const headers = getHeaders();
+  delete headers['Content-Type']; // Let browser set multipart/form-data boundary
+
+  const res = await fetch(`${API_BASE}/api/storebox/import-file`, {
     method: 'POST',
+    headers,
     body: formData,
   });
+  if (!res.ok) throw new Error('Failed to upload Storebox file');
+  return res.json();
 }
 
 export async function importStoreboxLink(url: string) {
-  return fetchApi('/api/storebox/import-link', {
+  const res = await fetch(`${API_BASE}/api/storebox/import-link`, {
     method: 'POST',
+    headers: getHeaders(),
     body: JSON.stringify({ url }),
   });
+  if (!res.ok) throw new Error('Failed to import from link');
+  return res.json();
 }
 
 export async function generateBudgets(months = 12, year?: number) {

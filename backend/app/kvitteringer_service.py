@@ -2564,7 +2564,7 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
         # Allow receipt dates from transaction_date - 4 days to transaction_date + 1 day
         min_date = (transaction_date - timedelta(days=4)).isoformat()
         max_date = (transaction_date + timedelta(days=1)).isoformat()
-        
+
         rows = connection.execute(
             "SELECT r.receipt_id, r.purchase_date, r.receipt_total_minor, m.display_name AS merchant_name, r.merchant_key "
             "FROM receipt r JOIN merchant m ON m.merchant_key = r.merchant_key "

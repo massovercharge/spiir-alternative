@@ -127,7 +127,7 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
 
     # totals grouped by (cat_id, item_name)
     totals: dict[tuple[str, str | None], int] = {}
-    
+
     for p in postings:
         p_allocs = allocs_by_posting.get(p.id, [])
         if not p_allocs:
@@ -158,19 +158,18 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
     labels = ["Total"]
     parents = [""]
     values = [0.0]
-    seen_mains: set[str] = set()
-    seen_subs: set[str] = set()
 
     # Pre-calculate category totals and main totals since we split by item now
     main_totals: dict[str, float] = {}
     sub_totals: dict[str, float] = {}
-    
-    for (cat_id, item_name), total in totals.items():
-        if total == 0: continue
+
+    for (cat_id, _), total in totals.items():
+        if total == 0:
+            continue
         cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt"}
         main = cat["mainCategoryName"]
         sub = cat.get("categoryName", cat_id)
-        
+
         main_totals[main] = main_totals.get(main, 0.0) + total
         sub_totals[sub] = sub_totals.get(sub, 0.0) + total
 
@@ -184,8 +183,8 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
     # Then add all subs
     for sub, s_total in sorted(sub_totals.items(), key=lambda x: -x[1]):
         # Find its main
-        main = next((categories.get(cid, {}).get("mainCategoryName", "Diverse") 
-                    for (cid, itm), t in totals.items() 
+        main = next((categories.get(cid, {}).get("mainCategoryName", "Diverse")
+                    for (cid, itm), t in totals.items()
                     if categories.get(cid, {}).get("categoryName", cid) == sub), "Diverse")
         labels.append(sub)
         parents.append(main)
@@ -193,11 +192,12 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
 
     # Then add all items
     for (cat_id, item_name), total in sorted(totals.items(), key=lambda x: -x[1]):
-        if not item_name or total == 0: continue
+        if not item_name or total == 0:
+            continue
         cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt"}
         sub = cat.get("categoryName", cat_id)
-        
-        # We need a unique label if multiple subs have same item_name, but echarts doesn't strictly need it. 
+
+        # We need a unique label if multiple subs have same item_name, but echarts doesn't strictly need it.
         # Plotly might require unique labels. We'll append space if needed, or just keep it simple.
         labels.append(item_name)
         parents.append(sub)
@@ -221,22 +221,22 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
             echarts_tree.append(main_nodes[main])
 
         main_nodes[main]["value"] = round(main_nodes[main]["value"] + amount, 2)
-        
+
         sub_key = (main, sub)
         if sub_key not in sub_nodes:
             sub_node = {"name": sub, "value": 0.0}
             # Only add children array if we actually have item-level data, to avoid breaking chart layout for categories without items
             sub_nodes[sub_key] = sub_node
             main_nodes[main]["children"].append(sub_node)
-            
+
         sub_nodes[sub_key]["value"] = round(sub_nodes[sub_key]["value"] + amount, 2)
-        
+
         if item_name:
             if "children" not in sub_nodes[sub_key]:
-                # Convert this sub_node to have children instead of just a value. 
+                # Convert this sub_node to have children instead of just a value.
                 # Echarts allows nodes to have both 'value' and 'children' where the value is the sum.
                 sub_nodes[sub_key]["children"] = []
-                
+
             # Check if this item_name already exists under this sub_category (e.g. "Mælk" across multiple transactions)
             existing_item = next((child for child in sub_nodes[sub_key]["children"] if child["name"] == item_name), None)
             if existing_item:

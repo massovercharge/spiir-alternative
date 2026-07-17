@@ -1,5 +1,6 @@
 import io
 import zipfile
+
 import requests
 
 from .kvitteringer_service import replace_storebox_upload
@@ -15,14 +16,14 @@ def _extract_json_from_zip(zip_bytes: bytes) -> bytes:
                 if name.lower().endswith("receipts.json"):
                     target_file = name
                     break
-            
+
             if not target_file:
                 raise ValueError("Could not find receipts.json in the downloaded ZIP file.")
-            
+
             with z.open(target_file) as f:
                 return f.read()
-    except zipfile.BadZipFile:
-        raise ValueError("The provided link or file is not a valid ZIP archive.")
+    except zipfile.BadZipFile as e:
+        raise ValueError("The provided link or file is not a valid ZIP archive.") from e
 
 
 def process_storebox_link(url: str) -> dict[str, object]:
@@ -34,11 +35,11 @@ def process_storebox_link(url: str) -> dict[str, object]:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
     except requests.RequestException as e:
-        raise ValueError(f"Failed to download from link: {e}")
+        raise ValueError(f"Failed to download from link: {e}") from e
 
     zip_bytes = response.content
     json_bytes = _extract_json_from_zip(zip_bytes)
-    
+
     # Import into Peng
     return replace_storebox_upload(json_bytes, "receipts-upload.json")
 
