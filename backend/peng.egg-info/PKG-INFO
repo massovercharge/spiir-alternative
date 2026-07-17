@@ -1,0 +1,122 @@
+Metadata-Version: 2.4
+Name: peng
+Version: 0.1.0
+Summary: Self-hostable personal finance app — categorization, budgeting, and accounting with bank integration via Enable Banking.
+Author: Daniel W.
+License-Expression: AGPL-3.0-or-later
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: fastapi<1,>=0.115
+Requires-Dist: uvicorn[standard]<1,>=0.34
+Requires-Dist: pydantic<3,>=2.10
+Requires-Dist: python-multipart<1,>=0.0.9
+Requires-Dist: orjson<4,>=3.10
+Requires-Dist: httpx<1,>=0.28
+Requires-Dist: PyJWT[crypto]<3,>=2.10
+Requires-Dist: requests<3,>=2.32
+Requires-Dist: sqlmodel<1,>=0.0.22
+Requires-Dist: python-dateutil<3,>=2.8
+Provides-Extra: dev
+Requires-Dist: ruff<1,>=0.8; extra == "dev"
+Requires-Dist: mypy<2,>=1.13; extra == "dev"
+Requires-Dist: pre-commit<5,>=4.0; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pytest<9,>=8.3; extra == "test"
+Requires-Dist: pytest-cov<7,>=6.0; extra == "test"
+Requires-Dist: respx<1,>=0.22; extra == "test"
+Dynamic: license-file
+
+# Peng
+
+> Self-hostable personal finance — categorization, budgeting & accounting with bank integration.
+
+Peng is an open-source alternative to [Spiir](https://spiir.dk) designed for self-hosting. It connects to your bank via [Enable Banking](https://enablebanking.com), automatically imports transactions, and helps you categorize, budget, and understand your personal finances.
+
+## Features
+
+- 🏦 **Bank sync** via Enable Banking (PSD2/AIS) — works with any supported European bank
+- 🏷️ **Smart categorization** — rule-based + ML-assisted transaction categorization
+- 📊 **Budget tracking** — consumption limits, fixed bills, and rollover
+- 📈 **Insights** — income/expense trends, category breakdowns, anomaly detection
+- 🐳 **Self-hostable** — single `docker compose up` for your own private instance
+- 🌐 **i18n** — Danish and English UI from day one
+- 🔒 **Privacy-first** — your financial data stays on your server
+
+## Quick Start (Docker)
+
+```bash
+git clone https://github.com/massovercharge/peng.git
+cd peng
+docker compose up
+```
+
+Open `http://localhost:8080` in your browser.
+
+## Quick Start (Development)
+
+```bash
+# Backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev,test]"
+uvicorn app.api:app --app-dir backend --reload --port 8000
+
+# Frontend (separate terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+See [docs/guides/development.md](docs/guides/development.md) for the full development setup guide.
+
+## Architecture
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────────────┐
+│   Frontend   │────▶│   Peng API   │────▶│   Enable Banking  │
+│  React + TS  │     │   FastAPI    │     │   (PSD2 / AIS)    │
+└─────────────┘     └──────┬───────┘     └───────────────────┘
+                           │
+                    ┌──────▼───────┐
+                    │    SQLite    │
+                    │  (peng.db)   │
+                    └──────────────┘
+```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture Overview](docs/architecture/overview.md) | System design and data flow |
+| [Development Guide](docs/guides/development.md) | Local setup and contribution workflow |
+| [Enable Banking Setup](docs/guides/enable-banking.md) | Bank connectivity configuration |
+| [Self-Hosting Guide](docs/guides/self-hosting.md) | Docker deployment for end users |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+| [ADR Index](docs/architecture/decisions/) | Architecture Decision Records |
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_PROVIDER` | `none` | Auth mode: `none`, `basic`, `oidc` |
+| `PENG_DATA_DIR` | `./data` | Root directory for database and bank data |
+| `ENABLEBANKING_APP_ID` | — | Enable Banking application ID |
+| `ENABLEBANKING_PRIVATE_KEY_PATH` | — | Path to RSA private key PEM |
+| `ENABLEBANKING_REDIRECT_URL` | — | OAuth redirect URL for bank consent |
+| `PENG_AUTH_USERNAME` | `admin` | Username for basic auth |
+| `PENG_AUTH_PASSWORD` | — | Password for basic auth (required when `AUTH_PROVIDER=basic`) |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python 3.11+, FastAPI, SQLModel, SQLite |
+| Frontend | TypeScript, React 18, Vite |
+| Auth | Pluggable (none / basic / OIDC) |
+| Bank Sync | Enable Banking (PSD2 AIS) |
+| Deployment | Docker Compose |
+
+## License
+
+[AGPL-3.0](LICENSE) — free to use, modify, and self-host. Contributions welcome.

@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "Peng",
+    "dashboard": "Overblik",
+    "transactions": "Transaktioner",
+    "budgets": "Budgetter",
+    "accounts": "Konti",
+    "settings": "Indstillinger"
+  },
+  "insights": {
+    "title": "Overblik",
+    "description": "Få dybere indsigt i dit forbrug og indkomst.",
+    "net_result": "Netto resultat",
+    "income_vs_expense": "Indkomst og Udgifter",
+    "top_expenses": "Hvad har jeg brugt mine penge på?",
+    "no_data": "Ingen data at vise for dette år."
+  },
+  "dashboard": {
+    "welcome": "Velkommen tilbage",
+    "overview": "Få et hurtigt overblik over din økonomi for den valgte måned.",
+    "overview_desc": "Her er dit økonomiske overblik for denne måned.",
+    "disposable": "Rådighedsbeløb",
+    "from_last_month": "+12% fra sidste måned",
+    "fixed_expenses": "Faste udgifter",
+    "estimated_fixed": "Estimerede faste udgifter denne måned",
+    "income": "Indkomst",
+    "spending": "Forbrug",
+    "spent_more": "Du har brugt 200 kr. mere end budgetteret",
+    "income_expenses": "Indtægter og Udgifter (Seneste 12 måneder)",
+    "this_month": "Denne måned",
+    "last_12_months": "12 mdr.",
+    "year": "År",
+    "spending_breakdown": "Forbrugsoversigt"
+  },
+  "transactions": {
+    "description": "Dine seneste posteringer",
+    "no_transactions": "Ingen transaktioner fundet.",
+    "unknown_date": "Ukendt dato",
+    "today": "I dag",
+    "yesterday": "I går",
+    "unknown": "Ukendt",
+    "uncategorized": "Ukategoriseret",
+    "find_similar": "Find lignende"
+  },
+  "budgets": {
+    "description": "Følg med i dit forbrug for {{year}} og hold styr på dine udgifter.",
+    "yearly_overview": "Årsoversigt",
+    "no_budgets": "Der er ikke opsat nogen budgetter endnu.",
+    "exceeded_by": "Du har overskredet budgettet med {{amount}} kr.",
+    "income": "Indkomst",
+    "bills": "Regninger",
+    "consumption": "Forbrug",
+    "generate": "Autogenerer budget ud fra historik",
+    "monthly_amount": "Månedligt budget (kr.)",
+    "apply_all_months": "Dette beløb gælder for alle 12 måneder i året.",
+    "rollover": "Løbende budget",
+    "rollover_desc": "Overfør overskud/underskud til næste måned"
+  },
+  "accounts": {
+    "description": "Dine forbundne bankkonti og deres nuværende saldo.",
+    "add_bank": "Tilføj bank",
+    "no_accounts": "Ingen konti fundet",
+    "no_accounts_desc": "Du har ikke forbundet nogen bank endnu. Forbind din bank via PSD2 for at importere transaktioner automatisk.",
+    "connect_bank": "Forbind Bank",
+    "unknown_bank": "Ukendt bank"
+  },
+  "settings": {
+    "description": "Tilpas din oplevelse i Peng.",
+    "appearance": "Udseende",
+    "light": "Lys",
+    "dark": "Mørk",
+    "system": "System",
+    "language": "Sprog",
+    "danish": "Dansk",
+    "english": "English"
+  },
+  "common": {
+    "loading": "Indlæser...",
+    "error": "Der opstod en fejl",
+    "save": "Gem",
+    "cancel": "Annuller",
+    "delete": "Slet",
+    "edit": "Rediger",
+    "search": "Søg"
+  }
+}

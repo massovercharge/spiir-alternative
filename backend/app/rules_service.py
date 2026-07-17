@@ -1,0 +1,694 @@
+"""Rules service — keyword & regex auto-categorization engine.
+
+This module ports the ENTIRE Spiir auto-categorization "hints" system
+(324 keywords across 69 subcategories, tuned to the Danish market) into
+a rule-based engine stored in the database.
+
+Architecture:
+    1. Text pre-processing (strip dates, card prefixes, special chars)
+    2. Rule evaluation in priority order (lower number = higher priority)
+    3. User rules (priority 500) always override system rules (priority 1000)
+    4. ML model can be plugged in as a fallback in a future phase
+
+The system is designed so the app works FULLY without ML. ML is optional
+and pluggable via a simple interface in the decision logic.
+"""
+from __future__ import annotations
+
+import contextlib
+import re
+from datetime import UTC, datetime
+from typing import Any
+
+from sqlmodel import Session, col, select
+
+from app.category_service import make_category_id
+from app.database import (
+    CategorizationRule,
+    Posting,
+    PostingAllocation,
+    engine,
+)
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+# ---------------------------------------------------------------------------
+# Text Pre-processing (ported from Spiir auto_categorization_spec.md)
+# ---------------------------------------------------------------------------
+
+# Pre-compiled patterns for performance
+_DATE_RE = re.compile(r"\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b")
+_PAYMENT_PREFIXES = [
+    re.compile(r"dankort[- ]?nota", re.I),
+    re.compile(r"\bvisa\b", re.I),
+    re.compile(r"\bmastercard\b", re.I),
+    re.compile(r"\bmobilepay\b|\bmobilpay\b", re.I),
+    re.compile(r"\bn\*\d+\b", re.I),
+    re.compile(r"\bnet\d+\b", re.I),
+    re.compile(r"\bbs\s*betaling\b", re.I),
+    re.compile(r"\bpbs\b", re.I),
+    re.compile(r"\boverførsel\b", re.I),
+]
+_SPECIAL_CHARS_RE = re.compile(r"[^a-zæøå0-9\s]")
+_WHITESPACE_RE = re.compile(r"\s+")
+
+
+def preprocess_description(raw_desc: str) -> str:
+    """Clean a raw bank description for rule matching.
+
+    Ported from Spiir's auto_categorization_spec.md:
+    1. Lowercase
+    2. Remove date patterns (12.03.26, 24/12, etc.)
+    3. Remove payment system prefixes (dankort-nota, visa, etc.)
+    4. Remove special characters, collapse whitespace
+    """
+    text = raw_desc.lower()
+    text = _DATE_RE.sub("", text)
+    for prefix_re in _PAYMENT_PREFIXES:
+        text = prefix_re.sub("", text)
+    text = _SPECIAL_CHARS_RE.sub(" ", text)
+    text = _WHITESPACE_RE.sub(" ", text).strip()
+    return text
+
+
+# ---------------------------------------------------------------------------
+# Spiir Hints → Peng Rules Mapping
+#
+# This is the COMPLETE port of Spiir's "hints" field from
+# categories_metadata.json. Each entry maps a Spiir subcategory name
+# (which maps 1:1 to our Category taxonomy) to its list of keywords.
+#
+# Format: (main_category_name, sub_category_name, [keyword1, keyword2, ...])
+# ---------------------------------------------------------------------------
+
+_SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
+    # === INDKOMST ===
+    ("Indkomst", "Pensionsudbetaling", [
+        "tjenestemandspension", "førtidspension",
+    ]),
+    ("Indkomst", "Dagpenge/overførselsindkomst", [
+        "kontanthjælp",
+    ]),
+    ("Indkomst", "Børnepenge", [
+        "familieydelse", "børnecheck",
+    ]),
+    ("Indkomst", "Udbytte & afkast", [
+        "bonus",
+    ]),
+    ("Indkomst", "Anden indkomst", [
+        "arveforskud", "pengegaver",
+    ]),
+    ("Indkomst", "Boligstøtte", [
+        "boligsikring", "boligtilskud",
+    ]),
+
+    # === BOLIG ===
+    ("Bolig", "Boliglån/husleje", [
+        "pantebreve", "realkreditlån", "rent",
+    ]),
+    ("Bolig", "El, vand, varme & renovation", [
+        "gas", "oliefyr", "naturgas", "fjernvarme", "affald", "skrald",
+    ]),
+    ("Bolig", "Ejerforening", [
+        "grundejerforening", "parcelforening",
+    ]),
+    ("Bolig", "Ejendomsskat", [
+        "grundskyld",
+    ]),
+    ("Bolig", "Husforsikring", [
+        "villaforsikring",
+    ]),
+    ("Bolig", "Indbo- & familieforsikring", [
+        "basisforsikring",
+    ]),
+    ("Bolig", "Udgifter fritidshus", [
+        "udgifter sommerhus", "udgifter campingvogn",
+    ]),
+    ("Bolig", "Ombygning & vedligehold", [
+        "udbygning", "maler", "vvs", "tømrer", "murer", "elektriker",
+        "nyt køkken", "reparation", "arkitekt",
+    ]),
+    ("Bolig", "Andre boligudgifter", [
+        "flytning", "advokat", "ejendomsmægler", "ejerskifteforsikring",
+        "depositum", "møntvaskeri", "vaskeri", "tøjvask",
+    ]),
+    ("Bolig", "Have & planter", [
+        "blomster", "potter",
+    ]),
+
+    # === TRANSPORT ===
+    ("Transport", "Bil-, MC-, bådlån o.l.", [
+        "billån", "motorcykellån",
+    ]),
+    ("Transport", "Brændstof", [
+        "benzin", "diesel", "tankstation", "e.on drive", "eon drive",
+    ]),
+    ("Transport", "Bilforsikring & autohjælp", [
+        "falck", "fdm", "vejhjælp",
+    ]),
+    ("Transport", "Ejerafgift/grøn afgift", [
+        "vægtafgift", "bilafgift",
+    ]),
+    ("Transport", "Bus, tog, færge o.l.", [
+        "brobizz", "metro", "s-tog", "arriva", "dsb", "broafgift",
+        "månedskort", "togkort", "buskort", "vejafgift", "pendlerkort",
+        "periodekort", "rejsekort", "klippekort",
+    ]),
+    ("Transport", "Taxi", [
+        "taxa", "hyrevogn", "uber",
+    ]),
+    ("Transport", "Parkering", [
+        "parkpark", "easypark", "qpark",
+    ]),
+    ("Transport", "Værksted & reservedele", [
+        "syn", "service", "vinterdæk", "fælge", "bilreparation", "bilvask",
+    ]),
+    ("Transport", "Anden transport", [
+        "ny bil", "ny motorcykel", "ny båd", "ny cykel", "ny mc",
+        "gomore", "cykel", "el-løbehjul",
+    ]),
+
+    # === HUSHOLDNING ===
+    ("Husholdning", "Dagligvarer", [
+        "mad", "supermarked", "madvarer",
+        # Additional well-known Danish grocery chains (from kvitteringer_service)
+        "netto", "rema", "rema 1000", "rema1000", "føtex", "bilka",
+        "aldi", "lidl", "meny", "irma", "fakta", "kvickly",
+        "superbrugsen", "nemlig", "365discount", "coop", "coop365", "re:\\b365\\s+[a-zæøå]",
+    ]),
+    ("Husholdning", "Kiosk, bager & specialbutikker", [
+        "brød", "kager", "frugt", "købmand", "slik",
+    ]),
+    ("Husholdning", "Kantine- & frokostordning", [
+        "madordning", "skolemad",
+    ]),
+
+    # === ANDRE LEVEOMKOSTNINGER ===
+    ("Andre leveomkostninger", "Apotek & medicin", [
+        "creme", "personlig pleje", "astma", "apotek",
+    ]),
+    ("Andre leveomkostninger", "Institution", [
+        "klassekasse", "børnehave", "vuggestue", "sfo",
+        "fritidshjem", "dagpleje", "efterskole", "privatskole",
+        "daginstitution",
+    ]),
+    ("Andre leveomkostninger", "Fagforening & a-kasse", [
+        "fagligt kontingent", "akasse", "a-kasse", "hk", "3f", "prosa",
+    ]),
+    ("Andre leveomkostninger", "Livs- & ulykkesforsikring", [
+        "gruppeliv",
+    ]),
+    ("Andre leveomkostninger", "Sundheds- & sygeforsikring", [
+        "forebygger",
+    ]),
+    ("Andre leveomkostninger", "TV & streaming", [
+        "kabel tv", "viasat", "sattelit", "antenneforening", "radio",
+        "netflix", "hbo", "viaplay", "disney+", "disney plus",
+        "dr licens", "tv2 play", "amazon prime",
+    ]),
+    ("Andre leveomkostninger", "Telefoni & internet", [
+        "mobiltelefon", "taletidskort", "udlandstelefoni", "fastnet",
+        "fiber", "adsl", "bredbånd", "telia", "telenor", "3 mobil",
+        "yousee", "fullrate", "oister", "lebara", "lycamobile", "eesy",
+    ]),
+    ("Andre leveomkostninger", "Behandling & læger", [
+        "tandlæge", "øjenlæge", "speciallæge", "kiropraktor",
+        "fysioterapeut", "psykolog", "hypnotisør", "akupunktør",
+        "zoneterapeut",
+    ]),
+    ("Andre leveomkostninger", "Briller & kontaktlinser", [
+        "optiker",
+    ]),
+    ("Andre leveomkostninger", "Studieudgifter", [
+        "studiebøger", "kopier",
+    ]),
+    ("Andre leveomkostninger", "Foreninger & kontingenter", [
+        "medlemsskab",
+    ]),
+
+    # === PRIVATFORBRUG ===
+    ("Privatforbrug", "Sport & fritid", [
+        "spejder", "fitness", "styrketræning", "aftenskole", "håndbold",
+        "fodbold", "basket", "badminton", "tennis", "svømning",
+        "squash", "golf",
+    ]),
+    ("Privatforbrug", "Hus & havehjælp", [
+        "rengøring", "gartner", "vinduespudser",
+    ]),
+    ("Privatforbrug", "Fastfood & takeaway", [
+        "junkfood", "burger", "sushi", "pizzaria", "takeaway", "indisk",
+        "mcdonalds", "burger king", "subway", "dominos", "pizza",
+        "wolt", "just eat", "hungry", "re:\\bmcd",
+    ]),
+    ("Privatforbrug", "Bar, cafe & restaurant", [
+        "diskotek", "værtshus", "disco", "fest", "middag",
+        "cafe", "restaurant",
+    ]),
+    ("Privatforbrug", "Tøj, sko & accessories", [
+        "smykker", "bukser", "bluse", "jeans", "kjole", "taske",
+        "jakke", "frakke", "støvler", "ring", "halskæde", "t-shirt",
+        "skjorte", "beklædning", "h&m", "zara", "zalando",
+    ]),
+    ("Privatforbrug", "Møbler & boligudstyr", [
+        "køkkenudstyr", "sofa", "seng", "bord", "stole", "hvidevarer",
+        "lamper", "malerier", "kunst", "inventar", "ikea", "jysk",
+        "idemøbler", "ilva",
+    ]),
+    ("Privatforbrug", "Elektronik & computerudstyr", [
+        "ny mobiltelefon", "playstation", "wii", "xbox", "konsol",
+        "pc", "nintendo", "elgiganten", "power", "proshop",
+        "computersalg",
+    ]),
+    ("Privatforbrug", "Spil & legetøj", [
+        "playstation spil", "xbox spil", "wii spil", "pc spil",
+        "br legetøj", "lego",
+    ]),
+    ("Privatforbrug", "Hobby & sportsudstyr", [
+        "skitøj", "golfudstyr", "surfudstyr", "løbesko", "løbetøj",
+        "pulsmåler", "sportmaster", "intersport",
+    ]),
+    ("Privatforbrug", "Frisør & personlig pleje", [
+        "parfume", "klipning", "hårklip", "massage",
+        "coaching", "wellness", "solcenter", "frisør",
+    ]),
+    ("Privatforbrug", "Film, musik & læsestof", [
+        "bøger", "blade", "aviser", "magasiner", "dvd", "cd", "mp3",
+        "itunes", "dameblade", "faglitteratur", "fagbøger",
+        "skønlitteratur", "spotify", "saxo", "audible",
+    ]),
+    ("Privatforbrug", "Biograf, koncerter & forlystelser", [
+        "museum", "kultur", "biffen", "musik", "billetter",
+        "tivoli", "sommerland", "legeland", "biograf", "kino",
+    ]),
+    ("Privatforbrug", "Tips & lotto", [
+        "poker", "klasselotteri", "casino", "odds", "kasino",
+        "lotteri", "banko", "bingo", "danske spil", "bet365",
+    ]),
+    ("Privatforbrug", "Babyudstyr", [
+        "barnevogn", "klapvogn", "barneseng",
+    ]),
+    ("Privatforbrug", "Kæledyr", [
+        "hund", "kat", "edderkop", "dyrlæge",
+    ]),
+    ("Privatforbrug", "Gaver & velgørenhed", [
+        "nødhjælp", "donationer", "røde kors", "red barnet",
+        "folkekirkens nødhjælp", "wwf verdensnaturfonden", "wspa",
+        "børnefonde", "læger uden grænser", "amnesty international",
+        "unicef", "gave",
+    ]),
+    ("Privatforbrug", "Tobak & alkohol", [
+        "spiritus", "cigaretter", "øl", "vin", "snus", "vape",
+    ]),
+    ("Privatforbrug", "Kontanthævning & check", [
+        "hæveautomat",
+    ]),
+    ("Privatforbrug", "Online services & software", [
+        "webhotel", "domæne", "apps", "apple", "google play",
+    ]),
+    ("Privatforbrug", "Andet privatforbrug", [
+        "barnepige", "frimærker", "babysitter", "fragt", "posthus",
+        "pakker", "lommepenge", "kontorartikler", "tøjrens", "renseri",
+        "kreditkort",
+    ]),
+    ("Privatforbrug", "Serviceydelser & rådgivning", [
+        "revisor", "privatøkonomisk rådgiver",
+    ]),
+
+    # === FERIE ===
+    ("Ferie", "Fly & Hotel", [
+        "charterferie", "rejser", "booking.com", "airbnb", "hotels.com",
+        "momondo", "sas", "norwegian", "ryanair", "easyjet",
+    ]),
+    ("Ferie", "Billeje", [
+        "hertz", "avis", "europcar", "sixt",
+    ]),
+    ("Ferie", "Ferieaktiviteter", [
+        "skileje", "liftkort", "skiskole",
+    ]),
+
+    # === DIVERSE ===
+    ("Diverse", "Ukendt", [
+        "ved ikke",
+    ]),
+    ("Diverse", "Bøder & afgifter", [
+        "fartbøde", "parkeringsbøde",
+    ]),
+    ("Diverse", "Offentligt gebyr", [
+        "pas", "kørekort", "kommune", "told",
+    ]),
+
+    # === PENSION & OPSPARING ===
+    ("Pension & Opsparing", "Pensionsopsparing", [
+        "ratepension", "kapitalpension",
+    ]),
+    ("Pension & Opsparing", "Anden opsparing", [
+        "ferieopsparing",
+    ]),
+    ("Pension & Opsparing", "Værdipapirshandel", [
+        "investering", "aktier", "nordnet", "saxo bank",
+    ]),
+]
+
+
+# ---------------------------------------------------------------------------
+# Seeding — port ALL Spiir hints into CategorizationRule rows
+# ---------------------------------------------------------------------------
+
+def seed_spiir_rules() -> int:
+    """Seed all Spiir categorization hints as system rules. Idempotent.
+
+    Returns the number of NEW rules created (0 on subsequent runs).
+    """
+    created = 0
+    with Session(engine) as db:
+        for main_name, sub_name, keywords in _SPIIR_HINTS:
+            category_id = make_category_id(main_name, sub_name)
+
+            for keyword in keywords:
+                keyword_lower = keyword.lower().strip()
+                if not keyword_lower:
+                    continue
+
+                is_regex = False
+                pattern_str = keyword_lower
+                if keyword_lower.startswith("re:"):
+                    is_regex = True
+                    pattern_str = keyword_lower[3:]
+
+                # Check if this exact rule already exists (idempotent)
+                existing = db.exec(
+                    select(CategorizationRule)
+                    .where(CategorizationRule.category_id == category_id)
+                    .where(CategorizationRule.match_pattern == pattern_str)
+                    .where(CategorizationRule.is_regex == is_regex)
+                    .where(CategorizationRule.source == "system")
+                ).first()
+
+                if existing is None:
+                    db.add(CategorizationRule(
+                        category_id=category_id,
+                        match_pattern=pattern_str,
+                        is_regex=is_regex,
+                        priority=1000,
+                        source="system",
+                        is_active=True,
+                    ))
+                    created += 1
+
+        db.commit()
+    return created
+
+
+# ---------------------------------------------------------------------------
+# Rule Evaluation Engine
+# ---------------------------------------------------------------------------
+
+def get_compiled_regex(rule: CategorizationRule) -> re.Pattern | None:
+    """Compile and cache the regex pattern for a CategorizationRule.
+
+    Uses a dynamic attribute on the rule object to cache the compilation result.
+    """
+    if hasattr(rule, "_compiled_regex"):
+        return rule._compiled_regex
+
+    compiled = None
+    if rule.is_regex:
+        with contextlib.suppress(re.error):
+            compiled = re.compile(rule.match_pattern, re.IGNORECASE)
+    else:
+        pattern = rule.match_pattern.lower()
+        # Clean pattern of special characters
+        pattern_cleaned = _SPECIAL_CHARS_RE.sub(" ", pattern)
+        pattern_cleaned = _WHITESPACE_RE.sub(" ", pattern_cleaned).strip()
+        if pattern_cleaned:
+            if getattr(rule, "partial_match", False):
+                compiled = re.compile(re.escape(pattern_cleaned))
+            else:
+                compiled = re.compile(rf"\b{re.escape(pattern_cleaned)}\b")
+
+    rule._compiled_regex = compiled
+    return compiled
+
+
+def evaluate_posting(
+    posting: Posting,
+    rules: list[CategorizationRule] | None = None,
+) -> str | None:
+    """Evaluate a posting against all active rules and return the best match.
+
+    The description is pre-processed (lowered, dates/prefixes stripped) before
+    matching. Rules are evaluated in priority order (lower number first).
+    The first match wins.
+
+    If `rules` is provided, those are used (useful for batch processing).
+    Otherwise, rules are fetched from the database.
+
+    Returns:
+        The matching category_id, or None if no rule matches.
+    """
+    raw_desc = posting.original_description or ""
+    if not raw_desc.strip():
+        return None
+
+    cleaned = preprocess_description(raw_desc)
+    if not cleaned:
+        return None
+
+    # Also check creditor name and remittance info
+    extra_text = " ".join(filter(None, [
+        posting.creditor_name,
+        posting.remittance_information,
+    ])).lower()
+
+    search_text = f"{cleaned} {extra_text}".strip()
+
+    if rules is None:
+        with Session(engine) as db:
+            rules = db.exec(
+                select(CategorizationRule)
+                .where(CategorizationRule.is_active == True)  # noqa: E712
+                .order_by(
+                    col(CategorizationRule.source).desc(),
+                    col(CategorizationRule.priority).asc(),
+                )
+            ).all()
+
+    for rule in rules:
+        compiled = get_compiled_regex(rule)
+        if compiled is not None:
+            if compiled.search(search_text):
+                return rule.category_id
+
+    return None
+
+
+# ---------------------------------------------------------------------------
+# CRUD Operations
+# ---------------------------------------------------------------------------
+
+def list_rules(
+    source: str | None = None,
+    category_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """List categorization rules with optional filtering."""
+    with Session(engine) as db:
+        query = select(CategorizationRule).order_by(
+            col(CategorizationRule.source).desc(),
+            col(CategorizationRule.priority).asc(),
+            col(CategorizationRule.match_pattern).asc(),
+        )
+        if source:
+            query = query.where(CategorizationRule.source == source)
+        if category_id:
+            query = query.where(CategorizationRule.category_id == category_id)
+
+        rules = db.exec(query).all()
+
+    return [
+        {
+            "id": r.id,
+            "category_id": r.category_id,
+            "match_pattern": r.match_pattern,
+            "is_regex": r.is_regex,
+            "partial_match": r.partial_match,
+            "priority": r.priority,
+            "source": r.source,
+            "is_active": r.is_active,
+        }
+        for r in rules
+    ]
+
+
+def create_rule(
+    category_id: str,
+    match_pattern: str,
+    is_regex: bool = False,
+    partial_match: bool = False,
+    priority: int = 500,
+) -> dict[str, Any]:
+    """Create a new user-defined categorization rule."""
+    now = _utcnow_iso()
+    with Session(engine) as db:
+        rule = CategorizationRule(
+            category_id=category_id,
+            match_pattern=match_pattern.lower().strip(),
+            is_regex=is_regex,
+            partial_match=partial_match,
+            priority=priority,
+            source="user",
+            is_active=True,
+            created_at=now,
+            updated_at=now,
+        )
+        db.add(rule)
+        db.commit()
+        db.refresh(rule)
+
+    return {
+        "id": rule.id,
+        "category_id": rule.category_id,
+        "match_pattern": rule.match_pattern,
+        "is_regex": rule.is_regex,
+        "partial_match": rule.partial_match,
+        "priority": rule.priority,
+        "source": rule.source,
+        "is_active": rule.is_active,
+    }
+
+
+def update_rule(rule_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
+    """Update an existing categorization rule."""
+    now = _utcnow_iso()
+    with Session(engine) as db:
+        rule = db.get(CategorizationRule, rule_id)
+        if rule is None:
+            return None
+
+        for key in ("category_id", "match_pattern", "is_regex", "partial_match", "priority", "is_active"):
+            if key in patch:
+                value = patch[key]
+                if key == "match_pattern":
+                    value = value.lower().strip()
+                setattr(rule, key, value)
+
+        rule.updated_at = now
+        db.commit()
+        db.refresh(rule)
+
+    return {
+        "id": rule.id,
+        "category_id": rule.category_id,
+        "match_pattern": rule.match_pattern,
+        "is_regex": rule.is_regex,
+        "partial_match": rule.partial_match,
+        "priority": rule.priority,
+        "source": rule.source,
+        "is_active": rule.is_active,
+    }
+
+
+def delete_rule(rule_id: str) -> bool:
+    """Delete a categorization rule. Returns True if found and deleted."""
+    with Session(engine) as db:
+        rule = db.get(CategorizationRule, rule_id)
+        if rule is None:
+            return False
+        db.delete(rule)
+        db.commit()
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Retroactive Application
+# ---------------------------------------------------------------------------
+
+def apply_rules_to_uncategorized() -> dict[str, Any]:
+    """Apply rules to all postings that currently lack a categorized allocation.
+
+    This is useful when:
+    - New rules have been added
+    - Rules have been modified
+    - Existing postings were imported without categorization
+
+    Only postings with NO allocation, or whose only allocation points to
+    the default "diverse|ikke-kategoriseret" category, are processed.
+    """
+    now = _utcnow_iso()
+    categorized = 0
+    skipped = 0
+
+    with Session(engine) as db:
+        # Pre-fetch all active rules once for batch evaluation
+        active_rules = db.exec(
+            select(CategorizationRule)
+            .where(CategorizationRule.is_active == True)  # noqa: E712
+            .order_by(
+                col(CategorizationRule.source).desc(),
+                col(CategorizationRule.priority).asc(),
+            )
+        ).all()
+
+        # Find all postings
+        postings = db.exec(select(Posting)).all()
+
+        for posting in postings:
+            # Check existing allocations
+            allocs = db.exec(
+                select(PostingAllocation)
+                .where(PostingAllocation.posting_id == posting.id)
+            ).all()
+
+            # Skip if posting already has a meaningful categorization
+            # (i.e., any allocation that is NOT the default fallback)
+            has_real_category = any(
+                a.category_id and a.category_id != "diverse|ikke-kategoriseret"
+                for a in allocs
+            )
+            if has_real_category:
+                skipped += 1
+                continue
+
+            # Also skip if there are splits (multiple allocations) —
+            # the user has manually configured these
+            if len(allocs) > 1:
+                skipped += 1
+                continue
+
+            # Try to match a rule
+            matched_category = evaluate_posting(posting, rules=active_rules)
+            if matched_category is None:
+                skipped += 1
+                continue
+
+            if allocs:
+                # Update the existing fallback allocation
+                alloc = allocs[0]
+                alloc.category_id = matched_category
+                alloc.updated_at = now
+            else:
+                # Create a new allocation
+                db.add(PostingAllocation(
+                    posting_id=posting.id,
+                    category_id=matched_category,
+                    amount_minor=posting.amount_minor,
+                    created_at=now,
+                    updated_at=now,
+                ))
+
+            categorized += 1
+
+        db.commit()
+
+    # Now detect and categorize internal transfers
+    from app.transfer_service import detect_internal_transfers
+    transfer_results = detect_internal_transfers()
+
+    return {
+        "categorized": categorized,
+        "skipped": skipped,
+        "total_processed": categorized + skipped,
+        "transfers": transfer_results,
+    }

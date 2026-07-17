@@ -57,7 +57,7 @@ EGG_ECO_MARKERS = ECO_MARKERS | {"ØGO"}
 SAFE_CUCUMBER_TOKENS = ECO_MARKERS | {"AGURK", "AGURKER", "DK", "DANSK", "UDL", "GB", "STK"}
 EGG_COUNT_TOKENS = {"4", "6", "8", "10", "12", "15", "20", "30"}
 DISQUALIFY_EGG_TOKENS = {"FRILANDSÆG", "JUMBO", "MORGENÆG", "HEDEG", "MADSPILD"}
-SPIIR_LINK_REASON = "same_day_exact_amount_merchant_match"
+PENG_LINK_REASON = "same_day_exact_amount_merchant_match"
 RECEIPT_BASKET_OUTLIER_FACTOR = Decimal("1.8")
 CATEGORY_LABELS = {
     "bolig": "Bolig",
@@ -818,7 +818,7 @@ def _ensure_schema(connection: sqlite3.Connection) -> None:
             FOREIGN KEY(cluster_id) REFERENCES item_cluster(cluster_id)
         );
 
-        CREATE TABLE IF NOT EXISTS spiir_receipt_link (
+        CREATE TABLE IF NOT EXISTS peng_receipt_link (
             transaction_id TEXT PRIMARY KEY,
             receipt_id TEXT NOT NULL,
             confidence TEXT NOT NULL,
@@ -848,7 +848,7 @@ def _ensure_schema(connection: sqlite3.Connection) -> None:
 
 def _clear_imported_tables(connection: sqlite3.Connection) -> None:
     for table_name in [
-        "spiir_receipt_link",
+        "peng_receipt_link",
         "category_assignment",
         "item_alias",
         "receipt_discount",
@@ -973,7 +973,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     1 if _is_grocery_merchant(merchant_key, display_name) else 0,
                 ),
             )
-            merchant_alias_key = hashlib.sha1(f"{merchant_key}|{merchant_id_raw}|{display_name}".encode("utf-8")).hexdigest()[:16]
+            merchant_alias_key = hashlib.sha1(f"{merchant_key}|{merchant_id_raw}|{display_name}".encode()).hexdigest()[:16]
             merchant_alias_stats[merchant_alias_key] = {
                 "alias_key": merchant_alias_key,
                 "merchant_key": merchant_key,
@@ -1118,7 +1118,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 )
                 cluster_state["display_name_counts"][name_raw] = cluster_state["display_name_counts"].get(name_raw, 0) + 1
 
-                alias_key = hashlib.sha1(f"{cluster_id}|{product_number}|{name_raw}|{normalized_name}|{variant_signature}".encode("utf-8")).hexdigest()[:16]
+                alias_key = hashlib.sha1(f"{cluster_id}|{product_number}|{name_raw}|{normalized_name}|{variant_signature}".encode()).hexdigest()[:16]
                 alias_state = alias_stats.setdefault(
                     alias_key,
                     {
@@ -2514,7 +2514,7 @@ def _description_matches_merchant(description: str | None, merchant_name: str, m
     )
 
 
-def link_spiir_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, object]:
+def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, object]:
     if not _database_exists():
         return {
             "linked": False,
@@ -2530,7 +2530,7 @@ def link_spiir_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, obje
 
     with _connect() as connection:
         cached = connection.execute(
-            "SELECT receipt_id, confidence, reason FROM spiir_receipt_link WHERE transaction_id = ?",
+            "SELECT receipt_id, confidence, reason FROM peng_receipt_link WHERE transaction_id = ?",
             (transaction_id,),
         ).fetchone()
         if cached is not None:
@@ -2580,12 +2580,12 @@ def link_spiir_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, obje
 
         receipt_id = strong_candidates[0]["receipt_id"]
         connection.execute(
-            "INSERT OR REPLACE INTO spiir_receipt_link(transaction_id, receipt_id, confidence, reason, transaction_payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO peng_receipt_link(transaction_id, receipt_id, confidence, reason, transaction_payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?)",
             (
                 transaction_id,
                 receipt_id,
                 "high",
-                SPIIR_LINK_REASON,
+                PENG_LINK_REASON,
                 json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str),
                 _utc_now(),
             ),
@@ -2595,6 +2595,6 @@ def link_spiir_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, obje
         "linked": True,
         "receipt_id": receipt_id,
         "confidence": "high",
-        "reason": SPIIR_LINK_REASON,
+        "reason": PENG_LINK_REASON,
         "cached": False,
     }

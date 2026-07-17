@@ -1,0 +1,120 @@
+[project]
+name = "peng"
+version = "0.1.0"
+description = "Self-hostable personal finance app — categorization, budgeting, and accounting with bank integration via Enable Banking."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.11"
+authors = [{ name = "Daniel W." }]
+
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34,<1",
+    "pydantic>=2.10,<3",
+    "python-multipart>=0.0.9,<1",
+    "orjson>=3.10,<4",
+    "httpx>=0.28,<1",
+    "PyJWT[crypto]>=2.10,<3",
+    "requests>=2.32,<3",
+    "sqlmodel>=0.0.22,<1",
+    "python-dateutil>=2.8,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8,<1",
+    "mypy>=1.13,<2",
+    "pre-commit>=4.0,<5",
+]
+test = [
+    "pytest>=8.3,<9",
+    "pytest-cov>=6.0,<7",
+    "respx>=0.22,<1",
+]
+
+[tool.setuptools]
+packages = ["app"]
+package-dir = {"" = "backend"}
+
+# ---------------------------------------------------------------------------
+# Ruff (Linter + Formatter)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["backend"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long — handled by formatter
+    "B008",   # FastAPI Depends() in defaults
+    "RUF046", # int(round())
+    "RUF001", # ambiguous unicode characters (like hyphens)
+    "RUF034", # useless if-else
+    "SIM102", # nested if
+    "UP045",  # Optional[X] vs X | None — needed in database.py (SQLModel compat)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# Mypy (Type Checking)
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sqlmodel.*",
+    "jwt.*",
+]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = [
+    "-q",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "integration: marks integration tests (deselect with '-m \"not integration\"')",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+]

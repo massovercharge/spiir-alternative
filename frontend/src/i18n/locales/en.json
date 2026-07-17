@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "Peng",
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "budgets": "Budgets",
+    "accounts": "Accounts",
+    "settings": "Settings"
+  },
+  "insights": {
+    "title": "Overview",
+    "description": "Get deeper insights into your spending and income.",
+    "net_result": "Net result",
+    "income_vs_expense": "Income vs Expenses",
+    "top_expenses": "Where did my money go?",
+    "no_data": "No data to show for this year."
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "overview": "Get a quick overview of your finances for the selected month.",
+    "overview_desc": "Here is your financial overview for this month.",
+    "disposable": "Disposable Income",
+    "from_last_month": "+12% from last month",
+    "fixed_expenses": "Fixed Expenses",
+    "estimated_fixed": "Estimated fixed expenses this month",
+    "income": "Income",
+    "spending": "Spending",
+    "spent_more": "You have spent 200 DKK more than budgeted",
+    "income_expenses": "Income and Expenses (Last 12 months)",
+    "this_month": "This month",
+    "last_12_months": "12 mo.",
+    "year": "Year",
+    "spending_breakdown": "Spending Breakdown"
+  },
+  "transactions": {
+    "description": "Your latest transactions",
+    "no_transactions": "No transactions found.",
+    "unknown_date": "Unknown date",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "unknown": "Unknown",
+    "uncategorized": "Uncategorized",
+    "find_similar": "Find similar"
+  },
+  "budgets": {
+    "description": "Track your spending for {{year}} and stay on top of your expenses.",
+    "yearly_overview": "Yearly Overview",
+    "no_budgets": "No budgets have been set up yet.",
+    "exceeded_by": "You have exceeded the budget by {{amount}}.",
+    "income": "Income",
+    "bills": "Bills",
+    "consumption": "Consumption",
+    "generate": "Auto-generate budget from history",
+    "monthly_amount": "Monthly budget",
+    "apply_all_months": "This amount applies to all 12 months.",
+    "rollover": "Rollover budget",
+    "rollover_desc": "Transfer surplus/deficit to next month"
+  },
+  "accounts": {
+    "description": "Your connected bank accounts and their current balances.",
+    "add_bank": "Add bank",
+    "no_accounts": "No accounts found",
+    "no_accounts_desc": "You have not connected any bank yet. Connect your bank via PSD2 to automatically import transactions.",
+    "connect_bank": "Connect Bank",
+    "unknown_bank": "Unknown bank"
+  },
+  "settings": {
+    "description": "Customize your experience in Peng.",
+    "appearance": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "language": "Language",
+    "danish": "Dansk",
+    "english": "English"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search"
+  }
+}

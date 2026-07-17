@@ -1,31 +1,231 @@
+"""Pluggable authentication middleware for the Peng API.
+
+Controlled by the AUTH_PROVIDER environment variable:
+    - "none"  : No authentication (default — for local / VPN use)
+    - "basic" : Simple username/password via HTTP Basic Auth
+    - "logto" : Generic OpenID Connect via Logto
+
+Household Context:
+The `get_auth_dependency` now not only verifies the JWT but also ensures
+the user exists in the database, has a default Household, and sets the
+`current_household_id` contextvar based on the `X-Household-Id` header.
+"""
+from __future__ import annotations
+
 import os
-from typing import Annotated
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import secrets
+from typing import Any
+
 import jwt
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
+from jwt import PyJWKClient
+from sqlmodel import Session, select
 
-security = HTTPBearer()
+from app.database import Household, HouseholdMember, User, current_household_id, engine
 
-LOGTO_ENDPOINT = os.getenv("LOGTO_ENDPOINT", "https://<your-logto-tenant>.logto.app/")
-LOGTO_API_RESOURCE = os.getenv("LOGTO_API_RESOURCE", "https://spiir.seame.click/api")
-JWKS_URL = f"{LOGTO_ENDPOINT.rstrip('/')}/oidc/jwks"
+AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 
-jwks_client = jwt.PyJWKClient(JWKS_URL)
+# ---------------------------------------------------------------------------
+# Core User/Household Sync
+# ---------------------------------------------------------------------------
 
-def verify_token(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
+def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -> dict[str, Any]:
+    """Ensure user exists, validate household access, and set contextvar."""
     try:
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["ES384", "RS256"],
-            audience=LOGTO_API_RESOURCE,
+        with Session(engine) as session:
+            # 1. Sync User
+            user = session.exec(select(User).where(User.logto_id == logto_id)).first()
+            if not user:
+                user = User(logto_id=logto_id, email=email)
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+
+                # Create default household
+                hh = Household(name="Min Økonomi")
+                session.add(hh)
+                session.commit()
+                session.refresh(hh)
+
+                # Link user as owner
+                member = HouseholdMember(household_id=hh.id, user_id=user.id, role="owner")
+                session.add(member)
+                session.commit()
+
+            # 2. Determine Household
+            requested_hh_id = request.headers.get("X-Household-Id")
+            active_hh_id = None
+
+            if requested_hh_id:
+                # Validate membership
+                membership = session.exec(
+                    select(HouseholdMember).where(
+                        HouseholdMember.user_id == user.id,
+                        HouseholdMember.household_id == requested_hh_id
+                    )
+                ).first()
+                if not membership:
+                    raise HTTPException(status_code=403, detail="Access to household denied")
+                active_hh_id = requested_hh_id
+            else:
+                # Fallback to first available household
+                membership = session.exec(
+                    select(HouseholdMember).where(HouseholdMember.user_id == user.id)
+                ).first()
+                if not membership:
+                    # Edge case: user exists but lost all households
+                    hh = Household(name="Min Økonomi")
+                    session.add(hh)
+                    session.commit()
+                    session.refresh(hh)
+                    member = HouseholdMember(household_id=hh.id, user_id=user.id, role="owner")
+                    session.add(member)
+                    session.commit()
+                    active_hh_id = hh.id
+                else:
+                    active_hh_id = membership.household_id
+
+            # 3. Set Context
+            current_household_id.set(active_hh_id)
+
+            return {
+                "sub": user.logto_id,
+                "user_id": user.id,
+                "household_id": active_hh_id,
+            }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise e
+
+# ---------------------------------------------------------------------------
+# Provider: none (no authentication)
+# ---------------------------------------------------------------------------
+
+
+async def _verify_none(request: Request) -> dict[str, Any]:
+    """No-op authenticator — allows all requests."""
+    return _sync_user_and_household(request, "local_user", "local@example.com")
+
+
+# ---------------------------------------------------------------------------
+# Provider: basic (HTTP Basic Auth)
+# ---------------------------------------------------------------------------
+
+_basic_scheme = HTTPBasic(auto_error=False)
+
+BASIC_USERNAME = os.getenv("PENG_AUTH_USERNAME", "admin")
+BASIC_PASSWORD = os.getenv("PENG_AUTH_PASSWORD", "")
+
+
+async def _verify_basic(
+    request: Request,
+    credentials: HTTPBasicCredentials | None = Depends(_basic_scheme),
+) -> dict[str, Any]:
+    if not BASIC_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="AUTH_PROVIDER=basic requires PENG_AUTH_PASSWORD to be set",
         )
-        return payload
-    except jwt.exceptions.PyJWTError as e:
+
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials: {str(e)}",
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    username_ok = secrets.compare_digest(credentials.username, BASIC_USERNAME)
+    password_ok = secrets.compare_digest(credentials.password, BASIC_PASSWORD)
+
+    if not (username_ok and password_ok):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    return _sync_user_and_household(request, credentials.username, credentials.username)
+
+
+# ---------------------------------------------------------------------------
+# Provider: logto (OIDC via Logto)
+# ---------------------------------------------------------------------------
+
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+LOGTO_ENDPOINT = os.getenv("LOGTO_ENDPOINT", "").rstrip("/")
+LOGTO_API_RESOURCE = os.getenv("LOGTO_API_RESOURCE", "")
+JWKS_URL = os.getenv("LOGTO_JWKS_URL", f"{LOGTO_ENDPOINT}/oidc/jwks" if LOGTO_ENDPOINT else "")
+
+jwks_client = PyJWKClient(
+    JWKS_URL,
+    headers={"User-Agent": "Mozilla/5.0 (compatible; Peng/1.0)"}
+) if JWKS_URL else None
+
+async def _verify_logto(
+    request: Request,
+    token: HTTPBasicCredentials | None = Depends(_bearer_scheme)
+) -> dict[str, Any]:
+    """Validate JWT token issued by Logto."""
+    if not LOGTO_ENDPOINT or not LOGTO_API_RESOURCE:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="AUTH_PROVIDER=logto requires LOGTO_ENDPOINT and LOGTO_API_RESOURCE to be set",
+        )
+
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(token.credentials)
+        payload = jwt.decode(
+            token.credentials,
+            signing_key.key,
+            algorithms=["RS256", "ES384"],
+            audience=LOGTO_API_RESOURCE,
+            issuer=f"{LOGTO_ENDPOINT}/oidc",
+        )
+        # Logto payload may not include email unless requested, but we can try to extract it
+        email = payload.get("email", "")
+        return _sync_user_and_household(request, payload.get("sub"), email)
+    except jwt.PyJWKClientError as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Could not fetch JWKS") from e
+    except jwt.ExpiredSignatureError as e:
+        raise HTTPException(status_code=401, detail="Token expired") from e
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# ---------------------------------------------------------------------------
+# Public dependency — use this in FastAPI route/app dependencies
+# ---------------------------------------------------------------------------
+
+_PROVIDERS = {
+    "none": _verify_none,
+    "basic": _verify_basic,
+    "logto": _verify_logto,
+}
+
+
+def get_auth_dependency():
+    """Return the appropriate auth dependency based on AUTH_PROVIDER.
+    """
+    provider = _PROVIDERS.get(AUTH_PROVIDER)
+    if provider is None:
+        raise ValueError(
+            f"Unknown AUTH_PROVIDER={AUTH_PROVIDER!r}. "
+            f"Valid options: {', '.join(_PROVIDERS.keys())}"
+        )
+    return provider

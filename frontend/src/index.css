@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light Theme */
+  --bg-primary: 210 20% 98%;      /* Very light grayish blue */
+  --bg-secondary: 0 0% 100%;      /* Pure white */
+  --bg-tertiary: 210 20% 94%;     /* Slightly darker for hover states */
+  
+  --text-primary: 220 30% 15%;    /* Very dark slate */
+  --text-secondary: 220 20% 40%;  /* Muted slate */
+  
+  --border-color: 210 20% 90%;    /* Light borders */
+  
+  /* Brand colors */
+  --brand-primary: 240 60% 55%;   /* Deep vibrant blue */
+  --brand-success: 150 60% 40%;   /* Green */
+  --brand-danger: 0 70% 55%;      /* Red */
+  --brand-warning: 40 90% 55%;    /* Orange */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+.dark {
+  /* Dark Theme */
+  --bg-primary: 220 20% 10%;      /* Very dark slate */
+  --bg-secondary: 220 20% 14%;    /* Slightly lighter for cards */
+  --bg-tertiary: 220 20% 18%;     /* For hover states */
+  
+  --text-primary: 0 0% 95%;       /* Near white */
+  --text-secondary: 220 15% 65%;  /* Muted light slate */
+  
+  --border-color: 220 20% 25%;    /* Dark borders */
+
+  --brand-primary: 240 70% 65%;   /* Lighter vibrant blue for dark mode */
+  --brand-success: 150 60% 45%;   /* Lighter green */
+  --brand-danger: 0 70% 65%;      /* Lighter red */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: hsla(var(--bg-secondary), 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsla(var(--border-color), 0.5);
+  box-shadow: var(--shadow-sm);
+}
+
+.card {
+  background-color: hsl(var(--bg-secondary));
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid hsl(var(--border-color));
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Typography utilities */
+h1, h2, h3, h4, h5, h6 {
+  color: hsl(var(--text-primary));
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.text-muted {
+  color: hsl(var(--text-secondary));
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+/* Button utilities */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+}
+
+.btn-primary {
+  background-color: hsl(var(--brand-primary));
+  color: white;
+  box-shadow: 0 2px 4px hsla(var(--brand-primary), 0.3);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  border: 1px solid hsl(var(--border-color));
+  background-color: hsl(var(--bg-secondary));
+  color: hsl(var(--text-primary));
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: hsl(var(--bg-tertiary));
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
+/* Status Colors */
+.text-success { color: hsl(var(--brand-success)); }
+.text-danger { color: hsl(var(--brand-danger)); }
+.bg-success { background-color: hsla(var(--brand-success), 0.1); }
+.bg-danger { background-color: hsla(var(--brand-danger), 0.1); }

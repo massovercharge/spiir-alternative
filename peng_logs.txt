@@ -1,0 +1,27 @@
+INFO:     Started server process [6]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+INFO:     192.168.96.1:33494 - "GET /accounts HTTP/1.1" 200 OK
+INFO:     192.168.96.1:33494 - "GET /api/accounts HTTP/1.1" 200 OK
+INFO:     192.168.96.1:33504 - "GET /api/households HTTP/1.1" 200 OK
+INFO:     192.168.96.1:33504 - "POST /api/bank/connect HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55758 - "GET /dashboard?state=e67b17e117ce45faae2320fbe85ca43e&code=71d1a19d-4ba2-419b-b090-2bb60cdd34f4 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55776 - "GET /api/households HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55758 - "GET /api/insights/sunburst?start_date=2025-07-01&end_date=2026-07-16 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55774 - "POST /api/bank/callback HTTP/1.1" 500 Internal Server Error
+INFO:     192.168.96.1:55774 - "GET /api/accounts HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55784 - "GET /api/bank/connections HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55800 - "GET /api/households/842efc3581bb40d191aa3b1d03fb3671/members HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55812 - "GET /api/rules?source=user HTTP/1.1" 200 OK
+INFO:     192.168.96.1:55812 - "GET /api/accounts/9a418f24-7161-4f19-843f-487b197c1775/balance_history?days=365 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60604 - "GET /api/tags HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60596 - "GET /api/transactions?limit=500&offset=0 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60582 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60582 - "GET /transactions HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60596 - "GET /api/tags HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60582 - "GET /api/households HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60604 - "GET /api/transactions?limit=500&offset=0 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:60614 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     192.168.96.1:42758 - "GET /api/budgets/summary/2026 HTTP/1.1" 200 OK
+INFO:     192.168.96.1:42758 - "GET /api/accounts HTTP/1.1" 200 OK

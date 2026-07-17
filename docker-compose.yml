@@ -1,44 +1,71 @@
 version: '3.8'
 
 services:
-  ui:
-    build: 
-      context: ./frontend
-    networks:
-      - traefik-public
+  peng:
+    build: .
+    container_name: peng
+    restart: unless-stopped
     ports:
-      - "25432:80" # Exposed on the uncommon port as requested
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.spiir-ui.rule=Host(`spiir.seame.click`)"
-      - "traefik.http.routers.spiir-ui.entrypoints=websecure"
-      - "traefik.http.routers.spiir-ui.tls.certresolver=letsencrypt" # Or your specific cert resolver
-      - "traefik.http.services.spiir-ui.loadbalancer.server.port=80"
-    restart: unless-stopped
-
-  spiir-api:
-    build:
-      context: ./backend
-    networks:
-      - traefik-public
+      - "${PORT:-8060}:8080"
     volumes:
-      - ./data:/app/data
+      - ${PENG_DATA_DIR:-./data}:/data
     environment:
-      - LOGTO_ENDPOINT=${LOGTO_ENDPOINT}
-      - LOGTO_API_RESOURCE=${LOGTO_API_RESOURCE}
-      - SPIIR_ALT_DATA_DIR=/app/data
-      - ENABLEBANKING_APP_ID=${ENABLEBANKING_APP_ID}
-      - ENABLEBANKING_PRIVATE_KEY_PATH=/app/data/local_secrets/enablebanking/b031858a-0805-407d-b5b3-0c0c3c7dd748.pem
-      - ENABLEBANKING_REDIRECT_URL=${ENABLEBANKING_REDIRECT_URL}
-      - ENABLEBANKING_PSU_ID=${ENABLEBANKING_PSU_ID}
+      # General
+      - PENG_DATA_DIR=/data
+      - DATABASE_URL=sqlite:////data/peng.sqlite
+      - TZ=Europe/Copenhagen
+
+      # Authentication
+      - AUTH_PROVIDER=logto
+      - LOGTO_ENDPOINT=${LOGTO_ENDPOINT:-https://auth.seame.click}
+      - LOGTO_API_RESOURCE=${LOGTO_API_RESOURCE:-https://peng.seame.click/api}
+      - LOGTO_JWKS_URL=${LOGTO_ENDPOINT}/oidc/jwks
+
+      # EnableBanking (PSD2 sync)
+      - ENABLEBANKING_APP_ID=${ENABLEBANKING_APP_ID:-}
+      - ENABLEBANKING_PRIVATE_KEY_PATH=${ENABLEBANKING_PRIVATE_KEY_PATH:-/data/enablebanking.pem}
+      - ENABLEBANKING_REDIRECT_URL=${ENABLEBANKING_REDIRECT_URL:-https://peng.seame.click/dashboard}
+
+  logto:
+    image: svhd/logto:latest
+    container_name: logto
+    depends_on:
+      - logto-db
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    environment:
+      - TRUST_PROXY_HEADER=1
+      - DB_URL=postgresql://logto:logto@logto-db:5432/logto
+      - ENDPOINT=https://auth.seame.click/
+      - ADMIN_ENDPOINT=https://admin.seame.click/
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.spiir-api.rule=Host(`spiir.seame.click`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.spiir-api.entrypoints=websecure"
-      - "traefik.http.routers.spiir-api.tls.certresolver=letsencrypt" # Or your specific cert resolver
-      - "traefik.http.services.spiir-api.loadbalancer.server.port=8000"
+      # Logto Core (Offentlig)
+      - "traefik.http.routers.logto.rule=Host(`auth.seame.click`)"
+      - "traefik.http.routers.logto.entrypoints=websecure"
+      - "traefik.http.routers.logto.tls.certresolver=letsencrypt"
+      - "traefik.http.services.logto.loadbalancer.server.port=3001"
+      # IP Whitelist Middleware (tillad kun lokale netværk)
+      - "traefik.http.middlewares.local-only.ipwhitelist.sourcerange=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,127.0.0.1/32"
+      # Logto Admin (Privat via Whitelist)
+      - "traefik.http.routers.logto-admin.rule=Host(`admin.seame.click`)"
+      - "traefik.http.routers.logto-admin.entrypoints=websecure"
+      - "traefik.http.routers.logto-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.logto-admin.middlewares=local-only"
+      - "traefik.http.services.logto-admin.loadbalancer.server.port=3002"
     restart: unless-stopped
 
-networks:
-  traefik-public:
-    external: true
+  logto-db:
+    image: postgres:14
+    container_name: logto-db
+    environment:
+      - POSTGRES_USER=logto
+      - POSTGRES_PASSWORD=logto
+      - POSTGRES_DB=logto
+    volumes:
+      - logto-data-v3:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  logto-data-v3:
