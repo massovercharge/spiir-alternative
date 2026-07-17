@@ -515,6 +515,20 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
         if not occurrences:
             raise ValueError("Receipt has no items to split")
 
+        # Preserve the original allocation's category as fallback for each split
+        existing_alloc = db.exec(
+            select(PostingAllocation)
+            .where(PostingAllocation.posting_id == posting_id)
+            .limit(1)
+        ).first()
+        fallback_category_id = existing_alloc.category_id if existing_alloc else None
+        # If there's no existing category, try the bank description via rules
+        if not fallback_category_id or fallback_category_id in (
+            "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+        ):
+            from app.rules_service import evaluate_posting
+            fallback_category_id = evaluate_posting(posting) or fallback_category_id
+
         splits = []
         sum_items = 0
 
@@ -530,9 +544,12 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             sum_items += amt
 
             item_name = occ.get("display_name")
+            # Try item-specific categorization first, fall back to original category
             category_id = None
             if item_name:
                 category_id = evaluate_text(item_name)
+            if not category_id:
+                category_id = fallback_category_id
 
             splits.append({
                 "amount_minor": amt,
