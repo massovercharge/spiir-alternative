@@ -135,7 +135,7 @@ export default function DashboardPage() {
   const { totalExpense, categories } = useMemo(() => {
     const echartsData = sunburstData?.echarts_data || [];
     let total = 0;
-    const cats: { name: string; value: number; children: { name: string; value: number }[] }[] = [];
+    const cats: { name: string; value: number; children: { name: string; value: number; children?: { name: string; value: number }[] }[] }[] = [];
 
     for (const item of echartsData) {
       const val = Math.abs(Number(item.value));
@@ -143,7 +143,11 @@ export default function DashboardPage() {
       cats.push({
         name: item.name,
         value: val,
-        children: (item.children || []).map((c: any) => ({ name: c.name, value: Math.abs(Number(c.value)) })),
+        children: (item.children || []).map((c: any) => ({
+          name: c.name,
+          value: Math.abs(Number(c.value)),
+          children: c.children ? c.children.map((i: any) => ({ name: i.name, value: Math.abs(Number(i.value)) })) : undefined,
+        })),
       });
     }
 
@@ -172,6 +176,17 @@ export default function DashboardPage() {
             borderColor: 'rgba(0,0,0,0.15)',
             borderWidth: 1,
           },
+          ...(sub.children && sub.children.length > 0 ? {
+            children: sub.children.map((item, iIdx) => ({
+              name: item.name,
+              value: item.value,
+              itemStyle: {
+                color: lightenHex(baseColor, 0.25 + iIdx * 0.04),
+                borderColor: 'rgba(0,0,0,0.1)',
+                borderWidth: 0.5,
+              },
+            })),
+          } : {}),
         })),
       };
     });
@@ -208,15 +223,29 @@ export default function DashboardPage() {
           {},
           {
             r0: '12%',
-            r: '52%',
+            r: '40%',
             label: { show: false },
             itemStyle: { borderRadius: 4 },
           },
           {
-            r0: '52%',
-            r: '95%',
+            r0: '40%',
+            r: '68%',
             label: { show: false },
             itemStyle: { borderRadius: 3 },
+          },
+          {
+            r0: '68%',
+            r: '95%',
+            label: {
+              show: true,
+              position: 'outside',
+              fontSize: 9,
+              color: 'rgba(255,255,255,0.6)',
+              overflow: 'truncate',
+              ellipsis: '…',
+              minAngle: 8,
+            },
+            itemStyle: { borderRadius: 2 },
           },
         ],
         label: { show: false },
