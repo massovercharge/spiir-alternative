@@ -383,18 +383,57 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
     tokens = re.findall(r"[0-9A-ZÆØÅ]+", normalized_name)
     token_set = set(tokens)
 
+    # 1. Agurk
     if token_set & ECO_MARKERS and token_set & {"AGURK", "AGURKER"}:
         if token_set.issubset(SAFE_CUCUMBER_TOKENS):
             return "semantic:ØKO AGURK"
 
-    if not (token_set & EGG_ECO_MARKERS and "ÆG" in token_set):
-        return None
-    if token_set & DISQUALIFY_EGG_TOKENS:
-        return None
+    # 2. Æbler (undgå juice/most)
+    if (token_set & {"ÆBLE", "ÆBLER"}) and not (token_set & {"JUICE", "MOST"}):
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO ÆBLER"
+        return "semantic:ÆBLER"
 
-    count = next((token for token in tokens if token in EGG_COUNT_TOKENS), None)
-    if count:
-        return f"semantic:ØKO ÆG:{count}"
+    # 3. Bananer
+    if token_set & {"BANAN", "BANANER"}:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO BANANER"
+        return "semantic:BANANER"
+
+    # 4. Pærer (undgå lyspærer som Philips Pære E27)
+    if (token_set & {"PÆRE", "PÆRER"}) and not (token_set & {"PHILIPS", "LED", "E27", "E14", "W", "DÆMPBAR"}):
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO PÆRER"
+        return "semantic:PÆRER"
+
+    # 5. Letmælk
+    if "LETMÆLK" in token_set:
+        return "semantic:LETMÆLK"
+
+    # 6. Havredrik
+    if "HAVREDRIK" in token_set or ("HAVRE" in token_set and "DRIK" in token_set):
+        return "semantic:HAVREDRIK"
+
+    # 7. Tomater (undgå suppe, puré, pasta, pesto)
+    if (token_set & {"TOMAT", "TOMATER"}) and not (token_set & {"PURE", "TUBE", "PESTO", "SUPPE", "PASTA", "RISENGRØD", "TOMATPASTA"}):
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO TOMATER"
+        return "semantic:TOMATER"
+
+    # 8. Kartofler (undgå chips, sticks)
+    if "KARTOFLER" in token_set:
+        return "semantic:KARTOFLER"
+
+    # 9. Pant
+    if token_set & {"PANT", "FLASKEPANT"}:
+        return "semantic:PANT"
+
+    # 10. Æg
+    if (token_set & EGG_ECO_MARKERS and "ÆG" in token_set) and not (token_set & DISQUALIFY_EGG_TOKENS):
+        count = next((token for token in tokens if token in EGG_COUNT_TOKENS), None)
+        if count:
+            return f"semantic:ØKO ÆG:{count}"
+
     return None
 
 
@@ -1243,7 +1282,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 "INSERT OR IGNORE INTO item_cluster(cluster_id, preferred_display_name, cluster_key, product_number, normalized_name, variant_signature, collapse_strategy, confidence, is_manual) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0)",
                 (
                     cluster_id,
-                    _preferred_display_name_from_counts(cluster_state["display_name_counts"]),
+                    _get_display_name_for_cluster(cluster_state),
                     cluster_state["cluster_key"],
                     cluster_state["product_number"],
                     cluster_state["normalized_name"],
@@ -1261,10 +1300,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
             connection.execute("DELETE FROM item_cluster WHERE cluster_id = ?", (original_cluster_id,))
 
         for cluster_id, cluster_state in cluster_stats.items():
-            preferred_display_name = sorted(
-                cluster_state["display_name_counts"].items(),
-                key=lambda item: (-item[1], -len(item[0]), item[0]),
-            )[0][0]
+            preferred_display_name = _get_display_name_for_cluster(cluster_state)
             connection.execute(
                 "INSERT INTO item_cluster(cluster_id, preferred_display_name, cluster_key, product_number, normalized_name, variant_signature, collapse_strategy, confidence, is_manual) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0) ON CONFLICT(cluster_id) DO UPDATE SET preferred_display_name=excluded.preferred_display_name, cluster_key=excluded.cluster_key, product_number=excluded.product_number, normalized_name=excluded.normalized_name, variant_signature=excluded.variant_signature, collapse_strategy=excluded.collapse_strategy, confidence=excluded.confidence",
                 (
@@ -1482,6 +1518,34 @@ def _preferred_display_name_from_counts(display_name_counts: dict[str, int]) -> 
     )[0][0]
 
 
+def _get_display_name_for_cluster(cluster_state: dict[str, Any]) -> str:
+    cluster_key = cluster_state.get("cluster_key", "")
+    if cluster_key.startswith("semantic:"):
+        parts = cluster_key.split(":")
+        name_part = parts[1]
+        pretty_names = {
+            "ØKO AGURK": "Økologisk Agurk",
+            "ÆBLER": "Æbler",
+            "ØKO ÆBLER": "Økologiske Æbler",
+            "BANANER": "Bananer",
+            "ØKO BANANER": "Økologiske Bananer",
+            "PÆRER": "Pærer",
+            "ØKO PÆRER": "Økologiske Pærer",
+            "LETMÆLK": "Letmælk",
+            "HAVREDRIK": "Havredrik",
+            "TOMATER": "Tomater",
+            "ØKO TOMATER": "Økologiske Tomater",
+            "KARTOFLER": "Kartofler",
+            "PANT": "Pant",
+        }
+        if name_part == "ØKO ÆG" and len(parts) > 2:
+            count_val = parts[2]
+            return f"Økologiske Æg ({count_val} stk)"
+        return pretty_names.get(name_part, name_part.replace("_", " ").strip().title())
+
+    return _preferred_display_name_from_counts(cluster_state["display_name_counts"])
+
+
 def _resolved_cluster_category_preview(
     *,
     cluster_id: str,
@@ -1493,7 +1557,7 @@ def _resolved_cluster_category_preview(
     if manual_override:
         return str(manual_override["category_key"]), "manual", "high"
     return _classify_cluster_category(
-        preferred_display_name=_preferred_display_name_from_counts(cluster_state["display_name_counts"]),
+        preferred_display_name=_get_display_name_for_cluster(cluster_state),
         normalized_name=cluster_state["normalized_name"],
         raw_category_counts=category_stats.get(cluster_id),
     )
@@ -1516,7 +1580,7 @@ def _merge_uncategorized_exact_name_clusters(
         )
         if category_key != "uncategorized" or cluster_id in manual_category_overrides:
             continue
-        preferred_display_name = _preferred_display_name_from_counts(cluster_state["display_name_counts"])
+        preferred_display_name = _get_display_name_for_cluster(cluster_state)
         merge_groups.setdefault(
             (preferred_display_name, cluster_state["normalized_name"], cluster_state["variant_signature"]),
             [],
