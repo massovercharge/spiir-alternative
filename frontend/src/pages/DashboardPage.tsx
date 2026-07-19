@@ -291,7 +291,17 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const onChartEvents = useMemo(() => ({ click: onChartClick }), [onChartClick]);
+  const onChartEvents = useMemo(() => ({
+    click: onChartClick,
+    sunburstroottochange: (params: any) => {
+      const nodeName = params.toNode?.name;
+      if (!nodeName || nodeName === 'Total') {
+        setFocusedCategory(null);
+      } else {
+        setFocusedCategory({ name: nodeName, value: Math.abs(params.toNode.value) });
+      }
+    }
+  }), [onChartClick]);
 
   // Period navigation
   const handlePrev = () => {
