@@ -20,3 +20,6 @@ This directory contains instructions and rules for agents working on the Peng pr
 - **Architecture & Folder Structure:**
   - Backend (`backend/`): Strict separation of concerns -> `api/` (routers), `core/` (config/setup), `models/` (DB tables), `schemas/` (Pydantic models), `services/` (business logic).
   - Frontend (`frontend/src/`): Domain-driven grouping where possible -> `components/` (reusable UI), `features/` (domain-specific logic/UI), `pages/` (routes), `services/` (API calls), `store/` (global state).
+- **Versioning & Release Notes:** Maintain semantic versioning (semver). Write release notes for every version in both English and Danish (`en` and `da`).
+- **In-App Release Notes:** The release notes must be viewable within the app on a dedicated sub-page under "Settings" (Indstillinger).
+- **UI & Theming:** All new UI implementations must support both light and dark themes.
