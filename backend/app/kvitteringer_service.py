@@ -434,6 +434,78 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
         if count:
             return f"semantic:ØKO ÆG:{count}"
 
+    # 11. Gulerødder
+    if (token_set & {"GULERØDDER", "GULEROD"}):
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO GULERØDDER"
+        return "semantic:GULERØDDER"
+
+    # 12. Løg
+    if "RØDLØG" in token_set:
+        return "semantic:RØDLØG"
+    if "HVIDLØG" in token_set:
+        return "semantic:HVIDLØG"
+    if "FORÅRSLØG" in token_set:
+        return "semantic:FORÅRSLØG"
+    if "LØG" in token_set and not (token_set & {"RØDLØG", "HVIDLØG", "FORÅRSLØG"}):
+        return "semantic:LØG"
+
+    # 13. Havregryn
+    if "HAVREGRYN" in token_set:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO HAVREGRYN"
+        return "semantic:HAVREGRYN"
+
+    # 14. Mel
+    if "HVEDEMEL" in token_set or "MEL" in token_set:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO HVEDEMEL"
+        return "semantic:HVEDEMEL"
+
+    # 15. Peanutbutter
+    if "PEANUTBUTTER" in token_set:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO PEANUTBUTTER"
+        return "semantic:PEANUTBUTTER"
+
+    # 16. Avocado
+    if "AVOCADO" in token_set:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO AVOCADO"
+        return "semantic:AVOCADO"
+
+    # 17. Aubergine
+    if "AUBERGINE" in token_set:
+        return "semantic:AUBERGINE"
+
+    # 18. Peberfrugt
+    if (token_set & {"PEBER", "PEBERFRUGT", "PEBERFRUGTER", "PEBERSNACK"}) and not (token_set & {"SALT", "KRYDDERI", "CHILI"}):
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO PEBERFRUGTER"
+        return "semantic:PEBERFRUGTER"
+
+    # 19. Chips & Snacks
+    if "RANCHERS" in token_set and "CUT" in token_set:
+        return "semantic:CHIPS & SNACKS"
+
+    # 20. Bleer
+    if "BLE" in token_set or "BLEER" in token_set:
+        return "semantic:BLEER"
+
+    # 21. Vådservietter
+    if "VÅDSERVIETTER" in token_set or "VÅDSERVIET" in token_set:
+        return "semantic:VÅDSERVIETTER"
+        
+    # 22. Smørbar
+    if "SMØRBAR" in token_set or "VIOBLOCK" in token_set:
+        if token_set & ECO_MARKERS:
+            return "semantic:ØKO SMØRBAR"
+        return "semantic:SMØRBAR"
+
+    # 23. Boller / Brød
+    if "BOLLER" in token_set or "SOLSIKKEBOLLER" in token_set or "KERNEBOLLER" in token_set:
+        return "semantic:BOLLER"
+
     return None
 
 
@@ -2567,6 +2639,12 @@ def _description_matches_merchant(description: str | None, merchant_name: str, m
     normalized_description = re.sub(r"[^A-Z0-9]+", "", _normalize_name(description))
     normalized_merchant_name = re.sub(r"[^A-Z0-9]+", "", _normalize_name(merchant_name))
     normalized_merchant_key = re.sub(r"[^A-Z0-9]+", "", merchant_key.upper())
+    
+    coop_brands = ("KVICKLY", "SUPERBRUGSEN", "DAGLIBRUGSEN", "365DISCOUNT", "IRMA", "FAKTA", "COOP")
+    is_coop = any(normalized_merchant_name.startswith(b) for b in coop_brands) or any(normalized_merchant_key.startswith(b) for b in coop_brands)
+    if is_coop and "COOP" in normalized_description:
+        return True
+
     return bool(normalized_merchant_name and normalized_merchant_name in normalized_description) or bool(
         normalized_merchant_key and normalized_merchant_key in normalized_description
     )
