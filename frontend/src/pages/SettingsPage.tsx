@@ -1,9 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag } from 'lucide-react';
+import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText } from 'lucide-react';
 import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUploadStoreboxFile, useImportStoreboxLink } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -187,6 +188,25 @@ export default function SettingsPage() {
                   {t('settings.english')}
                 </button>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText size={20} className="text-[hsl(var(--brand-primary))]" />
+                {t('settings.releaseNotes')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[calc(100%-4rem)] flex items-center justify-center">
+              <Link to="/settings/release-notes" className="w-full">
+                <Button className="w-full flex items-center justify-center gap-2" variant="outline">
+                  <FileText size={18} />
+                  {t('settings.releaseNotes')}
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </motion.div>

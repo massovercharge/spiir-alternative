@@ -12,6 +12,7 @@ import AccountsPage from '../../pages/AccountsPage';
 import SettingsPage from '../../pages/SettingsPage';
 import InsightsPage from '../../pages/InsightsPage';
 import Callback from '../../pages/Callback';
+import ReleaseNotesPage from '../../pages/ReleaseNotesPage';
 import { HouseholdProvider } from '../../context/HouseholdContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
@@ -198,6 +199,7 @@ export default function AppLayout() {
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings/release-notes" element={<ReleaseNotesPage />} />
             <Route path="/callback" element={<Callback />} />
           </Routes>
         </div>

@@ -72,7 +72,23 @@
     "system": "System",
     "language": "Sprog",
     "danish": "Dansk",
-    "english": "English"
+    "english": "English",
+    "releaseNotes": "Udgivelsesnoter"
+  },
+  "releaseNotes": {
+    "title": "Udgivelsesnoter",
+    "description": "Se hvad der er nyt i Peng",
+    "versions": {
+      "v1_0_0": {
+        "version": "v1.0.0",
+        "date": "2026-07-20",
+        "changes": [
+          "Første udgivelse af Peng",
+          "Tilføjet basisskærme for konti og transaktioner",
+          "Introduceret Lys og Mørk tilstand"
+        ]
+      }
+    }
   },
   "common": {
     "loading": "Indlæser...",
