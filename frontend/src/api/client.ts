@@ -677,6 +677,8 @@ export function useHouseholds() {
   return useQuery({
     queryKey: ['households'],
     queryFn: fetchHouseholds,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 }
 
