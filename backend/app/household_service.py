@@ -103,13 +103,14 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
                     elif user.logto_id == "local_user":
                         display_email = "local@example.com"
                     else:
-                        display_email = user.logto_id
+                        display_email = ""
 
-                display_name = user.name or (display_email.split("@")[0] if "@" in display_email else display_email)
+                display_name = user.name or (display_email.split("@")[0] if "@" in display_email else "")
                 result.append({
                     "email": display_email,
                     "name": display_name,
                     "role": m.role,
+                    "is_me": (m.user_id == requesting_user_id),
                 })
         return result
 

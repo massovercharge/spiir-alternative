@@ -266,21 +266,32 @@ export default function SettingsPage() {
             <div className="pt-4 border-t border-[hsl(var(--border-color))]">
               <h3 className="text-sm font-medium mb-3">{t('settings.members')}</h3>
               <div className="space-y-2">
-                {members.map((member: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
-                    <div>
-                      <p className="font-semibold text-sm text-[hsl(var(--text-primary))]">
-                        {member.name || member.email || 'Bruger'}
-                      </p>
-                      {member.email && (
-                        <p className="text-xs text-muted">{member.email}</p>
-                      )}
+                {members.map((member: any, i: number) => {
+                  const isMe = member.is_me;
+                  const youLabel = t('common.you');
+                  let mainText = member.name || member.email;
+                  if (isMe) {
+                    mainText = mainText ? `${mainText} (${youLabel})` : youLabel;
+                  } else if (!mainText) {
+                    mainText = t('settings.member', 'Medlem');
+                  }
+
+                  return (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
+                      <div>
+                        <p className="font-semibold text-sm text-[hsl(var(--text-primary))]">
+                          {mainText}
+                        </p>
+                        {member.email && member.email !== mainText && (
+                          <p className="text-xs text-muted">{member.email}</p>
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
+                        {member.role}
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
-                      {member.role}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             
