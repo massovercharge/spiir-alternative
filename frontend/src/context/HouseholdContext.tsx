@@ -37,9 +37,13 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     setActiveHouseholdId(id);
     localStorage.setItem('peng_household_id', id);
     setHouseholdId(id);
-    // When changing household, we must clear caches and refetch!
-    queryClient.clear();
-    queryClient.invalidateQueries();
+    // Invalidate domain queries without wiping the households list
+    queryClient.invalidateQueries({ queryKey: ['households'] });
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    queryClient.invalidateQueries({ queryKey: ['insights'] });
+    queryClient.invalidateQueries({ queryKey: ['categories'] });
   };
 
   return (
