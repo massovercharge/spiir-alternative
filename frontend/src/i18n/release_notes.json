@@ -1,0 +1,82 @@
+[
+  {
+    "version": "v1.3.1",
+    "date": "2026-07-22",
+    "changes": {
+      "en": [
+        "Fixed an issue where auto-detected incomes and fixed expenses were missing from the UI and couldn't be edited"
+      ],
+      "da": [
+        "Løst et problem, hvor auto-detekterede indkomster og faste udgifter forsvandt fra oversigten og ikke kunne redigeres"
+      ]
+    }
+  },
+  {
+    "version": "v1.3.0",
+    "date": "2026-07-22",
+    "changes": {
+      "en": [
+        "Added ability for household owner to remove other members",
+        "Added feature to delete a household with a 2-hour undo window",
+        "Implemented background worker to permanently purge deleted households"
+      ],
+      "da": [
+        "Tilføjet mulighed for at ejeren af en husstand kan fjerne andre medlemmer",
+        "Tilføjet funktion til at slette husstande med 2 timers fortrydelsesret",
+        "Implementeret baggrundsoprydning af slettede husstande"
+      ]
+    }
+  },
+  {
+    "version": "v1.2.0",
+    "date": "2026-07-22",
+    "changes": {
+      "en": [
+        "Placed top household switcher next to logo across all pages (mobile and desktop)",
+        "Added ability to quickly create and switch between multiple households",
+        "Improved categorization rules by stripping receipt/nota numbers while preserving Betalingsservice agreement numbers",
+        "Improved display of current user (shown as 'You') in household members list",
+        "Improved mobile layout with bottom padding so buttons and content are never clipped by bottom navigation bar"
+      ],
+      "da": [
+        "Placeret husstandsskifteren i toppen ved siden af logoet på alle sider (både mobil og desktop)",
+        "Tilføjet mulighed for hurtigt at oprette og skifte mellem flere husstande",
+        "Forbedret kategoriseringsregler ved automatisk at fjerne receipt-/notanumre, men bevare Betalingsservice aftalenumre",
+        "Forbedret visning af nuværende bruger (vises som 'Dig') under husstandsmedlemmer",
+        "Forbedret mobil layout med bund-padding så knapper og indhold ikke dækkes af menu-baren"
+      ]
+    }
+  },
+  {
+    "version": "v1.1.0",
+    "date": "2026-07-22",
+    "changes": {
+      "en": [
+        "Added ability to custom name and rename households",
+        "Improved inviting household members via email",
+        "Updated user sync on first login for invited members"
+      ],
+      "da": [
+        "Tilføjet mulighed for at omdøbe og navngive husstande",
+        "Forbedret invitation af husstandsmedlemmer via e-mail",
+        "Opdateret bruger-synkronisering ved første login for inviterede medlemmer"
+      ]
+    }
+  },
+  {
+    "version": "v1.0.0",
+    "date": "2026-07-20",
+    "changes": {
+      "en": [
+        "Initial release of Peng",
+        "Added basic tracking for accounts and transactions",
+        "Introduced Light and Dark modes"
+      ],
+      "da": [
+        "Første udgivelse af Peng",
+        "Tilføjet basisskærme for konti og transaktioner",
+        "Introduceret Lys og Mørk tilstand"
+      ]
+    }
+  }
+]

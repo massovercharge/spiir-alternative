@@ -55,13 +55,34 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
 
   useEffect(() => {
     if (isFixedOrIncome) {
-      if (budgetBills) {
+      if (budgetBills && budgetBills.length > 0) {
         setBills(budgetBills.map((b: any) => ({
           ...b,
           id: b.id || Math.random().toString(), // ensuring id exists for temp items
           amountInput: (b.amount_minor / 100).toString().replace('.', ','),
           activeMonths: new Set(b.months)
         })));
+      } else if (budgets && budgets.length > 0) {
+        const nonZeroBudgets = budgets.filter((b: any) => b.amount_minor !== 0);
+        if (nonZeroBudgets.length > 0) {
+          const active = new Set<number>();
+          let total = 0;
+          nonZeroBudgets.forEach((b: any) => {
+            active.add(b.month);
+            total += Math.abs(b.amount_minor);
+          });
+          const avg = Math.round(total / nonZeroBudgets.length);
+          setBills([{
+            id: Math.random().toString(),
+            name: label.charAt(0).toUpperCase() + label.slice(1).replace('-', ' '),
+            amountInput: (avg / 100).toString().replace('.', ','),
+            activeMonths: active
+          }]);
+        } else {
+          setBills([]);
+        }
+      } else {
+        setBills([]);
       }
     } else {
       if (budgets && budgets.length > 0) {
