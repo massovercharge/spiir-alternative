@@ -116,6 +116,17 @@
           "Forbedret invitation af husstandsmedlemmer via e-mail",
           "Opdateret bruger-synkronisering ved første login for inviterede medlemmer"
         ]
+      },
+      "v1_2_0": {
+        "version": "v1.2.0",
+        "date": "2026-07-22",
+        "changes": [
+          "Placeret husstandsskifteren i toppen ved siden af logoet på alle sider (både mobil og desktop)",
+          "Tilføjet mulighed for hurtigt at oprette og skifte mellem flere husstande",
+          "Forbedret kategoriseringsregler ved automatisk at fjerne receipt-/notanumre, men bevare Betalingsservice aftalenumre",
+          "Forbedret visning af nuværende bruger (vises som 'Dig') under husstandsmedlemmer",
+          "Forbedret mobil layout med bund-padding så knapper og indhold ikke dækkes af menu-baren"
+        ]
       }
     }
   },

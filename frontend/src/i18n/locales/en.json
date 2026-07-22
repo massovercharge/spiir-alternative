@@ -116,6 +116,17 @@
           "Improved inviting household members via email",
           "Updated user sync on first login for invited members"
         ]
+      },
+      "v1_2_0": {
+        "version": "v1.2.0",
+        "date": "2026-07-22",
+        "changes": [
+          "Placed top household switcher next to logo across all pages (mobile and desktop)",
+          "Added ability to quickly create and switch between multiple households",
+          "Improved categorization rules by stripping receipt/nota numbers while preserving Betalingsservice agreement numbers",
+          "Improved display of current user (shown as 'You') in household members list",
+          "Improved mobile layout with bottom padding so buttons and content are never clipped by bottom navigation bar"
+        ]
       }
     }
   },
