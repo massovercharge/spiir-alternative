@@ -185,28 +185,35 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
     }
 
     // 2. Clean common card prefixes
-    term = term.replace(/dankort[- ]?nota/i, '');
-    term = term.replace(/visa\/dankort/i, '');
-    term = term.replace(/visa/i, '');
-    term = term.replace(/dankort/i, '');
-    term = term.replace(/mastercard/i, '');
-    term = term.replace(/mobilepay/i, '');
-    term = term.replace(/mobilpay/i, '');
+    term = term.replace(/dankort[- ]?køb/ig, '');
+    term = term.replace(/dankort[- ]?nota/ig, '');
+    term = term.replace(/visa\/dankort/ig, '');
+    term = term.replace(/\bkontaktløs\b/ig, '');
+    term = term.replace(/\bvisa\b/ig, '');
+    term = term.replace(/\bdankort\b/ig, '');
+    term = term.replace(/\bmastercard\b/ig, '');
+    term = term.replace(/\bmobilepay\b|\bmobilpay\b/ig, '');
     term = term.replace(/\bn\*\d+\b/ig, '');
     term = term.replace(/\bnet\d+\b/ig, '');
 
-    // 3. Remove common transaction filler words
-    term = term.replace(/betaling til/i, '');
-    term = term.replace(/køb dkk/i, '');
-    term = term.replace(/køb/i, '');
+    // 3. Remove nota / notanr and associated receipt/transaction reference codes
+    term = term.replace(/\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota(?:\s*nr\.?|\.nr\.?|\.|\:)?\s*[a-z0-9]+\b/ig, '');
+    term = term.replace(/\bnotanr\.?\s*[a-z0-9]+\b/ig, '');
+    term = term.replace(/\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota\b/ig, '');
+    term = term.replace(/\bnotanr\.?\b/ig, '');
 
-    // 4. Remove date pattern (e.g. 24.12, 12/03/2026)
+    // 4. Remove common transaction filler words
+    term = term.replace(/betaling til/ig, '');
+    term = term.replace(/køb dkk/ig, '');
+    term = term.replace(/køb/ig, '');
+
+    // 5. Remove date pattern (e.g. 24.12, 12/03/2026)
     term = term.replace(/\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b/g, '');
 
-    // 5. Remove long numbers (IDs, references)
-    term = term.replace(/\b\d{4,}\b/g, '');
+    // 6. Remove standalone long numbers unless preceded by aftalenr or aftale nr
+    term = term.replace(/(?<!aftalenr\s*)(?<!aftale\s*nr\s*)\b\d{4,}\b/ig, '');
 
-    // 6. Split by comma or semicolon and take the first part (removes location/branch details, e.g., "Netto, Aarhus")
+    // 7. Split by comma or semicolon and take the first part
     const sepIndex = term.search(/[,;]/);
     if (sepIndex !== -1) {
       term = term.substring(0, sepIndex);

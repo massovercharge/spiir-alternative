@@ -121,6 +121,17 @@ class TestPreprocessDescription:
         # May be empty or just whitespace after stripping
         assert "dankort" not in result
 
+    def test_strip_nota_and_notanr(self):
+        assert preprocess_description("Dankort-nota 123456 Netto Kolding") == "netto kolding"
+        assert preprocess_description("Føtex notanr. 987654 Aarhus") == "føtex aarhus"
+        assert preprocess_description("OISTER.DK Nota nr. 25481049277035244685925") == "oister dk"
+
+    def test_preserve_aftalenr(self):
+        result = preprocess_description("BS AFTALENR 0000123456 Telenor")
+        assert "aftalenr" in result
+        assert "0000123456" in result
+        assert "telenor" in result
+
 
 # ---------------------------------------------------------------------------
 # Seeding

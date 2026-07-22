@@ -42,7 +42,10 @@ def _utcnow_iso() -> str:
 # Pre-compiled patterns for performance
 _DATE_RE = re.compile(r"\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b")
 _PAYMENT_PREFIXES = [
+    re.compile(r"dankort[- ]?køb", re.I),
     re.compile(r"dankort[- ]?nota", re.I),
+    re.compile(r"visa/dankort", re.I),
+    re.compile(r"\bkontaktløs\b", re.I),
     re.compile(r"\bvisa\b", re.I),
     re.compile(r"\bmastercard\b", re.I),
     re.compile(r"\bmobilepay\b|\bmobilpay\b", re.I),
@@ -52,6 +55,10 @@ _PAYMENT_PREFIXES = [
     re.compile(r"\bpbs\b", re.I),
     re.compile(r"\boverførsel\b", re.I),
 ]
+_NOTA_RE = re.compile(
+    r"\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota(?:\s*nr\.?|\.nr\.?|\.|\:)?\s*[a-z0-9]+\b|\bnotanr\.?\s*[a-z0-9]+\b|\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota\b|\bnotanr\.?\b",
+    re.I,
+)
 _SPECIAL_CHARS_RE = re.compile(r"[^a-zæøå0-9\s]")
 _WHITESPACE_RE = re.compile(r"\s+")
 
@@ -59,16 +66,19 @@ _WHITESPACE_RE = re.compile(r"\s+")
 def preprocess_description(raw_desc: str) -> str:
     """Clean a raw bank description for rule matching.
 
-    Ported from Spiir's auto_categorization_spec.md:
+    Ported from Spiir's auto_categorization_spec.md & enhanced:
     1. Lowercase
     2. Remove date patterns (12.03.26, 24/12, etc.)
-    3. Remove payment system prefixes (dankort-nota, visa, etc.)
-    4. Remove special characters, collapse whitespace
+    3. Remove payment system prefixes (dankort-køb, visa/dankort, etc.)
+    4. Remove nota / notanr and associated transaction/receipt codes
+    5. Preserve aftalenr (Betalingsservice agreement numbers)
+    6. Remove special characters, collapse whitespace
     """
     text = raw_desc.lower()
     text = _DATE_RE.sub("", text)
     for prefix_re in _PAYMENT_PREFIXES:
         text = prefix_re.sub("", text)
+    text = _NOTA_RE.sub("", text)
     text = _SPECIAL_CHARS_RE.sub(" ", text)
     text = _WHITESPACE_RE.sub(" ", text).strip()
     return text
@@ -399,7 +409,52 @@ def seed_spiir_rules() -> int:
                     created += 1
 
         db.commit()
+
+    # Always ensure existing stored rules are cleaned up and migrated
+    clean_and_migrate_stored_rules()
     return created
+
+
+def clean_and_migrate_stored_rules() -> int:
+    """Clean stored categorization rules by stripping nota/notanr reference numbers
+    and removing invalid system rules (such as 'nota').
+
+    Returns the number of rules updated or removed.
+    """
+    updated_count = 0
+    with Session(engine) as db:
+        rules = db.exec(select(CategorizationRule)).all()
+        for rule in rules:
+            # 1. Delete invalid broad system rules matching standalone "nota" or "notanr"
+            if rule.source == "system" and rule.match_pattern in ("nota", "notanr", "dankort-nota", "dankort nota"):
+                db.delete(rule)
+                updated_count += 1
+                continue
+
+            if not rule.is_regex:
+                cleaned_pattern = preprocess_description(rule.match_pattern)
+                if not cleaned_pattern:
+                    db.delete(rule)
+                    updated_count += 1
+                elif cleaned_pattern != rule.match_pattern:
+                    # Check for duplicate
+                    dup = db.exec(
+                        select(CategorizationRule)
+                        .where(CategorizationRule.id != rule.id)
+                        .where(CategorizationRule.category_id == rule.category_id)
+                        .where(CategorizationRule.match_pattern == cleaned_pattern)
+                        .where(CategorizationRule.source == rule.source)
+                    ).first()
+                    if dup:
+                        db.delete(rule)
+                    else:
+                        rule.match_pattern = cleaned_pattern
+                        rule.updated_at = _utcnow_iso()
+                        db.add(rule)
+                    updated_count += 1
+
+        db.commit()
+    return updated_count
 
 
 # ---------------------------------------------------------------------------

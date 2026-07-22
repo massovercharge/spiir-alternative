@@ -245,7 +245,7 @@ def create_app() -> FastAPI:
     @api_router.post("/api/rules/custom")
     def create_custom_rule(payload: dict[str, Any]) -> dict[str, Any]:
         """Create a custom rule for the user and apply retroactively."""
-        from app.rules_service import create_rule
+        from app.rules_service import create_rule, preprocess_description
         from app.transaction_service import apply_rule_retroactively
 
         match_pattern = payload.get("match_pattern")
@@ -254,11 +254,17 @@ def create_app() -> FastAPI:
         if not match_pattern or not category_id:
             raise HTTPException(status_code=400, detail="Missing match_pattern or category_id")
 
+        is_regex = bool(payload.get("is_regex", False))
+        if not is_regex:
+            cleaned = preprocess_description(match_pattern)
+            if cleaned:
+                match_pattern = cleaned
+
         rule = create_rule(
             match_pattern=match_pattern,
             category_id=category_id,
-            is_regex=False,
-            partial_match=bool(payload.get("partial_match", False)),
+            is_regex=is_regex,
+            partial_match=bool(payload.get("partial_match", True)),
             priority=500
         )
 
