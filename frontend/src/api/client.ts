@@ -329,7 +329,10 @@ export async function inviteHouseholdMember(householdId: string, email: string) 
     headers: getHeaders(),
     body: JSON.stringify({ email })
   });
-  if (!res.ok) throw new Error('Failed to invite household member');
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to invite household member');
+  }
   return res.json();
 }
 

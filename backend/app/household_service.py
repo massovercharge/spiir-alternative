@@ -91,7 +91,10 @@ def invite_member(household_id: str, requesting_user_id: str, email: str) -> dic
         # Find user by email
         user = db.exec(select(User).where(User.email == email)).first()
         if not user:
-            raise HTTPException(status_code=404, detail="User with this email not found. They must log in first.")
+            user = User(logto_id=f"pending:{email}", email=email, name=email.split("@")[0])
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
         # Check if already member
         existing = db.exec(

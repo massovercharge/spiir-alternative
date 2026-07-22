@@ -36,6 +36,14 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -
         with Session(engine) as session:
             # 1. Sync User
             user = session.exec(select(User).where(User.logto_id == logto_id)).first()
+            if not user and email:
+                user = session.exec(select(User).where(User.email == email)).first()
+                if user:
+                    user.logto_id = logto_id
+                    session.add(user)
+                    session.commit()
+                    session.refresh(user)
+
             if not user:
                 user = User(logto_id=logto_id, email=email)
                 session.add(user)

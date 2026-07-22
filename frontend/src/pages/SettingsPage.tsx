@@ -252,7 +252,13 @@ export default function SettingsPage() {
                   onClick={() => {
                     if (activeHouseholdId && inviteEmail) {
                       inviteMemberMutation.mutate({ householdId: activeHouseholdId, email: inviteEmail }, {
-                        onSuccess: () => setInviteEmail('')
+                        onSuccess: () => {
+                          setInviteEmail('');
+                          toast.success('Husstandsmedlem inviteret!');
+                        },
+                        onError: (err: any) => {
+                          toast.error(err?.message || 'Kunne ikke invitere husstandsmedlem');
+                        }
                       });
                     }
                   }}
