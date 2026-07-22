@@ -145,11 +145,11 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        className="fixed inset-0 bg-black/50 z-[60] lg:hidden"
         onClick={onClose}
       />
       
-      <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-[hsl(var(--bg-secondary))] shadow-2xl z-50 flex flex-col border-l border-[hsl(var(--border-color))]">
+      <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-[hsl(var(--bg-secondary))] shadow-2xl z-[70] flex flex-col border-l border-[hsl(var(--border-color))]">
         <div className="flex items-center justify-between p-4 border-b border-[hsl(var(--border-color))]">
           <h2 className="text-lg font-semibold capitalize truncate pr-4">{label.replace('-', ' ')}</h2>
           <button 
@@ -432,7 +432,7 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
           </div>
         </div>
 
-        <div className="p-4 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex justify-end gap-3">
+        <div className="p-4 pb-28 md:pb-4 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex justify-end gap-3">
           <Button variant="outline" onClick={onClose}>
             {t('common.cancel', 'Annuller')}
           </Button>

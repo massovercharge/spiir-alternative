@@ -12,7 +12,7 @@ export default function ReleaseNotesPage() {
   const versions = Object.values(versionsObj || {}).reverse();
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28 md:pb-8">
       <div className="mb-6 flex items-center gap-4">
         <Link 
           to="/settings" 

@@ -120,7 +120,7 @@ export default function AccountsPage() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="p-4 md:p-8 max-w-4xl mx-auto space-y-6"
+      className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28 md:pb-8"
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>

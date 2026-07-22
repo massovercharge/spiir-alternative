@@ -233,8 +233,8 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[hsl(var(--bg-primary))] border-l border-[hsl(var(--border-color))] shadow-2xl z-50 overflow-y-auto flex flex-col animate-slide-in-right">
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[hsl(var(--bg-primary))] border-l border-[hsl(var(--border-color))] shadow-2xl z-[70] overflow-y-auto flex flex-col animate-slide-in-right">
         
         <div className="p-6 border-b border-[hsl(var(--border-color))] flex justify-between items-start gap-4">
           <div className="flex-1">
@@ -471,7 +471,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
 
         </div>
 
-        <div className="p-6 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex gap-3">
+        <div className="p-6 pb-28 md:pb-6 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex gap-3">
           <Button 
             variant="primary" 
             className="flex-1" 
