@@ -53,7 +53,12 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
   
   const monthTransactions = monthTransactionsData?.transactions || [];
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
+    if (isInitialized) return;
+    if (isLoadingBudgets || isLoadingBills) return;
+
     if (isFixedOrIncome) {
       if (budgetBills && budgetBills.length > 0) {
         setBills(budgetBills.map((b: any) => ({
@@ -62,6 +67,7 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
           amountInput: (b.amount_minor / 100).toString().replace('.', ','),
           activeMonths: new Set(b.months)
         })));
+        setIsInitialized(true);
       } else if (budgets && budgets.length > 0) {
         const nonZeroBudgets = budgets.filter((b: any) => b.amount_minor !== 0);
         if (nonZeroBudgets.length > 0) {
@@ -78,11 +84,14 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
             amountInput: (avg / 100).toString().replace('.', ','),
             activeMonths: active
           }]);
+          setIsInitialized(true);
         } else {
           setBills([]);
+          setIsInitialized(true);
         }
       } else {
         setBills([]);
+        setIsInitialized(true);
       }
     } else {
       if (budgets && budgets.length > 0) {
@@ -100,13 +109,15 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
           for (let i = 1; i <= 12; i++) active.add(i);
         }
         setActiveMonths(active);
+        setIsInitialized(true);
       } else {
         setAmountInput('');
         setRollover(false);
         setActiveMonths(new Set([1,2,3,4,5,6,7,8,9,10,11,12]));
+        setIsInitialized(true);
       }
     }
-  }, [budgets, budgetBills, isFixedOrIncome]);
+  }, [budgets, budgetBills, isFixedOrIncome, isInitialized, isLoadingBudgets, isLoadingBills]);
 
   const handleSave = () => {
     if (isFixedOrIncome) {
@@ -131,13 +142,14 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
     } else {
       const rawAmount = amountInput.replace(',', '.');
       const parsedAmount = parseFloat(rawAmount);
+      const safeAmount = isNaN(parsedAmount) ? 0 : parsedAmount;
       
-      if (isNaN(parsedAmount) || parsedAmount < 0) return;
+      if (safeAmount < 0) return;
 
       const promises = [];
       
       for (let month = 1; month <= 12; month++) {
-        const amountMinor = activeMonths.has(month) ? Math.round(parsedAmount * 100) : 0;
+        const amountMinor = activeMonths.has(month) ? Math.round(safeAmount * 100) : 0;
         promises.push(upsertMutation.mutateAsync({
           category_id: category.category_id,
           year,
