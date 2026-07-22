@@ -30,7 +30,7 @@ AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 # Core User/Household Sync
 # ---------------------------------------------------------------------------
 
-def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -> dict[str, Any]:
+def _sync_user_and_household(request: Request, logto_id: str, email: str = "", name: str = "") -> dict[str, Any]:
     """Ensure user exists, validate household access, and set contextvar."""
     try:
         with Session(engine) as session:
@@ -40,12 +40,14 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -
                 user = session.exec(select(User).where(User.email == email)).first()
                 if user:
                     user.logto_id = logto_id
+                    if name and not user.name:
+                        user.name = name
                     session.add(user)
                     session.commit()
                     session.refresh(user)
 
             if not user:
-                user = User(logto_id=logto_id, email=email)
+                user = User(logto_id=logto_id, email=email, name=name)
                 session.add(user)
                 session.commit()
                 session.refresh(user)
@@ -60,6 +62,19 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -
                 member = HouseholdMember(household_id=hh.id, user_id=user.id, role="owner")
                 session.add(member)
                 session.commit()
+            else:
+                # Update email/name on existing user record if provided and missing/changed
+                updated = False
+                if email and user.email != email:
+                    user.email = email
+                    updated = True
+                if name and user.name != name:
+                    user.name = name
+                    updated = True
+                if updated:
+                    session.add(user)
+                    session.commit()
+                    session.refresh(user)
 
             # 2. Determine Household
             requested_hh_id = request.headers.get("X-Household-Id")
@@ -114,7 +129,7 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "") -
 
 async def _verify_none(request: Request) -> dict[str, Any]:
     """No-op authenticator — allows all requests."""
-    return _sync_user_and_household(request, "local_user", "local@example.com")
+    return _sync_user_and_household(request, "local_user", "local@example.com", "Lokal Bruger")
 
 
 # ---------------------------------------------------------------------------
@@ -199,9 +214,25 @@ async def _verify_logto(
             audience=LOGTO_API_RESOURCE,
             issuer=f"{LOGTO_ENDPOINT}/oidc",
         )
-        # Logto payload may not include email unless requested, but we can try to extract it
-        email = payload.get("email", "")
-        return _sync_user_and_household(request, payload.get("sub"), email)
+        email = payload.get("email") or payload.get("primary_email") or payload.get("username") or payload.get("preferred_username") or ""
+        name = payload.get("name") or payload.get("username") or payload.get("preferred_username") or ""
+
+        if (not email or not name) and LOGTO_ENDPOINT and token.credentials:
+            try:
+                import httpx
+                resp = httpx.get(
+                    f"{LOGTO_ENDPOINT}/oidc/userinfo",
+                    headers={"Authorization": f"Bearer {token.credentials}"},
+                    timeout=3.0
+                )
+                if resp.status_code == 200:
+                    info = resp.json()
+                    email = email or info.get("email") or info.get("primary_email") or ""
+                    name = name or info.get("name") or info.get("username") or info.get("preferred_username") or ""
+            except Exception:
+                pass
+
+        return _sync_user_and_household(request, payload.get("sub"), email, name)
     except jwt.PyJWKClientError as e:
         import traceback
         traceback.print_exc()

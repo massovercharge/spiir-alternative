@@ -269,8 +269,12 @@ export default function SettingsPage() {
                 {members.map((member: any, i: number) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
                     <div>
-                      <p className="font-medium text-sm">{member.name || member.email}</p>
-                      <p className="text-xs text-muted">{member.email}</p>
+                      <p className="font-semibold text-sm text-[hsl(var(--text-primary))]">
+                        {member.name || member.email || 'Bruger'}
+                      </p>
+                      {member.email && (
+                        <p className="text-xs text-muted">{member.email}</p>
+                      )}
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
                       {member.role}

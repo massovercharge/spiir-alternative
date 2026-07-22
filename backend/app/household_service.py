@@ -96,9 +96,19 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
         for m in memberships:
             user = db.get(User, m.user_id)
             if user:
+                display_email = user.email or ""
+                if not display_email and user.logto_id:
+                    if user.logto_id.startswith("pending:"):
+                        display_email = user.logto_id.replace("pending:", "")
+                    elif user.logto_id == "local_user":
+                        display_email = "local@example.com"
+                    else:
+                        display_email = user.logto_id
+
+                display_name = user.name or (display_email.split("@")[0] if "@" in display_email else display_email)
                 result.append({
-                    "email": user.email,
-                    "name": user.name,
+                    "email": display_email,
+                    "name": display_name,
                     "role": m.role,
                 })
         return result
