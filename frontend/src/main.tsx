@@ -15,7 +15,7 @@ const logtoConfig: LogtoConfig = {
   endpoint: import.meta.env.VITE_LOGTO_ENDPOINT || 'https://auth.seame.click/',
   appId: import.meta.env.VITE_LOGTO_APP_ID || '',
   resources: [import.meta.env.VITE_LOGTO_API_RESOURCE || 'https://peng.seame.click/api'],
-  scopes: ['read:transactions', 'write:transactions'],
+  scopes: ['read:transactions', 'write:transactions', 'email', 'profile'],
 };
 
 const queryClient = new QueryClient({

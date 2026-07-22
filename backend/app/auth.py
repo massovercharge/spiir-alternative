@@ -66,11 +66,30 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
                 # Update email/name on existing user record if provided and missing/changed
                 updated = False
                 if email and user.email != email:
+                    # Check if there's a pending invite for this newly discovered email
+                    pending_user = session.exec(
+                        select(User).where(User.email == email, User.logto_id.startswith("pending:"))
+                    ).first()
+                    
+                    if pending_user:
+                        # Transfer memberships from pending to real user
+                        memberships = session.exec(
+                            select(HouseholdMember).where(HouseholdMember.user_id == pending_user.id)
+                        ).all()
+                        for m in memberships:
+                            m.user_id = user.id
+                            session.add(m)
+                        
+                        # Remove the pending stub
+                        session.delete(pending_user)
+                    
                     user.email = email
                     updated = True
+                
                 if name and user.name != name:
                     user.name = name
                     updated = True
+                
                 if updated:
                     session.add(user)
                     session.commit()
