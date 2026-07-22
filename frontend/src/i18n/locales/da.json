@@ -73,7 +73,24 @@
     "language": "Sprog",
     "danish": "Dansk",
     "english": "English",
-    "releaseNotes": "Udgivelsesnoter"
+    "releaseNotes": "Udgivelsesnoter",
+    "household": "Husstand",
+    "householdName": "Husstandsnavn",
+    "renameHousehold": "Omdøb husstand",
+    "saveName": "Gem navn",
+    "members": "Medlemmer",
+    "inviteToHousehold": "Invitér til husstand",
+    "invitePlaceholder": "bruger@email.dk",
+    "inviteButton": "Invitér",
+    "createHousehold": "Opret ny husstand",
+    "householdNamePlaceholder": "F.eks. Sommerhus, Familien Jensen",
+    "createButton": "Opret",
+    "householdInvited": "Husstandsmedlem inviteret!",
+    "householdUpdated": "Husstandsnavn opdateret!",
+    "householdCreated": "Ny husstand oprettet!",
+    "failedToInvite": "Kunne ikke invitere husstandsmedlem",
+    "failedToUpdate": "Kunne ikke opdatere husstand",
+    "failedToCreate": "Kunne ikke oprette husstand"
   },
   "releaseNotes": {
     "title": "Udgivelsesnoter",
@@ -86,6 +103,15 @@
           "Første udgivelse af Peng",
           "Tilføjet basisskærme for konti og transaktioner",
           "Introduceret Lys og Mørk tilstand"
+        ]
+      },
+      "v1_1_0": {
+        "version": "v1.1.0",
+        "date": "2026-07-22",
+        "changes": [
+          "Tilføjet mulighed for at omdøbe og navngive husstande",
+          "Forbedret invitation af husstandsmedlemmer via e-mail",
+          "Opdateret bruger-synkronisering ved første login for inviterede medlemmer"
         ]
       }
     }

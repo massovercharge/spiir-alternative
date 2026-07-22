@@ -45,6 +45,35 @@ def create_household(user_id: str, name: str) -> dict[str, Any]:
             "created_at": hh.created_at,
         }
 
+def update_household(household_id: str, user_id: str, name: str) -> dict[str, Any]:
+    """Rename an existing household (requires owner role)."""
+    with Session(engine) as db:
+        membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == user_id
+            )
+        ).first()
+
+        if not membership or membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can rename the household")
+
+        hh = db.get(Household, household_id)
+        if not hh:
+            raise HTTPException(status_code=404, detail="Household not found")
+
+        hh.name = name.strip()
+        db.add(hh)
+        db.commit()
+        db.refresh(hh)
+
+        return {
+            "id": hh.id,
+            "name": hh.name,
+            "role": membership.role,
+            "created_at": hh.created_at,
+        }
+
 def get_household_members(household_id: str, requesting_user_id: str) -> list[dict[str, Any]]:
     """List all members of a household."""
     with Session(engine) as db:

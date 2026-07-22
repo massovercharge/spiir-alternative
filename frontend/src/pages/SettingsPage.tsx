@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText } from 'lucide-react';
-import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUploadStoreboxFile, useImportStoreboxLink } from '../api/client';
+import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/Button';
@@ -53,12 +53,21 @@ export default function SettingsPage() {
   const deleteRuleMutation = useDeleteRule();
   
   const { activeHouseholdId, households } = useHousehold();
+  const currentHousehold = households.find((h: any) => h.id === activeHouseholdId);
   const { data: members = [] } = useHouseholdMembers(activeHouseholdId || '');
   const inviteMemberMutation = useInviteHouseholdMember();
   const createHouseholdMutation = useCreateHousehold();
+  const updateHouseholdMutation = useUpdateHousehold();
   
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [newHouseholdName, setNewHouseholdName] = React.useState('');
+  const [renameHouseholdName, setRenameHouseholdName] = React.useState('');
+
+  React.useEffect(() => {
+    if (currentHousehold?.name) {
+      setRenameHouseholdName(currentHousehold.name);
+    }
+  }, [currentHousehold?.name]);
   const [importResult, setImportResult] = React.useState<any>(null);
   const [storeboxImportResult, setStoreboxImportResult] = React.useState<any>(null);
 
@@ -217,12 +226,45 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users size={20} className="text-[hsl(var(--brand-primary))]" />
-              Husstand
+              {t('settings.household')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-sm font-medium mb-3">Medlemmer</h3>
+            {activeHouseholdId && (
+              <div>
+                <h3 className="text-sm font-medium mb-3">{t('settings.renameHousehold')}</h3>
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    placeholder={t('settings.householdNamePlaceholder')}
+                    className="flex-1 px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
+                    value={renameHouseholdName}
+                    onChange={(e) => setRenameHouseholdName(e.target.value)}
+                  />
+                  <Button 
+                    onClick={() => {
+                      if (activeHouseholdId && renameHouseholdName.trim()) {
+                        updateHouseholdMutation.mutate({ householdId: activeHouseholdId, name: renameHouseholdName.trim() }, {
+                          onSuccess: () => {
+                            toast.success(t('settings.householdUpdated'));
+                          },
+                          onError: (err: any) => {
+                            toast.error(err?.message || t('settings.failedToUpdate'));
+                          }
+                        });
+                      }
+                    }}
+                    disabled={!renameHouseholdName.trim() || updateHouseholdMutation.isPending || renameHouseholdName.trim() === currentHousehold?.name}
+                    className="flex items-center gap-2"
+                  >
+                    {t('settings.saveName')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+              <h3 className="text-sm font-medium mb-3">{t('settings.members')}</h3>
               <div className="space-y-2">
                 {members.map((member: any, i: number) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))]">
@@ -239,11 +281,11 @@ export default function SettingsPage() {
             </div>
             
             <div className="pt-4 border-t border-[hsl(var(--border-color))]">
-              <h3 className="text-sm font-medium mb-3">Invitér til husstand</h3>
+              <h3 className="text-sm font-medium mb-3">{t('settings.inviteToHousehold')}</h3>
               <div className="flex gap-2">
                 <input 
                   type="email"
-                  placeholder="bruger@email.dk"
+                  placeholder={t('settings.invitePlaceholder')}
                   className="flex-1 px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
@@ -254,10 +296,10 @@ export default function SettingsPage() {
                       inviteMemberMutation.mutate({ householdId: activeHouseholdId, email: inviteEmail }, {
                         onSuccess: () => {
                           setInviteEmail('');
-                          toast.success('Husstandsmedlem inviteret!');
+                          toast.success(t('settings.householdInvited'));
                         },
                         onError: (err: any) => {
-                          toast.error(err?.message || 'Kunne ikke invitere husstandsmedlem');
+                          toast.error(err?.message || t('settings.failedToInvite'));
                         }
                       });
                     }
@@ -266,7 +308,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2"
                 >
                   <Mail size={16} />
-                  Invitér
+                  {t('settings.inviteButton')}
                 </Button>
               </div>
               {inviteMemberMutation.isError && (
@@ -275,11 +317,11 @@ export default function SettingsPage() {
             </div>
             
             <div className="pt-4 border-t border-[hsl(var(--border-color))]">
-              <h3 className="text-sm font-medium mb-3">Opret ny husstand</h3>
+              <h3 className="text-sm font-medium mb-3">{t('settings.createHousehold')}</h3>
               <div className="flex gap-2">
                 <input 
                   type="text"
-                  placeholder="F.eks. Sommerhuset"
+                  placeholder={t('settings.householdNamePlaceholder')}
                   className="flex-1 px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
                   value={newHouseholdName}
                   onChange={(e) => setNewHouseholdName(e.target.value)}
@@ -288,7 +330,13 @@ export default function SettingsPage() {
                   onClick={() => {
                     if (newHouseholdName) {
                       createHouseholdMutation.mutate(newHouseholdName, {
-                        onSuccess: () => setNewHouseholdName('')
+                        onSuccess: () => {
+                          setNewHouseholdName('');
+                          toast.success(t('settings.householdCreated'));
+                        },
+                        onError: (err: any) => {
+                          toast.error(err?.message || t('settings.failedToCreate'));
+                        }
                       });
                     }
                   }}
@@ -296,7 +344,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2"
                 >
                   <Plus size={16} />
-                  Opret
+                  {t('settings.createButton')}
                 </Button>
               </div>
             </div>

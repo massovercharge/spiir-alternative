@@ -317,6 +317,19 @@ export async function createHousehold(name: string) {
   return res.json();
 }
 
+export async function updateHousehold(householdId: string, name: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ name })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to update household');
+  }
+  return res.json();
+}
+
 export async function fetchHouseholdMembers(householdId: string) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}/members`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch household members');
@@ -671,6 +684,16 @@ export function useCreateHousehold() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => createHousehold(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['households'] });
+    }
+  });
+}
+
+export function useUpdateHousehold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, name }: { householdId: string, name: string }) => updateHousehold(householdId, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['households'] });
     }

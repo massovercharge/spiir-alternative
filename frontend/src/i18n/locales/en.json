@@ -73,7 +73,24 @@
     "language": "Language",
     "danish": "Dansk",
     "english": "English",
-    "releaseNotes": "Release Notes"
+    "releaseNotes": "Release Notes",
+    "household": "Household",
+    "householdName": "Household Name",
+    "renameHousehold": "Rename household",
+    "saveName": "Save name",
+    "members": "Members",
+    "inviteToHousehold": "Invite to household",
+    "invitePlaceholder": "user@email.com",
+    "inviteButton": "Invite",
+    "createHousehold": "Create new household",
+    "householdNamePlaceholder": "E.g. Summerhouse, Smith Family",
+    "createButton": "Create",
+    "householdInvited": "Household member invited!",
+    "householdUpdated": "Household name updated!",
+    "householdCreated": "New household created!",
+    "failedToInvite": "Failed to invite household member",
+    "failedToUpdate": "Failed to update household",
+    "failedToCreate": "Failed to create household"
   },
   "releaseNotes": {
     "title": "Release Notes",
@@ -86,6 +103,15 @@
           "Initial release of Peng",
           "Added basic tracking for accounts and transactions",
           "Introduced Light and Dark modes"
+        ]
+      },
+      "v1_1_0": {
+        "version": "v1.1.0",
+        "date": "2026-07-22",
+        "changes": [
+          "Added ability to custom name and rename households",
+          "Improved inviting household members via email",
+          "Updated user sync on first login for invited members"
         ]
       }
     }

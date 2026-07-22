@@ -31,6 +31,7 @@ from .household_service import (
     get_household_members,
     invite_member,
     list_households,
+    update_household,
 )
 from .insights_service import get_category_trends, income_expense_series, sunburst_data
 from .recurring_service import (
@@ -104,6 +105,14 @@ def create_app() -> FastAPI:
         if not name:
             raise HTTPException(status_code=400, detail="Name is required")
         return create_household(auth["user_id"], name)
+
+    @api_router.patch("/api/households/{household_id}")
+    def household_update(household_id: str, payload: dict[str, Any], auth: dict[str, Any] = Depends(get_auth_dependency())) -> dict[str, Any]:
+        """Rename a household."""
+        name = payload.get("name")
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        return update_household(household_id, auth["user_id"], name)
 
     @api_router.get("/api/households/{household_id}/members")
     def household_members(household_id: str, auth: dict[str, Any] = Depends(get_auth_dependency())) -> list[dict[str, Any]]:

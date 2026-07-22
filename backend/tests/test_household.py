@@ -61,3 +61,27 @@ def test_invite_member_and_pending_sync():
         # Verify logto_id updated
         db.refresh(invited_user)
         assert invited_user.logto_id == "logto_partner_456"
+
+def test_update_household():
+    from app.household_service import update_household
+
+    with Session(engine) as db:
+        owner = User(logto_id="owner_rename_1", email="owner_rename@example.com", name="Owner")
+        db.add(owner)
+        db.commit()
+        db.refresh(owner)
+
+        hh = Household(name="Gammelt Husstandsnavn")
+        db.add(hh)
+        db.commit()
+        db.refresh(hh)
+
+        owner_member = HouseholdMember(household_id=hh.id, user_id=owner.id, role="owner")
+        db.add(owner_member)
+        db.commit()
+
+        updated = update_household(hh.id, owner.id, "Nyt Husstandsnavn")
+        assert updated["name"] == "Nyt Husstandsnavn"
+
+        db.refresh(hh)
+        assert hh.name == "Nyt Husstandsnavn"
