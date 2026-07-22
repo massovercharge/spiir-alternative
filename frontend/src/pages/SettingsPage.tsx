@@ -52,7 +52,7 @@ export default function SettingsPage() {
   const { data: userRules = [], isLoading: isLoadingRules } = useRules('user');
   const deleteRuleMutation = useDeleteRule();
   
-  const { activeHouseholdId, households } = useHousehold();
+  const { activeHouseholdId, households, setActiveHousehold } = useHousehold();
   const currentHousehold = households.find((h: any) => h.id === activeHouseholdId);
   const { data: members = [] } = useHouseholdMembers(activeHouseholdId || '');
   const inviteMemberMutation = useInviteHouseholdMember();
@@ -345,8 +345,11 @@ export default function SettingsPage() {
                   onClick={() => {
                     if (newHouseholdName) {
                       createHouseholdMutation.mutate(newHouseholdName, {
-                        onSuccess: () => {
+                        onSuccess: (data: any) => {
                           setNewHouseholdName('');
+                          if (data?.id) {
+                            setActiveHousehold(data.id);
+                          }
                           toast.success(t('settings.householdCreated'));
                         },
                         onError: (err: any) => {
@@ -363,6 +366,35 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </div>
+
+            {households.length > 1 && (
+              <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+                <h3 className="text-sm font-medium mb-3">{t('settings.switchHousehold', 'Skift aktiv husstand')}</h3>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {households.map((hh: any) => (
+                    <button
+                      key={hh.id}
+                      onClick={() => setActiveHousehold(hh.id)}
+                      className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
+                        activeHouseholdId === hh.id 
+                          ? 'border-[hsl(var(--brand-primary))] bg-[hsla(var(--brand-primary),0.08)] text-[hsl(var(--brand-primary))] font-semibold' 
+                          : 'border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-primary))]'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        activeHouseholdId === hh.id ? 'bg-[hsl(var(--brand-primary))] text-white' : 'bg-[hsl(var(--bg-tertiary))]'
+                      }`}>
+                        <Users size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{hh.name}</p>
+                        <p className="text-xs text-muted capitalize">{hh.role === 'owner' ? t('settings.roleOwner', 'Ejer') : t('settings.roleMember', 'Medlem')}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

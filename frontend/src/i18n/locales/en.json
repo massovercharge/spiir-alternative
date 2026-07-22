@@ -90,7 +90,10 @@
     "householdCreated": "New household created!",
     "failedToInvite": "Failed to invite household member",
     "failedToUpdate": "Failed to update household",
-    "failedToCreate": "Failed to create household"
+    "failedToCreate": "Failed to create household",
+    "roleOwner": "Owner",
+    "roleMember": "Member",
+    "switchHousehold": "Switch active household"
   },
   "releaseNotes": {
     "title": "Release Notes",

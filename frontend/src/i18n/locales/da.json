@@ -90,7 +90,10 @@
     "householdCreated": "Ny husstand oprettet!",
     "failedToInvite": "Kunne ikke invitere husstandsmedlem",
     "failedToUpdate": "Kunne ikke opdatere husstand",
-    "failedToCreate": "Kunne ikke oprette husstand"
+    "failedToCreate": "Kunne ikke oprette husstand",
+    "roleOwner": "Ejer",
+    "roleMember": "Medlem",
+    "switchHousehold": "Skift aktiv husstand"
   },
   "releaseNotes": {
     "title": "Udgivelsesnoter",

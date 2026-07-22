@@ -127,19 +127,20 @@ export default function AppLayout() {
       <div className="flex h-screen w-full overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))]">
-        <div className="p-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[hsl(var(--brand-primary))]">{t('app.title')}</h1>
+        <div className="p-4 px-6 flex items-center justify-between border-b border-[hsl(var(--border-color))]">
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-2xl font-bold text-[hsl(var(--brand-primary))] shrink-0">{t('app.title')}</h1>
+            <HouseholdSwitcher compact />
+          </div>
           <button 
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+            className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] transition-colors shrink-0"
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
         
-        <HouseholdSwitcher />
-        
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -173,19 +174,22 @@ export default function AppLayout() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[hsl(var(--bg-primary))]">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 border-b border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))]">
-          <h1 className="text-xl font-bold text-[hsl(var(--brand-primary))]">{t('app.title')}</h1>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => signOut(window.location.origin)}
-              className="p-2 rounded-full text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--brand-danger))] transition-colors"
-            >
-              <LogOut size={18} />
-            </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-xl font-bold text-[hsl(var(--brand-primary))] shrink-0">{t('app.title')}</h1>
+            <HouseholdSwitcher compact />
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
             <button 
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <button 
+              onClick={() => signOut(window.location.origin)}
+              className="p-2 rounded-full text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--brand-danger))] transition-colors"
+            >
+              <LogOut size={18} />
             </button>
           </div>
         </header>
