@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.3.2",
+    "date": "2026-07-22",
+    "changes": {
+      "en": [
+        "Fixed a bug preventing users from creating or deleting budgets across all categories",
+        "Fixed an issue where invited users could not see their household after logging in due to a missing email scope"
+      ],
+      "da": [
+        "Løst et problem, der forhindrede oprettelse og sletning af budgetter for alle kategorier",
+        "Rettet en fejl, hvor inviterede medlemmer ikke kunne se deres husstand ved login på grund af et manglende e-mail scope"
+      ]
+    }
+  },
+  {
     "version": "v1.3.1",
     "date": "2026-07-22",
     "changes": {
