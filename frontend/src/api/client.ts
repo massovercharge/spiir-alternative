@@ -684,7 +684,12 @@ export function useCreateHousehold() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => createHousehold(name),
-    onSuccess: () => {
+    onSuccess: (newHousehold) => {
+      queryClient.setQueryData(['households'], (oldData: any[] | undefined) => {
+        const list = oldData || [];
+        if (list.some((h: any) => h.id === newHousehold.id)) return list;
+        return [...list, newHousehold];
+      });
       queryClient.invalidateQueries({ queryKey: ['households'] });
     }
   });
@@ -694,7 +699,11 @@ export function useUpdateHousehold() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ householdId, name }: { householdId: string, name: string }) => updateHousehold(householdId, name),
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['households'], (oldData: any[] | undefined) => {
+        const list = oldData || [];
+        return list.map((h: any) => h.id === updated.id ? { ...h, name: updated.name } : h);
+      });
       queryClient.invalidateQueries({ queryKey: ['households'] });
     }
   });
