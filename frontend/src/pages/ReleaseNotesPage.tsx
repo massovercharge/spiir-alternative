@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import releaseNotesData from '../i18n/release_notes.json';
 
 export default function ReleaseNotesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
-  const versionsObj = t('releaseNotes.versions', { returnObjects: true }) as Record<string, { version: string, date: string, changes: string[] }>;
+  const currentLang = i18n.language.startsWith('da') ? 'da' : 'en';
   
-  const versions = Object.values(versionsObj || {}).reverse();
+  const versions = releaseNotesData;
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28 md:pb-8">
@@ -56,7 +57,7 @@ export default function ReleaseNotesPage() {
             </div>
             
             <ul className="list-disc pl-5 space-y-2 text-[hsl(var(--text-secondary))]">
-              {Array.isArray(v.changes) && v.changes.map((change, idx) => (
+              {Array.isArray(v.changes[currentLang]) && v.changes[currentLang].map((change: string, idx: number) => (
                 <li key={idx} className="pl-1 leading-relaxed">
                   {change}
                 </li>

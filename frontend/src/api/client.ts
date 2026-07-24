@@ -343,8 +343,44 @@ export async function inviteHouseholdMember(householdId: string, email: string) 
     body: JSON.stringify({ email })
   });
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.detail || 'Failed to invite household member');
+    const error = await res.json();
+    throw new Error(error.detail || 'Failed to invite member');
+  }
+  return res.json();
+}
+
+export async function removeHouseholdMember(householdId: string, userId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/members/${userId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || 'Failed to remove member');
+  }
+  return res.json();
+}
+
+export async function deleteHousehold(householdId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || 'Failed to delete household');
+  }
+  return res.json();
+}
+
+export async function restoreHousehold(householdId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/restore`, {
+    method: 'POST',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || 'Failed to restore household');
   }
   return res.json();
 }
@@ -390,7 +426,8 @@ export function useUpdateTransactions() {
       updateTransactions(transactionIds, patch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -403,7 +440,8 @@ export function useSplitTransaction() {
       splitTransaction(transactionId, splits),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -416,7 +454,8 @@ export function useLinkReceiptToTransaction() {
       linkReceiptToTransaction(transactionId, receiptId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -552,6 +591,7 @@ export function useSaveBudgetBills() {
     mutationFn: upsertBudgetBills,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['budget-bills', variables.category_id, variables.year] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -563,7 +603,8 @@ export function useUploadSpiirExport() {
     mutationFn: (file: File) => uploadSpiirExport(file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -575,7 +616,8 @@ export function useUploadStoreboxFile() {
     mutationFn: (file: File) => uploadStoreboxFile(file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -587,7 +629,8 @@ export function useImportStoreboxLink() {
     mutationFn: (url: string) => importStoreboxLink(url),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -634,7 +677,8 @@ export function useUpdateTransactionCategory() {
       updateTransactionCategory(transactionId, categoryId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -647,8 +691,9 @@ export function useCreateCustomRule() {
       createCustomRule(matchPattern, categoryId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['insights-sunburst'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
       queryClient.invalidateQueries({ queryKey: ['rules'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
@@ -722,9 +767,40 @@ export function useHouseholdMembers(householdId: string) {
 export function useInviteHouseholdMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, email }: { householdId: string, email: string }) => inviteHouseholdMember(householdId, email),
+    mutationFn: ({ householdId, email }: { householdId: string; email: string }) => inviteHouseholdMember(householdId, email),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
+    }
+  });
+}
+
+export function useRemoveHouseholdMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, userId }: { householdId: string; userId: string }) => removeHouseholdMember(householdId, userId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['households'] });
+    }
+  });
+}
+
+export function useDeleteHousehold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (householdId: string) => deleteHousehold(householdId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['households'] });
+    }
+  });
+}
+
+export function useRestoreHousehold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (householdId: string) => restoreHousehold(householdId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['households'] });
     }
   });
 }

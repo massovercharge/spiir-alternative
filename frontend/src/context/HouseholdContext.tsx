@@ -7,6 +7,7 @@ interface HouseholdContextType {
   setActiveHousehold: (id: string) => void;
   isLoadingHouseholds: boolean;
   households: any[];
+  deletedHouseholds: any[];
 }
 
 const HouseholdContext = createContext<HouseholdContextType | undefined>(undefined);
@@ -18,11 +19,14 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem('peng_household_id');
   });
 
+  const activeHouseholds = households?.filter((h: any) => !h.deleted_at) || [];
+  const deletedHouseholds = households?.filter((h: any) => !!h.deleted_at) || [];
+
   // Ensure an active household is set if data is available
   useEffect(() => {
-    if (households && households.length > 0) {
-      if (!activeHouseholdId || !households.find((h: any) => h.id === activeHouseholdId)) {
-        const firstId = households[0].id;
+    if (activeHouseholds.length > 0) {
+      if (!activeHouseholdId || !activeHouseholds.find((h: any) => h.id === activeHouseholdId)) {
+        const firstId = activeHouseholds[0].id;
         setActiveHouseholdId(firstId);
         localStorage.setItem('peng_household_id', firstId);
         setHouseholdId(firstId);
@@ -31,7 +35,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
         setHouseholdId(activeHouseholdId);
       }
     }
-  }, [households, activeHouseholdId, queryClient]);
+  }, [activeHouseholds, activeHouseholdId, queryClient]);
 
   const setActiveHousehold = (id: string) => {
     setActiveHouseholdId(id);
@@ -47,7 +51,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <HouseholdContext.Provider value={{ activeHouseholdId, setActiveHousehold, isLoadingHouseholds: isLoading, households: households || [] }}>
+    <HouseholdContext.Provider value={{ activeHouseholdId, setActiveHousehold, isLoadingHouseholds: isLoading, households: activeHouseholds, deletedHouseholds }}>
       {children}
     </HouseholdContext.Provider>
   );

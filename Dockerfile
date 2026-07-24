@@ -47,4 +47,4 @@ COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 EXPOSE 8080
 
 # Run the FastAPI server via Uvicorn
-CMD ["sh", "-c", "uvicorn app.api:app --host 0.0.0.0 --port $PORT --proxy-headers"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers"]

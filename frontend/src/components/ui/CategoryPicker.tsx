@@ -39,9 +39,10 @@ interface CategoryPickerProps {
   onChange?: (categoryId: string) => void;
   className?: string;
   filterMainCategory?: string;
+  placeholder?: string;
 }
 
-export default function CategoryPicker({ selectedCategoryId, onSelect, value, onChange, className = "", filterMainCategory }: CategoryPickerProps) {
+export default function CategoryPicker({ selectedCategoryId, onSelect, value, onChange, className = "", filterMainCategory, placeholder }: CategoryPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { data: categories = [], isLoading } = useCategories();
@@ -120,7 +121,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
         className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full bg-[hsla(var(--border-color),0.3)] hover:bg-[hsla(var(--border-color),0.6)] transition-colors border border-[hsla(var(--border-color),0.5)] max-w-full shrink-0"
       >
         <span className="truncate max-w-[150px] sm:max-w-[200px] capitalize">
-          {selectedCategory ? selectedCategory.name.replace('-', ' ') : t('transactions.uncategorized')}
+          {selectedCategory ? selectedCategory.name.replace('-', ' ') : (placeholder || t('transactions.uncategorized'))}
         </span>
         <ChevronDown size={14} className="opacity-50 shrink-0" />
       </button>

@@ -23,6 +23,7 @@ def list_households(user_id: str) -> list[dict[str, Any]]:
                     "name": hh.name,
                     "role": m.role,
                     "created_at": hh.created_at,
+                    "deleted_at": hh.deleted_at,
                 })
         print(f"[DEBUG] list_households for user_id={user_id} -> returning {len(result)} households: {[r['name'] for r in result]}", flush=True)
         return result
@@ -90,29 +91,29 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
             raise HTTPException(status_code=403, detail="Access denied")
 
         memberships = db.exec(
-            select(HouseholdMember).where(HouseholdMember.household_id == household_id)
+            select(HouseholdMember, User)
+            .join(User, User.id == HouseholdMember.user_id)
+            .where(HouseholdMember.household_id == household_id)
         ).all()
 
         result = []
-        for m in memberships:
-            user = db.get(User, m.user_id)
-            if user:
-                display_email = user.email or ""
-                if not display_email and user.logto_id:
-                    if user.logto_id.startswith("pending:"):
-                        display_email = user.logto_id.replace("pending:", "")
-                    elif user.logto_id == "local_user":
-                        display_email = "local@example.com"
-                    else:
-                        display_email = ""
+        for m, user in memberships:
+            display_email = user.email or ""
+            if not display_email and user.logto_id:
+                if user.logto_id.startswith("pending:"):
+                    display_email = user.logto_id.replace("pending:", "")
+                elif user.logto_id == "local_user":
+                    display_email = "local@example.com"
+                else:
+                    display_email = ""
 
-                display_name = user.name or (display_email.split("@")[0] if "@" in display_email else "")
-                result.append({
-                    "email": display_email,
-                    "name": display_name,
-                    "role": m.role,
-                    "is_me": (m.user_id == requesting_user_id),
-                })
+            display_name = user.name or (display_email.split("@")[0] if "@" in display_email else "")
+            result.append({
+                "email": display_email,
+                "name": display_name,
+                "role": m.role,
+                "is_me": (m.user_id == requesting_user_id),
+            })
         return result
 
 def invite_member(household_id: str, requesting_user_id: str, email: str) -> dict[str, Any]:
@@ -153,3 +154,102 @@ def invite_member(household_id: str, requesting_user_id: str, email: str) -> dic
         db.commit()
 
         return {"success": True, "email": user.email, "role": "member"}
+
+def remove_member(household_id: str, requesting_user_id: str, member_email: str) -> dict[str, Any]:
+    """Remove a member from the household."""
+    from datetime import datetime, timezone
+    with Session(engine) as db:
+        req_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == requesting_user_id
+            )
+        ).first()
+
+        if not req_membership or req_membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can remove members")
+
+        user_to_remove = db.exec(select(User).where(User.email == member_email)).first()
+        if not user_to_remove:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        target_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == user_to_remove.id
+            )
+        ).first()
+
+        if not target_membership:
+            raise HTTPException(status_code=404, detail="Membership not found")
+
+        # Check if removing the last owner
+        if target_membership.role == "owner":
+            owner_count = len(db.exec(
+                select(HouseholdMember).where(
+                    HouseholdMember.household_id == household_id,
+                    HouseholdMember.role == "owner"
+                )
+            ).all())
+            if owner_count <= 1:
+                raise HTTPException(status_code=400, detail="Cannot remove the last owner of the household")
+
+        db.delete(target_membership)
+        db.commit()
+
+        return {"success": True}
+
+def delete_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
+    """Mark a household as deleted (soft delete)."""
+    from app.database import _utcnow_iso
+    with Session(engine) as db:
+        req_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == requesting_user_id
+            )
+        ).first()
+
+        if not req_membership or req_membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can delete the household")
+
+        hh = db.get(Household, household_id)
+        if not hh:
+            raise HTTPException(status_code=404, detail="Household not found")
+
+        hh.deleted_at = _utcnow_iso()
+        db.add(hh)
+        db.commit()
+
+        return {"success": True, "deleted_at": hh.deleted_at}
+
+def restore_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
+    """Restore a soft-deleted household."""
+    import datetime
+    with Session(engine) as db:
+        req_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == requesting_user_id
+            )
+        ).first()
+
+        if not req_membership or req_membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can restore the household")
+
+        hh = db.get(Household, household_id)
+        if not hh:
+            raise HTTPException(status_code=404, detail="Household not found")
+
+        if not hh.deleted_at:
+            raise HTTPException(status_code=400, detail="Household is not deleted")
+
+        deleted_time = datetime.datetime.fromisoformat(hh.deleted_at.replace("Z", "+00:00"))
+        if (datetime.datetime.now(datetime.timezone.utc) - deleted_time).total_seconds() > 7200:
+            raise HTTPException(status_code=400, detail="Cannot restore household after 2 hours")
+
+        hh.deleted_at = None
+        db.add(hh)
+        db.commit()
+
+        return {"success": True}

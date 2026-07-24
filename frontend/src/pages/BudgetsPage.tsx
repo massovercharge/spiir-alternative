@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { BudgetDetailsSidebar } from '../components/ui/BudgetDetailsSidebar';
 import { MonthGrid, MonthState } from '../components/ui/MonthGrid';
 import { BudgetResultView } from '../components/ui/BudgetResultView';
+import CategoryPicker from '../components/ui/CategoryPicker';
 
 function getMonthStates(months: any[], currentMonth: number, isCurrentYear: boolean, isIncome: boolean = false): MonthState[] {
   return Array.from({ length: 12 }, (_, i) => {
@@ -121,7 +122,7 @@ function RestenRow({ categories, isCurrentYear, currentMonth, t, onCategoryClick
       <div className="pr-6">
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-end text-sm">
-            <span className="font-medium">Andet ubudgetteret forbrug</span>
+            <span className="font-medium">{t('budgets.unbudgeted_consumption')}</span>
             <div className="text-right flex flex-col">
               <span className="text-xs font-semibold text-[hsl(var(--brand-danger))] uppercase tracking-wide">
                 -{totalActual.toLocaleString('da-DK')} kr.
@@ -129,7 +130,7 @@ function RestenRow({ categories, isCurrentYear, currentMonth, t, onCategoryClick
             </div>
           </div>
           <p className="text-xs text-muted">
-            {categories.map((c:any) => c.label).slice(0, 3).join(', ')} {categories.length > 3 ? `+ ${categories.length - 3} mere` : ''}
+            {categories.map((c:any) => c.label).slice(0, 3).join(', ')} {categories.length > 3 ? `+ ${categories.length - 3} ${t('budgets.more')}` : ''}
           </p>
         </div>
       </div>
@@ -214,44 +215,7 @@ export default function BudgetsPage() {
   const allBillsRaw = categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Expense' && c.expense_type === 'Fixed');
   const budgetedConsumption = categoriesWithLabels.filter((c: any) => c.total_budgeted_minor > 0 && c.category_type === 'Expense' && c.expense_type === 'Variable');
   
-  const groupedBills = useMemo(() => {
-    const groups = new Map();
-    for (const c of allBillsRaw) {
-      const parts = c.category_id.split('|');
-      const mainCat = parts[0];
-      const mainName = mainCat.charAt(0).toUpperCase() + mainCat.slice(1);
-      
-      if (!groups.has(mainCat)) {
-        groups.set(mainCat, {
-          category_id: mainCat,
-          label: mainName,
-          category_type: c.category_type,
-          expense_type: c.expense_type,
-          is_group: true,
-          total_budgeted_minor: 0,
-          total_actual_minor: 0,
-          months: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, budgeted_minor: 0, actual_minor: 0 }))
-        });
-      }
-      
-      const group = groups.get(mainCat);
-      group.total_budgeted_minor += c.total_budgeted_minor || 0;
-      group.total_actual_minor += c.total_actual_minor || 0;
-      
-      if (c.months) {
-        for (const m of c.months) {
-          const gMonth = group.months.find((gm: any) => gm.month === m.month);
-          if (gMonth) {
-            gMonth.budgeted_minor += m.budgeted_minor || 0;
-            gMonth.actual_minor += m.actual_minor || 0;
-          }
-        }
-      }
-    }
-    
-    // Sort by budgeted amount descending
-    return Array.from(groups.values()).sort((a: any, b: any) => Math.abs(b.total_budgeted_minor) - Math.abs(a.total_budgeted_minor));
-  }, [allBillsRaw]);
+
   
   const unbudgetedConsumption = categoriesWithLabels.filter((c: any) => 
     c.total_budgeted_minor === 0 && 
@@ -359,10 +323,10 @@ export default function BudgetsPage() {
       {!isLoading && summary?.categories?.length > 0 && (
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-2 border-b border-[hsl(var(--border-color))] pb-[-2px] overflow-x-auto whitespace-nowrap scrollbar-none">
-            <TabButton id="resultat" label="RESULTAT" />
-            <TabButton id="indkomst" label="INDKOMST" />
-            <TabButton id="regninger" label="REGNINGER" />
-            <TabButton id="forbrug" label="FORBRUG" />
+            <TabButton id="resultat" label={t('budgets.tab_result')} />
+            <TabButton id="indkomst" label={t('budgets.tab_income')} />
+            <TabButton id="regninger" label={t('budgets.tab_bills')} />
+            <TabButton id="forbrug" label={t('budgets.tab_consumption')} />
           </div>
 
           <AnimatePresence mode="wait">
@@ -383,40 +347,64 @@ export default function BudgetsPage() {
               )}
               
               {activeTab === 'indkomst' && (
-                <BudgetSection 
-                  title={t('budgets.income_title', 'Mit budget for indkomst')} 
-                  categories={allIncome} 
-                  type="fixed"
-                  isCurrentYear={isCurrentYear}
-                  currentMonth={currentMonth}
-                  t={t}
-                  onCategoryClick={setSelectedCategory}
-                />
+                <div className="space-y-4">
+                  <BudgetSection 
+                    title={t('budgets.income_title', 'Mit budget for indkomst')} 
+                    categories={allIncome} 
+                    type="fixed"
+                    isCurrentYear={isCurrentYear}
+                    currentMonth={currentMonth}
+                    t={t}
+                    onCategoryClick={setSelectedCategory}
+                  />
+                  <div className="flex justify-center pt-4 pb-8">
+                    <CategoryPicker 
+                      placeholder={t('budgets.add_category', '+ Tilføj kategori')}
+                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Income', expense_type: 'Fixed', months: [] })}
+                    />
+                  </div>
+                </div>
               )}
 
               {activeTab === 'regninger' && (
-                <BudgetSection 
-                  title={t('budgets.bills_title', 'Mit budget for regninger i {{year}}', { year: currentYear })} 
-                  categories={groupedBills} 
-                  type="fixed" 
-                  isCurrentYear={isCurrentYear} 
-                  currentMonth={currentMonth} 
-                  t={t}
-                  onCategoryClick={setSelectedCategory} 
-                />
+                <div className="space-y-4">
+                  <BudgetSection 
+                    title={t('budgets.bills_title', 'Mit budget for regninger i {{year}}', { year: currentYear })} 
+                    categories={allBillsRaw} 
+                    type="fixed" 
+                    isCurrentYear={isCurrentYear} 
+                    currentMonth={currentMonth} 
+                    t={t}
+                    onCategoryClick={setSelectedCategory} 
+                  />
+                  <div className="flex justify-center pt-4 pb-8">
+                    <CategoryPicker 
+                      placeholder={t('budgets.add_category', '+ Tilføj kategori')}
+                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Expense', expense_type: 'Fixed', months: [] })}
+                    />
+                  </div>
+                </div>
               )}
 
               {activeTab === 'forbrug' && (
-                <BudgetSection 
-                  title={t('budgets.consumption_title', 'Mit budget for forbrug')} 
-                  categories={budgetedConsumption} 
-                  unbudgetedCategories={unbudgetedConsumption}
-                  type="variable"
-                  isCurrentYear={isCurrentYear}
-                  currentMonth={currentMonth}
-                  t={t}
-                  onCategoryClick={setSelectedCategory}
-                />
+                <div className="space-y-4">
+                  <BudgetSection 
+                    title={t('budgets.consumption_title', 'Mit budget for forbrug')} 
+                    categories={budgetedConsumption} 
+                    unbudgetedCategories={unbudgetedConsumption}
+                    type="variable"
+                    isCurrentYear={isCurrentYear}
+                    currentMonth={currentMonth}
+                    t={t}
+                    onCategoryClick={setSelectedCategory}
+                  />
+                  <div className="flex justify-center pt-4 pb-8">
+                    <CategoryPicker 
+                      placeholder={t('budgets.add_category', '+ Tilføj kategori')}
+                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Expense', expense_type: 'Variable', months: [] })}
+                    />
+                  </div>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>

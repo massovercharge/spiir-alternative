@@ -48,17 +48,23 @@ def income_expense_series(year: int | None = None) -> dict[str, Any]:
         bucket = months.setdefault(month_key, {"income": 0, "expense_fixed": 0, "expense_variable": 0, "savings": 0})
 
         amt = alloc.amount_minor
-        if amt >= 0:
-            bucket["income"] += amt
-        else:
-            if main_cat == "Pension & Opsparing":
-                bucket["savings"] += abs(amt)
+        if category:
+            if category.category_type == "Income":
+                bucket["income"] += amt
             else:
-                exp_type = category.expense_type if category else "Variable"
-                if exp_type == "Fixed":
-                    bucket["expense_fixed"] += abs(amt)
+                if main_cat == "Pension & Opsparing":
+                    bucket["savings"] -= amt
                 else:
-                    bucket["expense_variable"] += abs(amt)
+                    exp_type = category.expense_type
+                    if exp_type == "Fixed":
+                        bucket["expense_fixed"] -= amt
+                    else:
+                        bucket["expense_variable"] -= amt
+        else:
+            if amt >= 0:
+                bucket["income"] += amt
+            else:
+                bucket["expense_variable"] -= amt
 
     series = []
     for month, data in sorted(months.items()):
@@ -89,10 +95,9 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
             select(Posting)
             .where(Posting.is_excluded == False)  # noqa: E712
         )
-        if filter_type == "Income":
-            query = query.where(Posting.amount_minor >= 0)
-        else:
-            query = query.where(Posting.amount_minor < 0)
+        # We no longer hard-filter by Posting.amount_minor here.
+        # Refunds (positive) in expense categories need to be fetched to net correctly.
+        # Income vs Expense is filtered below based on category attributes.
 
         if start_date:
             query = query.where(Posting.booking_date >= start_date)
@@ -139,7 +144,7 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
                 if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
                     continue
             key = (cat_id, None)
-            totals[key] = totals.get(key, 0) + abs(p.amount_minor)
+            totals[key] = totals.get(key, 0) + p.amount_minor
         else:
             for alloc in p_allocs:
                 cat_id = alloc.category_id or "diverse|ikke-kategoriseret"
@@ -152,7 +157,21 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
                 item_name = alloc.item_name
                 # If item_name has a category, we might want to capitalize it nicely or just use it
                 key = (cat_id, item_name)
-                totals[key] = totals.get(key, 0) + abs(alloc.amount_minor)
+                totals[key] = totals.get(key, 0) + alloc.amount_minor
+
+    # Post-aggregation filter for correct signs:
+    # If the filter_type is 'Income', keep positive net totals.
+    # Otherwise (Expense/Fixed/Variable), keep negative net totals and convert to positive for chart display.
+    final_totals = {}
+    for key, total in totals.items():
+        if filter_type == "Income":
+            if total > 0:
+                final_totals[key] = total
+        else:
+            if total < 0:
+                final_totals[key] = abs(total)
+    
+    totals = final_totals
 
     # Build flat arrays for Plotly or custom frontend lists
     labels = ["Total"]
@@ -310,13 +329,23 @@ def get_category_trends() -> list[dict[str, Any]]:
             select(PostingAllocation, Posting)
             .join(Posting, PostingAllocation.posting_id == Posting.id)
             .where(Posting.is_excluded == False)  # noqa: E712
-            .where(PostingAllocation.amount_minor < 0)  # Only expenses
         ).all()
+        categories = {c.id: c for c in db.exec(select(Category)).all()}
 
     # Group spending by category and month
     monthly_cat_totals: dict[str, dict[str, int]] = {}
     for alloc, posting in rows:
         cat_id = alloc.category_id or "diverse|ikke-kategoriseret"
+        
+        # Determine category type
+        cat = categories.get(cat_id)
+        if not cat and "|" in cat_id:
+            cat = categories.get(cat_id.split("|")[0])
+        
+        is_income = cat.category_type == "Income" if cat else False
+        if is_income:
+            continue
+
         month_key = posting.booking_date[:7] if posting.booking_date else "unknown"
         if month_key == "unknown":
             continue
@@ -324,8 +353,8 @@ def get_category_trends() -> list[dict[str, Any]]:
         if cat_id not in monthly_cat_totals:
             monthly_cat_totals[cat_id] = {}
 
-        # Add amount (store as absolute positive value for expense analysis)
-        monthly_cat_totals[cat_id][month_key] = monthly_cat_totals[cat_id].get(month_key, 0) + abs(alloc.amount_minor)
+        # Add algebraic amount natively
+        monthly_cat_totals[cat_id][month_key] = monthly_cat_totals[cat_id].get(month_key, 0) + alloc.amount_minor
 
     current_month_key = _utcnow_iso()[:7]
     trends = []
@@ -339,12 +368,13 @@ def get_category_trends() -> list[dict[str, Any]]:
         # We need historical data to calculate stddev and moving average.
         # Exclude the current month from historical calculations if it exists.
         historical_months = [m for m in sorted_months if m < current_month_key]
-        historical_values = [month_data[m] for m in historical_months]
+        # Flip sign to make expenses positive for math/anomaly logic
+        historical_values = [-(month_data[m]) for m in historical_months]
 
-        current_month_val = month_data.get(current_month_key, 0)
+        current_month_val = -(month_data.get(current_month_key, 0))
 
-        # Sparkline data (last 12 months)
-        sparkline = [{"month": m, "amount_minor": month_data[m]} for m in sorted_months[-12:]]
+        # Sparkline data (last 12 months, flip sign for expenses)
+        sparkline = [{"month": m, "amount_minor": -(month_data[m])} for m in sorted_months[-12:]]
 
         # If we have very little history, we can't do meaningful stddev
         if len(historical_values) < 2:

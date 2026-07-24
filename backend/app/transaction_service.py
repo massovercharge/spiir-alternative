@@ -595,7 +595,8 @@ def auto_link_receipts(min_date: str | None = None, max_date: str | None = None)
     linked_count = 0
 
     with Session(engine) as db:
-        query = select(Posting).where(col(Posting.amount_minor) < 0)
+        from sqlalchemy.orm import selectinload
+        query = select(Posting).where(col(Posting.amount_minor) < 0).options(selectinload(Posting.allocations))
 
         if min_date:
             query = query.where(col(Posting.booking_date) >= min_date)

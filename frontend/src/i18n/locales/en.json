@@ -54,7 +54,35 @@
     "monthly_amount": "Monthly budget",
     "apply_all_months": "This amount applies to all 12 months.",
     "rollover": "Rollover budget",
-    "rollover_desc": "Transfer surplus/deficit to next month"
+    "rollover_desc": "Transfer surplus/deficit to next month",
+    "result_for": "Budget result for {{year}}",
+    "balance_end_of": "Balance at the end of {{month}} was",
+    "balance_ultimo": "End balance {{month}}",
+    "income_ytd": "Income (YTD)",
+    "bills_ytd": "Bills (YTD)",
+    "consumption_ytd": "Consumption (YTD)",
+    "budget_balance": "Budget Balance",
+    "budget_balance_desc": "Am I doing better or worse than budgeted?",
+    "my_budget_year": "My budget {{year}}",
+    "debt": "DEBT",
+    "savings": "SAVINGS",
+    "final_balance_forecast": "Final balance {{year}} (Forecast)",
+    "budget_forecast": "Budget",
+    "budget_avg_month": "Budget avg/month",
+    "disposable_amount": "Disposable Amount",
+    "result": "Result",
+    "planned_balance": "Planned balance",
+    "actual_balance": "Actual balance",
+    "exactly_as_planned": "exactly as planned",
+    "more_than_planned": "more than planned",
+    "less_than_planned": "less than planned",
+    "unbudgeted_consumption": "Other unbudgeted consumption",
+    "more": "more",
+    "tab_result": "RESULT",
+    "tab_income": "INCOME",
+    "tab_bills": "BILLS",
+    "tab_consumption": "CONSUMPTION",
+    "add_category": "+ Add category"
   },
   "accounts": {
     "description": "Your connected bank accounts and their current balances.",
@@ -93,42 +121,21 @@
     "failedToCreate": "Failed to create household",
     "roleOwner": "Owner",
     "roleMember": "Member",
-    "switchHousehold": "Switch active household"
+    "switchHousehold": "Switch active household",
+    "removeMember": "Remove member",
+    "removeMemberConfirm": "Are you sure you want to remove this member?",
+    "memberRemoved": "Member removed!",
+    "deleteHousehold": "Delete household",
+    "deleteHouseholdConfirm": "Are you sure you want to delete the household '{{name}}'? All data will be lost after 2 hours.",
+    "householdDeleted": "Household marked for deletion",
+    "deletedHouseholds": "Recently deleted households (Undoable)",
+    "deletedAt": "Permanently deleted: {{time}}",
+    "restoreHousehold": "Undo delete",
+    "householdRestored": "Household deletion undone!"
   },
   "releaseNotes": {
     "title": "Release Notes",
-    "description": "See what's new in Peng",
-    "versions": {
-      "v1_0_0": {
-        "version": "v1.0.0",
-        "date": "2026-07-20",
-        "changes": [
-          "Initial release of Peng",
-          "Added basic tracking for accounts and transactions",
-          "Introduced Light and Dark modes"
-        ]
-      },
-      "v1_1_0": {
-        "version": "v1.1.0",
-        "date": "2026-07-22",
-        "changes": [
-          "Added ability to custom name and rename households",
-          "Improved inviting household members via email",
-          "Updated user sync on first login for invited members"
-        ]
-      },
-      "v1_2_0": {
-        "version": "v1.2.0",
-        "date": "2026-07-22",
-        "changes": [
-          "Placed top household switcher next to logo across all pages (mobile and desktop)",
-          "Added ability to quickly create and switch between multiple households",
-          "Improved categorization rules by stripping receipt/nota numbers while preserving Betalingsservice agreement numbers",
-          "Improved display of current user (shown as 'You') in household members list",
-          "Improved mobile layout with bottom padding so buttons and content are never clipped by bottom navigation bar"
-        ]
-      }
-    }
+    "description": "See what's new in Peng"
   },
   "common": {
     "loading": "Loading...",

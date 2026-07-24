@@ -85,3 +85,39 @@ def test_update_household():
 
         db.refresh(hh)
         assert hh.name == "Nyt Husstandsnavn"
+
+def test_list_households_bypasses_tenant_filter():
+    from app.database import current_household_id
+    from app.household_service import list_households
+
+    with Session(engine) as db:
+        # Create user
+        u = User(logto_id="test_list_123", email="list@example.com")
+        db.add(u)
+        db.commit()
+
+        # Create two households
+        hh1 = Household(name="HH1")
+        hh2 = Household(name="HH2")
+        db.add(hh1)
+        db.add(hh2)
+        db.commit()
+
+        # Add user to both
+        m1 = HouseholdMember(household_id=hh1.id, user_id=u.id)
+        m2 = HouseholdMember(household_id=hh2.id, user_id=u.id)
+        db.add(m1)
+        db.add(m2)
+        db.commit()
+
+        # Set active tenant context to ONLY hh1
+        token = current_household_id.set(hh1.id)
+        try:
+            # Bug: list_households used to only return hh1 because HouseholdMember was filtered
+            households = list_households(u.id)
+            assert len(households) == 2
+            names = [h["name"] for h in households]
+            assert "HH1" in names
+            assert "HH2" in names
+        finally:
+            current_household_id.reset(token)

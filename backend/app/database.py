@@ -42,6 +42,15 @@ def _utcnow_iso() -> str:
     """Return the current UTC timestamp as an ISO string."""
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """Enable SQLite foreign keys and WAL mode for high concurrency."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.close()
+
 
 def create_db_and_tables() -> None:
     """Create all SQLModel tables if they don't already exist."""
@@ -140,7 +149,7 @@ def _add_tenant_filter(execute_state):
         execute_state.statement = execute_state.statement.options(
             with_loader_criteria(
                 SQLModel,
-                lambda cls: cls.household_id == bindparam("hh_id", callable_=lambda: current_household_id.get()) if hasattr(cls, "household_id") else True,
+                lambda cls: cls.household_id == bindparam("hh_id", callable_=lambda: current_household_id.get()) if hasattr(cls, "household_id") and cls.__name__ != "HouseholdMember" else True,
                 include_aliases=True
             )
         )
@@ -163,8 +172,8 @@ def _receive_before_insert(mapper, connection, target):
 
 class PostingAllocationTagLink(SQLModel, table=True):
     """Link table for the many-to-many relationship between allocations and tags."""
-    allocation_id: str = Field(foreign_key="postingallocation.id", primary_key=True)
-    tag_id: str = Field(foreign_key="tag.id", primary_key=True)
+    allocation_id: str = Field(foreign_key="postingallocation.id", ondelete="CASCADE", primary_key=True)
+    tag_id: str = Field(foreign_key="tag.id", ondelete="CASCADE", primary_key=True)
 
 
 # ---------------------------------------------------------------------------
@@ -172,10 +181,11 @@ class PostingAllocationTagLink(SQLModel, table=True):
 # ---------------------------------------------------------------------------
 
 class Household(SQLModel, table=True):
-    """A shared economic unit."""
-    id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
+    """A Household groups multiple users and their financial data."""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str
     created_at: str = Field(default_factory=_utcnow_iso)
+    deleted_at: Optional[str] = Field(default=None)
 
 
 class User(SQLModel, table=True):
@@ -189,8 +199,8 @@ class User(SQLModel, table=True):
 
 class HouseholdMember(SQLModel, table=True):
     """Membership mapping a User to a Household."""
-    household_id: str = Field(foreign_key="household.id", primary_key=True)
-    user_id: str = Field(foreign_key="user.id", primary_key=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", primary_key=True)
+    user_id: str = Field(foreign_key="user.id", ondelete="CASCADE", primary_key=True)
     role: str = Field(default="owner")  # owner, member
     created_at: str = Field(default_factory=_utcnow_iso)
 
@@ -238,7 +248,7 @@ class Tag(SQLModel, table=True):
         name: Display name (without the ``#`` prefix).
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     name: str = Field(index=True)
     created_at: str = Field(default_factory=_utcnow_iso)
 
@@ -267,7 +277,7 @@ class BankConnection(SQLModel, table=True):
         status: Connection lifecycle status.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     provider: str = Field(default="enablebanking", index=True)
     bank_name: Optional[str] = None
     consent_id: Optional[str] = None
@@ -292,9 +302,9 @@ class Account(SQLModel, table=True):
         source: Data source identifier (e.g. "enablebanking", "csv").
     """
     uid: str = Field(primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     bank_connection_id: Optional[str] = Field(
-        default=None, foreign_key="bankconnection.id", index=True
+        default=None, foreign_key="bankconnection.id", ondelete="SET NULL", index=True
     )
     session_name: str = Field(default="", index=True)  # legacy compatibility
     iban: Optional[str] = None
@@ -331,7 +341,7 @@ class Payee(SQLModel, table=True):
         default_category_id: Suggested category for new transactions from this payee.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     display_name: str = Field(index=True)
     raw_names: str = Field(default="")  # newline-separated raw bank names
     default_category_id: Optional[str] = Field(default=None, index=True)
@@ -366,9 +376,9 @@ class Posting(SQLModel, table=True):
         currency: ISO 4217 currency code.
     """
     id: str = Field(primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
-    account_uid: str = Field(foreign_key="account.uid", index=True)
-    payee_id: Optional[str] = Field(default=None, foreign_key="payee.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    account_uid: str = Field(foreign_key="account.uid", ondelete="CASCADE", index=True)
+    payee_id: Optional[str] = Field(default=None, foreign_key="payee.id", ondelete="SET NULL", index=True)
 
     booking_date: str = Field(index=True)
     booking_date_time: Optional[str] = None
@@ -422,9 +432,9 @@ class PostingAllocation(SQLModel, table=True):
         is_extraordinary: Excluded from budget calculations.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
-    posting_id: str = Field(foreign_key="posting.id", index=True)
-    category_id: Optional[str] = Field(default=None, foreign_key="category.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    posting_id: str = Field(foreign_key="posting.id", ondelete="CASCADE", index=True)
+    category_id: Optional[str] = Field(default=None, foreign_key="category.id", ondelete="SET NULL", index=True)
 
     amount_minor: int  # Must sum to parent posting's amount_minor
     note: Optional[str] = None
@@ -465,12 +475,12 @@ class RecurringTransaction(SQLModel, table=True):
         status: "active" or "inactive".
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     name: str
     amount_minor: int
     interval: str = Field(default="monthly")
-    category_id: Optional[str] = Field(default=None, foreign_key="category.id", index=True)
-    account_uid: Optional[str] = Field(default=None, foreign_key="account.uid", index=True)
+    category_id: Optional[str] = Field(default=None, foreign_key="category.id", ondelete="SET NULL", index=True)
+    account_uid: Optional[str] = Field(default=None, foreign_key="account.uid", ondelete="CASCADE", index=True)
 
     next_date: Optional[str] = None
     match_pattern: str = Field(index=True)
@@ -506,8 +516,8 @@ class Budget(SQLModel, table=True):
         rollover: Whether unused budget rolls forward.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
-    category_id: str = Field(foreign_key="category.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
 
     year: int
     month: int  # 1-12
@@ -530,8 +540,8 @@ class BudgetBill(SQLModel, table=True):
     per category that apply to specific months.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
-    category_id: str = Field(foreign_key="category.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
 
     year: int
     name: str
@@ -565,7 +575,7 @@ class CategoryOverrideLog(SQLModel, table=True):
         merchant_category_code: MCC from the bank (if available).
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     original_description: str = Field(index=True)
     old_category_id: Optional[str] = None
     new_category_id: str
@@ -588,8 +598,8 @@ class Document(SQLModel, table=True):
         storage_path: Path to the file on disk (relative to data dir).
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
-    allocation_id: str = Field(foreign_key="postingallocation.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    allocation_id: str = Field(foreign_key="postingallocation.id", ondelete="CASCADE", index=True)
     filename: str
     content_type: str = Field(default="application/octet-stream")
     storage_path: str
@@ -612,7 +622,7 @@ class SyncJob(SQLModel, table=True):
         result_json: JSON blob with the final result payload.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: str = Field(foreign_key="household.id", index=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     status: str = Field(default="queued")  # queued, running, succeeded, failed
     started_at: str = Field(default_factory=_utcnow_iso)
     completed_at: Optional[str] = None
@@ -645,8 +655,8 @@ class CategorizationRule(SQLModel, table=True):
         is_active: Whether the rule is currently enabled.
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: Optional[str] = Field(default=None, foreign_key="household.id", index=True)
-    category_id: str = Field(foreign_key="category.id", index=True)
+    household_id: Optional[str] = Field(default=None, foreign_key="household.id", ondelete="CASCADE", index=True)
+    category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
     match_pattern: str = Field(index=True)
     is_regex: bool = Field(default=False)
     partial_match: bool = Field(default=False)

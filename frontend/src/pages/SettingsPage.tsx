@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText } from 'lucide-react';
-import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink } from '../api/client';
+import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/Button';
@@ -52,10 +52,13 @@ export default function SettingsPage() {
   const { data: userRules = [], isLoading: isLoadingRules } = useRules('user');
   const deleteRuleMutation = useDeleteRule();
   
-  const { activeHouseholdId, households, setActiveHousehold } = useHousehold();
+  const { activeHouseholdId, households, deletedHouseholds, setActiveHousehold } = useHousehold();
   const currentHousehold = households.find((h: any) => h.id === activeHouseholdId);
   const { data: members = [] } = useHouseholdMembers(activeHouseholdId || '');
   const inviteMemberMutation = useInviteHouseholdMember();
+  const removeMemberMutation = useRemoveHouseholdMember();
+  const deleteHouseholdMutation = useDeleteHousehold();
+  const restoreHouseholdMutation = useRestoreHousehold();
   const createHouseholdMutation = useCreateHousehold();
   const updateHouseholdMutation = useUpdateHousehold();
   
@@ -286,9 +289,32 @@ export default function SettingsPage() {
                           <p className="text-xs text-muted">{member.email}</p>
                         )}
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
-                        {member.role}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
+                          {member.role}
+                        </span>
+                        {currentHousehold?.role === 'owner' && !isMe && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:bg-red-500/10 h-8 w-8 p-0"
+                            onClick={() => {
+                              if (window.confirm(t('settings.removeMemberConfirm', 'Er du sikker på, at du vil fjerne dette medlem?'))) {
+                                removeMemberMutation.mutate(
+                                  { householdId: activeHouseholdId!, userId: member.id || member.email },
+                                  {
+                                    onSuccess: () => toast.success(t('settings.memberRemoved', 'Medlem fjernet!')),
+                                    onError: (err: any) => toast.error(err?.message || 'Error')
+                                  }
+                                );
+                              }
+                            }}
+                            disabled={removeMemberMutation.isPending}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -391,6 +417,57 @@ export default function SettingsPage() {
                         <p className="text-xs text-muted capitalize">{hh.role === 'owner' ? t('settings.roleOwner', 'Ejer') : t('settings.roleMember', 'Medlem')}</p>
                       </div>
                     </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {activeHouseholdId && currentHousehold?.role === 'owner' && (
+              <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+                <Button
+                  variant="outline"
+                  className="w-full text-red-500 border-red-500/20 hover:bg-red-500/10 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    if (window.confirm(t('settings.deleteHouseholdConfirm', { name: currentHousehold?.name || '', defaultValue: `Er du sikker på, at du vil slette husstanden '${currentHousehold?.name || ''}'? Al data vil gå tabt efter 2 timer.` }))) {
+                      deleteHouseholdMutation.mutate(activeHouseholdId, {
+                        onSuccess: () => toast.success(t('settings.householdDeleted', 'Husstanden er markeret til sletning')),
+                        onError: (err: any) => toast.error(err?.message || 'Error')
+                      });
+                    }
+                  }}
+                  disabled={deleteHouseholdMutation.isPending}
+                >
+                  <Trash2 size={16} />
+                  {t('settings.deleteHousehold', 'Slet husstand')}
+                </Button>
+              </div>
+            )}
+
+            {deletedHouseholds && deletedHouseholds.length > 0 && (
+              <div className="pt-4 border-t border-[hsl(var(--border-color))]">
+                <h3 className="text-sm font-medium mb-3 text-red-500">{t('settings.deletedHouseholds', 'Nyligt slettede husstande (Kan fortrydes)')}</h3>
+                <div className="space-y-2">
+                  {deletedHouseholds.map((hh: any) => (
+                    <div key={hh.id} className="flex items-center justify-between p-3 rounded-lg border border-red-500/20 bg-red-500/5">
+                      <div>
+                        <p className="text-sm font-semibold">{hh.name}</p>
+                        <p className="text-xs text-muted">{t('settings.deletedAt', { time: new Date(new Date(hh.deleted_at).getTime() + 2 * 60 * 60 * 1000).toLocaleString(), defaultValue: 'Slettes permanent: ' + new Date(new Date(hh.deleted_at).getTime() + 2 * 60 * 60 * 1000).toLocaleString() })}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          restoreHouseholdMutation.mutate(hh.id, {
+                            onSuccess: () => toast.success(t('settings.householdRestored', 'Sletning af husstand fortrudt!')),
+                            onError: (err: any) => toast.error(err?.message || 'Error')
+                          });
+                        }}
+                        disabled={restoreHouseholdMutation.isPending}
+                        className="text-green-600 border-green-600/20 hover:bg-green-600/10"
+                      >
+                        <RefreshCw size={14} className="mr-2" />
+                        {t('settings.restoreHousehold', 'Fortryd sletning')}
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>

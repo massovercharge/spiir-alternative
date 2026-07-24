@@ -64,7 +64,7 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
         setBills(budgetBills.map((b: any) => ({
           ...b,
           id: b.id || Math.random().toString(), // ensuring id exists for temp items
-          amountInput: (b.amount_minor / 100).toString().replace('.', ','),
+          amountInput: (Math.abs(b.amount_minor) / 100).toString().replace('.', ','),
           activeMonths: new Set(b.months)
         })));
         setIsInitialized(true);
@@ -121,16 +121,17 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
 
   const handleSave = () => {
     if (isFixedOrIncome) {
+      const signMultiplier = category.category_type === 'Income' ? 1 : -1;
       const validBills = bills
         .map(b => {
           const parsed = parseFloat(b.amountInput.replace(',', '.'));
           return {
             name: b.name.trim(),
-            amount_minor: isNaN(parsed) ? 0 : Math.round(parsed * 100),
+            amount_minor: (isNaN(parsed) ? 0 : Math.round(parsed * 100)) * signMultiplier,
             months: Array.from(b.activeMonths).sort((a: any, b: any) => a - b)
           };
         })
-        .filter(b => b.name && b.amount_minor > 0 && b.months.length > 0);
+        .filter(b => b.name && Math.abs(b.amount_minor) > 0 && b.months.length > 0);
 
       saveBillsMutation.mutateAsync({
         category_id: category.category_id,
@@ -146,10 +147,11 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
       
       if (safeAmount < 0) return;
 
+      const signMultiplier = category.category_type === 'Income' ? 1 : -1;
       const promises = [];
       
       for (let month = 1; month <= 12; month++) {
-        const amountMinor = activeMonths.has(month) ? Math.round(safeAmount * 100) : 0;
+        const amountMinor = activeMonths.has(month) ? Math.round(safeAmount * 100) * signMultiplier : 0;
         promises.push(upsertMutation.mutateAsync({
           category_id: category.category_id,
           year,
@@ -165,13 +167,14 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
     }
   };
 
+  const signMult = category.category_type === 'Income' ? 1 : -1;
   const chartData = Array.from({ length: 12 }, (_, i) => {
     const monthNum = i + 1;
     const mData = category.months?.find((m: any) => m.month === monthNum);
     return {
       name: MONTH_INITIALS[i],
-      [t('budgets.budgeted', 'Budget')]: mData ? Math.abs(mData.budgeted_minor) / 100 : 0,
-      [t('budgets.actual', 'Faktisk')]: mData ? Math.abs(mData.actual_minor) / 100 : 0,
+      [t('budgets.budgeted', 'Budget')]: mData ? (mData.budgeted_minor * signMult) / 100 : 0,
+      [t('budgets.actual', 'Faktisk')]: mData ? (mData.actual_minor * signMult) / 100 : 0,
     };
   });
 

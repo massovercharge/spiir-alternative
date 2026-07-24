@@ -234,7 +234,7 @@ def _normalize_and_persist(
     # Pre-fetch active categorization rules as objects to avoid N+1 queries in evaluate_posting
     from sqlmodel import col, select
 
-    from .database import CategorizationRule
+    from .database import CategorizationRule, RecurringTransaction
     active_rules = db.exec(
         select(CategorizationRule)
         .where(CategorizationRule.is_active == True)  # noqa: E712
@@ -242,6 +242,11 @@ def _normalize_and_persist(
             col(CategorizationRule.source).desc(),
             col(CategorizationRule.priority).asc(),
         )
+    ).all()
+
+    active_recurring = db.exec(
+        select(RecurringTransaction)
+        .where(RecurringTransaction.status == "active")
     ).all()
 
     for raw_dict in raw_txs:
@@ -319,17 +324,7 @@ def _normalize_and_persist(
             db.add(alloc)
 
             # Link to recurring transaction
-            from sqlmodel import select
-
-            from .database import RecurringTransaction
             from .recurring_service import match_posting_to_recurring
-
-            # Pre-fetch active recurring transactions
-            active_recurring = db.exec(
-                select(RecurringTransaction)
-                .where(RecurringTransaction.status == "active")
-            ).all()
-
             match_posting_to_recurring(posting, alloc, recurring_txs=active_recurring)
 
             new_count += 1

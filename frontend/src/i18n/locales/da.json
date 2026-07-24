@@ -54,7 +54,35 @@
     "monthly_amount": "Månedligt budget (kr.)",
     "apply_all_months": "Dette beløb gælder for alle 12 måneder i året.",
     "rollover": "Løbende budget",
-    "rollover_desc": "Overfør overskud/underskud til næste måned"
+    "rollover_desc": "Overfør overskud/underskud til næste måned",
+    "result_for": "Resultat for mit budget i {{year}}",
+    "balance_end_of": "Saldo i slutningen af {{month}} var",
+    "balance_ultimo": "Saldo ultimo {{month}}",
+    "income_ytd": "Indkomst (År til dato)",
+    "bills_ytd": "Regninger (År til dato)",
+    "consumption_ytd": "Forbrug (År til dato)",
+    "budget_balance": "Budgetsaldo",
+    "budget_balance_desc": "Går det bedre eller dårligere end hvad jeg har budgetteret med?",
+    "my_budget_year": "Mit budget {{year}}",
+    "debt": "GÆLD",
+    "savings": "OPSPARING",
+    "final_balance_forecast": "Slutsaldo {{year}} (Prognose)",
+    "budget_forecast": "Budget",
+    "budget_avg_month": "Budget gns/måned",
+    "disposable_amount": "Rådighedsbeløb",
+    "result": "Resultat",
+    "planned_balance": "Planlagt saldo",
+    "actual_balance": "Faktisk saldo",
+    "exactly_as_planned": "præcis som planlagt",
+    "more_than_planned": "mere end planlagt",
+    "less_than_planned": "mindre end planlagt",
+    "unbudgeted_consumption": "Andet ubudgetteret forbrug",
+    "more": "mere",
+    "tab_result": "RESULTAT",
+    "tab_income": "INDKOMST",
+    "tab_bills": "REGNINGER",
+    "tab_consumption": "FORBRUG",
+    "add_category": "+ Tilføj kategori"
   },
   "accounts": {
     "description": "Dine forbundne bankkonti og deres nuværende saldo.",
@@ -93,42 +121,21 @@
     "failedToCreate": "Kunne ikke oprette husstand",
     "roleOwner": "Ejer",
     "roleMember": "Medlem",
-    "switchHousehold": "Skift aktiv husstand"
+    "switchHousehold": "Skift aktiv husstand",
+    "removeMember": "Fjern medlem",
+    "removeMemberConfirm": "Er du sikker på, at du vil fjerne dette medlem?",
+    "memberRemoved": "Medlem fjernet!",
+    "deleteHousehold": "Slet husstand",
+    "deleteHouseholdConfirm": "Er du sikker på, at du vil slette husstanden '{{name}}'? Al data vil gå tabt efter 2 timer.",
+    "householdDeleted": "Husstanden er markeret til sletning",
+    "deletedHouseholds": "Nyligt slettede husstande (Kan fortrydes)",
+    "deletedAt": "Slettes permanent: {{time}}",
+    "restoreHousehold": "Fortryd sletning",
+    "householdRestored": "Sletning af husstand fortrudt!"
   },
   "releaseNotes": {
     "title": "Udgivelsesnoter",
-    "description": "Se hvad der er nyt i Peng",
-    "versions": {
-      "v1_0_0": {
-        "version": "v1.0.0",
-        "date": "2026-07-20",
-        "changes": [
-          "Første udgivelse af Peng",
-          "Tilføjet basisskærme for konti og transaktioner",
-          "Introduceret Lys og Mørk tilstand"
-        ]
-      },
-      "v1_1_0": {
-        "version": "v1.1.0",
-        "date": "2026-07-22",
-        "changes": [
-          "Tilføjet mulighed for at omdøbe og navngive husstande",
-          "Forbedret invitation af husstandsmedlemmer via e-mail",
-          "Opdateret bruger-synkronisering ved første login for inviterede medlemmer"
-        ]
-      },
-      "v1_2_0": {
-        "version": "v1.2.0",
-        "date": "2026-07-22",
-        "changes": [
-          "Placeret husstandsskifteren i toppen ved siden af logoet på alle sider (både mobil og desktop)",
-          "Tilføjet mulighed for hurtigt at oprette og skifte mellem flere husstande",
-          "Forbedret kategoriseringsregler ved automatisk at fjerne receipt-/notanumre, men bevare Betalingsservice aftalenumre",
-          "Forbedret visning af nuværende bruger (vises som 'Dig') under husstandsmedlemmer",
-          "Forbedret mobil layout med bund-padding så knapper og indhold ikke dækkes af menu-baren"
-        ]
-      }
-    }
+    "description": "Se hvad der er nyt i Peng"
   },
   "common": {
     "loading": "Indlæser...",

@@ -41,6 +41,20 @@ def upsert_budget(
     """Create or update a budget for a specific category and month."""
     now = _utcnow_iso()
     with Session(engine) as db:
+        # Auto-create category if missing
+        cat = db.exec(select(Category).where(Category.id == category_id)).first()
+        if not cat:
+            parts = category_id.split("|")
+            main_name = parts[0].capitalize()
+            sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
+            db.add(Category(
+                id=category_id,
+                main_name=main_name,
+                sub_name=sub_name,
+                category_type="Income" if amount_minor > 0 else "Expense",
+                expense_type="Variable"
+            ))
+
         budget = db.exec(
             select(Budget)
             .where(Budget.category_id == category_id)
@@ -136,6 +150,21 @@ def get_budget_bills(category_id: str, year: int) -> list[dict[str, Any]]:
 def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Replace all bills for a category/year and recalculate monthly budget sums."""
     with Session(engine) as db:
+        # Auto-create category if missing
+        cat = db.exec(select(Category).where(Category.id == category_id)).first()
+        if not cat:
+            parts = category_id.split("|")
+            main_name = parts[0].capitalize()
+            sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
+            is_income = any(b.get("amount_minor", 0) > 0 for b in bills_data)
+            db.add(Category(
+                id=category_id,
+                main_name=main_name,
+                sub_name=sub_name,
+                category_type="Income" if is_income else "Expense",
+                expense_type="Fixed"
+            ))
+
         # 1. Delete existing bills for this category/year
         existing_bills = db.exec(
             select(BudgetBill)
@@ -251,14 +280,24 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
         if target_year is None:
             target_year = datetime.now(UTC).year
 
-        for cat_id, month_data in monthly_totals.items():
-            sorted_months = sorted(month_data.keys())
-            historical_months = [m for m in sorted_months if m < current_month_key][-months:]
+        # Compute the last `months` calendar months strings exactly
+        current_date = datetime.now(UTC)
+        target_historical_months = []
+        for i in range(months, 0, -1):
+            m = current_date.month - i
+            y = current_date.year
+            while m < 1:
+                m += 12
+                y -= 1
+            target_historical_months.append(f"{y}-{m:02d}")
 
-            if not historical_months:
+        for cat_id, month_data in monthly_totals.items():
+            historical_months_with_transactions = [m for m in target_historical_months if month_data.get(m, 0) != 0]
+
+            if not historical_months_with_transactions:
                 continue
 
-            historical_values = [month_data[m] for m in historical_months]
+            historical_values = [month_data.get(m, 0) for m in target_historical_months]
 
             avg = statistics.mean(historical_values)
             stddev = statistics.stdev(historical_values) if len(historical_values) > 1 else 0
@@ -288,9 +327,35 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
 
             target_months = list(range(1, 13))
             if is_fixed or is_income:
-                historical_month_ints = {int(m[-2:]) for m in historical_months}
-                if historical_month_ints:
-                    target_months = list(historical_month_ints)
+                historical_month_ints = {int(m[-2:]) for m in historical_months_with_transactions}
+                
+                # For income, always project to all 12 months by default
+                if is_income:
+                    target_months = list(range(1, 13))
+                elif historical_month_ints:
+                    # For fixed bills, if it appears frequently (e.g. >= 50% of the historical span), 
+                    # assume it's a monthly bill and project to all 12 months.
+                    # Otherwise, just keep the specific months it appeared in (e.g. for quarterly/yearly).
+                    if len(historical_month_ints) > 1:
+                        min_m = min(historical_month_ints)
+                        max_m = max(historical_month_ints)
+                        span = (max_m - min_m + 1) if max_m >= min_m else 12
+                        if len(historical_month_ints) >= span / 2.0:
+                            target_months = list(range(1, 13))
+                        else:
+                            # Try to extrapolate quarterly or semi-annual
+                            target_months = list(historical_month_ints)
+                            # Simple extrapolation for the rest of the year based on the last observed month
+                            last_month = max(historical_month_ints)
+                            interval = span // len(historical_month_ints) if len(historical_month_ints) > 1 else 12
+                            if interval in [2, 3, 6]:
+                                next_month = last_month + interval
+                                while next_month <= 12:
+                                    if next_month not in target_months:
+                                        target_months.append(next_month)
+                                    next_month += interval
+                    else:
+                        target_months = list(historical_month_ints)
 
             for m in target_months:
                 existing = db.exec(
@@ -386,7 +451,10 @@ def get_annual_summary(year: int) -> dict[str, Any]:
             })
 
         meta = cat_meta.get(cat_id)
-        if not meta and "|" not in cat_id:
+        if not meta and "|" in cat_id:
+            main_id = cat_id.split("|")[0]
+            meta = main_meta.get(main_id)
+        elif not meta:
             meta = main_meta.get(cat_id)
 
         matrix.append({
