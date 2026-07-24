@@ -28,3 +28,6 @@ screenshots/raw-private/*
 
 # Local reference scrape of Spiir docs/business logic; keep out of app deploy/git for now.
 spiir-scrape/
+
+# Private Data
+private_data/
