@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import HTTPException
 from sqlmodel import Session, select
 
-from app.database import Household, HouseholdMember, User, engine
+from app.models import Household, HouseholdMember, User, engine
 
 
 def list_households(user_id: str) -> list[dict[str, Any]]:
@@ -109,6 +109,7 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
 
             display_name = user.name or (display_email.split("@")[0] if "@" in display_email else "")
             result.append({
+                "id": user.id,
                 "email": display_email,
                 "name": display_name,
                 "role": m.role,
@@ -116,8 +117,11 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
             })
         return result
 
-def invite_member(household_id: str, requesting_user_id: str, email: str) -> dict[str, Any]:
+def invite_member(household_id: str, requesting_user_id: str, email: str, role: str = "member") -> dict[str, Any]:
     """Add a member to the household by email."""
+    if role not in ("owner", "member"):
+        raise HTTPException(status_code=400, detail="Invalid role")
+
     with Session(engine) as db:
         # Validate that requesting user is owner
         membership = db.exec(
@@ -131,7 +135,9 @@ def invite_member(household_id: str, requesting_user_id: str, email: str) -> dic
             raise HTTPException(status_code=403, detail="Only owners can invite members")
 
         # Find user by email
-        user = db.exec(select(User).where(User.email == email)).first()
+        from sqlmodel import func
+        email = email.lower().strip()
+        user = db.exec(select(User).where(func.lower(User.email) == email)).first()
         if not user:
             user = User(logto_id=f"pending:{email}", email=email, name=email.split("@")[0])
             db.add(user)
@@ -149,15 +155,14 @@ def invite_member(household_id: str, requesting_user_id: str, email: str) -> dic
         if existing:
             raise HTTPException(status_code=400, detail="User is already a member")
 
-        new_member = HouseholdMember(household_id=household_id, user_id=user.id, role="member")
+        new_member = HouseholdMember(household_id=household_id, user_id=user.id, role=role)
         db.add(new_member)
         db.commit()
 
-        return {"success": True, "email": user.email, "role": "member"}
+        return {"success": True, "email": user.email, "role": role}
 
-def remove_member(household_id: str, requesting_user_id: str, member_email: str) -> dict[str, Any]:
-    """Remove a member from the household."""
-    from datetime import datetime, timezone
+def remove_member(household_id: str, requesting_user_id: str, target_user_id: str) -> dict[str, Any]:
+    """Remove a member from the household (or leave household if requesting_user_id == target_user_id)."""
     with Session(engine) as db:
         req_membership = db.exec(
             select(HouseholdMember).where(
@@ -166,10 +171,14 @@ def remove_member(household_id: str, requesting_user_id: str, member_email: str)
             )
         ).first()
 
-        if not req_membership or req_membership.role != "owner":
-            raise HTTPException(status_code=403, detail="Only owners can remove members")
+        if not req_membership:
+            raise HTTPException(status_code=403, detail="Access denied")
 
-        user_to_remove = db.exec(select(User).where(User.email == member_email)).first()
+        is_self_removal = (requesting_user_id == target_user_id)
+        if not is_self_removal and req_membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can remove other members")
+
+        user_to_remove = db.exec(select(User).where(User.id == target_user_id)).first()
         if not user_to_remove:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -192,7 +201,7 @@ def remove_member(household_id: str, requesting_user_id: str, member_email: str)
                 )
             ).all())
             if owner_count <= 1:
-                raise HTTPException(status_code=400, detail="Cannot remove the last owner of the household")
+                raise HTTPException(status_code=400, detail="Cannot leave or remove the last owner of the household")
 
         db.delete(target_membership)
         db.commit()
@@ -201,7 +210,7 @@ def remove_member(household_id: str, requesting_user_id: str, member_email: str)
 
 def delete_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
     """Mark a household as deleted (soft delete)."""
-    from app.database import _utcnow_iso
+    from app.models import _utcnow_iso
     with Session(engine) as db:
         req_membership = db.exec(
             select(HouseholdMember).where(
@@ -221,7 +230,7 @@ def delete_household(household_id: str, requesting_user_id: str) -> dict[str, An
         db.add(hh)
         db.commit()
 
-        return {"success": True, "deleted_at": hh.deleted_at}
+        return {"success": True, "deleted": True}
 
 def restore_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
     """Restore a soft-deleted household."""
@@ -253,3 +262,47 @@ def restore_household(household_id: str, requesting_user_id: str) -> dict[str, A
         db.commit()
 
         return {"success": True}
+
+def update_member_role(household_id: str, requesting_user_id: str, target_user_id: str, role: str) -> dict[str, Any]:
+    """Update a household member's role (requires owner role)."""
+    if role not in ("owner", "member"):
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    with Session(engine) as db:
+        req_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == requesting_user_id
+            )
+        ).first()
+
+        if not req_membership or req_membership.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can change roles")
+
+        target_membership = db.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.household_id == household_id,
+                HouseholdMember.user_id == target_user_id
+            )
+        ).first()
+
+        if not target_membership:
+            raise HTTPException(status_code=404, detail="Member not found in household")
+
+        if role == "member" and target_membership.role == "owner":
+            # Ensure there's at least one other owner
+            other_owners = db.exec(
+                select(HouseholdMember).where(
+                    HouseholdMember.household_id == household_id,
+                    HouseholdMember.role == "owner",
+                    HouseholdMember.user_id != target_user_id
+                )
+            ).all()
+            if not other_owners:
+                raise HTTPException(status_code=400, detail="Cannot change role: household must have at least one owner")
+
+        target_membership.role = role
+        db.add(target_membership)
+        db.commit()
+
+        return {"success": True, "role": role}

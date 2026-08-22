@@ -22,7 +22,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWKClient
 from sqlmodel import Session, select
 
-from app.database import Household, HouseholdMember, User, current_household_id, engine
+from app.models import Household, HouseholdMember, User, current_household_id, engine
 
 AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 
@@ -32,12 +32,14 @@ AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 
 def _sync_user_and_household(request: Request, logto_id: str, email: str = "", name: str = "") -> dict[str, Any]:
     """Ensure user exists, validate household access, and set contextvar."""
+    from sqlmodel import func
+    email = email.lower().strip() if email else ""
     try:
         with Session(engine) as session:
             # 1. Sync User
             user = session.exec(select(User).where(User.logto_id == logto_id)).first()
             if not user and email:
-                user = session.exec(select(User).where(User.email == email)).first()
+                user = session.exec(select(User).where(func.lower(User.email) == email)).first()
                 if user:
                     user.logto_id = logto_id
                     if name and not user.name:
@@ -65,24 +67,41 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
             else:
                 # Update email/name on existing user record if provided and missing/changed
                 updated = False
-                if email and user.email != email:
-                    # Check if there's a pending invite for this newly discovered email
-                    pending_user = session.exec(
-                        select(User).where(User.email == email, User.logto_id.startswith("pending:"))
-                    ).first()
+                
+                # Always check for pending invites for this email, even if the email hasn't changed.
+                # This fixes issues where pending invites were created with different casing.
+                if email:
+                    pending_users = session.exec(
+                        select(User).where(
+                            func.lower(User.email) == email, 
+                            User.logto_id.startswith("pending:")
+                        )
+                    ).all()
                     
-                    if pending_user:
+                    for pending_user in pending_users:
                         # Transfer memberships from pending to real user
                         memberships = session.exec(
                             select(HouseholdMember).where(HouseholdMember.user_id == pending_user.id)
                         ).all()
                         for m in memberships:
-                            m.user_id = user.id
-                            session.add(m)
+                            # Avoid duplicate memberships
+                            existing = session.exec(
+                                select(HouseholdMember).where(
+                                    HouseholdMember.user_id == user.id,
+                                    HouseholdMember.household_id == m.household_id
+                                )
+                            ).first()
+                            if not existing:
+                                m.user_id = user.id
+                                session.add(m)
+                            else:
+                                session.delete(m)
                         
                         # Remove the pending stub
                         session.delete(pending_user)
-                    
+                        updated = True
+
+                if email and (not user.email or user.email.lower() != email):
                     user.email = email
                     updated = True
                 
@@ -240,7 +259,7 @@ async def _verify_logto(
             try:
                 import httpx
                 resp = httpx.get(
-                    f"{LOGTO_ENDPOINT}/oidc/userinfo",
+                    f"{LOGTO_ENDPOINT}/oidc/me",
                     headers={"Authorization": f"Bearer {token.credentials}"},
                     timeout=3.0
                 )

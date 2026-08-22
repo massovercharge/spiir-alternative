@@ -1,48 +1,68 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
-from app.auth import get_auth_dependency
-from app.sync_service import get_sync_status, start_sync_job
-from app.bank_service import complete_auth_session, list_bank_connections, start_auth_session
-from app.storebox_service import process_storebox_link, process_storebox_file
-from app.transaction_service import auto_link_receipts
-from app.csv_service import import_spiir_csv
+from app.core.auth import get_auth_dependency
+from app.services.sync_service import get_sync_status, start_sync_job
+from app.services.bank_service import (
+    complete_auth_session,
+    delete_bank_connection,
+    list_bank_connections,
+    start_auth_session,
+)
+from app.services.storebox_service import process_storebox_link, process_storebox_file
+from app.services.transaction_service import auto_link_receipts
+from app.services.csv_service import import_spiir_csv
 from app.schemas.requests import BankConnectRequest, BankCallbackRequest, StoreboxImportLinkRequest
 
 router = APIRouter(prefix="/api", tags=["sync"])
 
 # Sync
 @router.post("/sync/start")
-def sync_start() -> dict[str, Any]:
+def sync_start(auth: dict[str, Any] = Depends(get_auth_dependency())) -> dict[str, Any]:
     """Start a background bank transaction retrieval job."""
     return start_sync_job()
 
 @router.get("/sync/status")
-def sync_status() -> dict[str, Any]:
+def sync_status(auth: dict[str, Any] = Depends(get_auth_dependency())) -> dict[str, Any]:
     """Check the status of the latest sync job."""
     return get_sync_status()
 
 # Bank
 @router.post("/bank/connect")
-def bank_connect(payload: BankConnectRequest) -> dict[str, Any]:
+def bank_connect(payload: BankConnectRequest, auth: dict[str, Any] = Depends(get_auth_dependency())) -> dict[str, Any]:
     """Start the PSD2 authorization flow."""
     try:
-        return start_auth_session(payload.redirect_url)
+        return start_auth_session(payload.redirect_url, payload.bank_name)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 @router.post("/bank/callback")
-def bank_callback(payload: BankCallbackRequest) -> dict[str, Any]:
+def bank_callback(payload: BankCallbackRequest, auth: dict[str, Any] = Depends(get_auth_dependency())) -> dict[str, Any]:
     """Complete the PSD2 authorization flow."""
+    import logging
     try:
         return complete_auth_session(payload.code)
     except Exception as exc:
+        print(f"=== BANK CALLBACK ERROR: {exc} ===", flush=True)
+        logging.exception("Failed in bank_callback: %s", str(exc))
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 @router.get("/bank/connections")
-def bank_connections() -> list[dict[str, Any]]:
+def bank_connections(auth: dict[str, Any] = Depends(get_auth_dependency())) -> list[dict[str, Any]]:
     """List active bank connections."""
     return list_bank_connections()
+
+@router.delete("/bank/connections/{connection_id}")
+def bank_connection_delete(
+    connection_id: str, auth: dict[str, Any] = Depends(get_auth_dependency())
+) -> dict[str, Any]:
+    """Delete a bank connection and revoke consent."""
+    try:
+        return delete_bank_connection(connection_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 # Storebox
 @router.post("/storebox/import-link")

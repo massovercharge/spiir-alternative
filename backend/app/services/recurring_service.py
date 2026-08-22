@@ -11,14 +11,14 @@ from typing import Any
 from dateutil.relativedelta import relativedelta
 from sqlmodel import Session, select
 
-from app.database import (
+from app.models import (
     Posting,
     PostingAllocation,
     RecurringTransaction,
     engine,
 )
-from app.money import format_amount
-from app.rules_service import preprocess_description
+from app.core.money import format_amount
+from app.services.rules_service import preprocess_description
 
 
 def _utcnow_iso() -> str:

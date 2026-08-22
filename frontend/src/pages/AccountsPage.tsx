@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SUPPORTED_BANKS } from '../api/constants';
 import { Card, CardContent } from '../components/ui/Card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAccounts, useConnectBank, useUpdateAccount, useAccountBalanceHistory } from '../api/client';
@@ -71,6 +72,8 @@ export default function AccountsPage() {
   const [editType, setEditType] = useState("Indlån");
   const [editSavingsCat, setEditSavingsCat] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedBank, setSelectedBank] = useState('Sparekassen Danmark');
+  const [bankName, setBankName] = React.useState('Sparekassen Danmark');
 
   const handleEdit = (acc: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -94,7 +97,7 @@ export default function AccountsPage() {
   };
 
   const handleConnectBank = () => {
-    connectBank.mutate(window.location.origin + '/dashboard', {
+    connectBank.mutate({ redirectUrl: window.location.origin + '/dashboard', bankName: selectedBank }, {
       onSuccess: (data) => {
         if (data.auth_url) {
           window.location.href = data.auth_url;
@@ -140,14 +143,23 @@ export default function AccountsPage() {
             Få et overblik over dine konti og deres historiske udvikling.
           </motion.p>
         </div>
-        <Button 
-          onClick={handleConnectBank} 
-          disabled={connectBank.isPending}
-          className="flex items-center gap-2"
-        >
-          {connectBank.isPending ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-          {t('accounts.add_bank')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <select
+            className="px-3 py-2 text-sm rounded-lg border border-[hsl(var(--border-color))] bg-transparent h-10"
+            value={selectedBank}
+            onChange={(e) => setSelectedBank(e.target.value)}
+          >
+            {SUPPORTED_BANKS.map(bank => <option key={bank} value={bank} className="bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))]">{bank}</option>)}
+          </select>
+          <Button 
+            onClick={handleConnectBank} 
+            disabled={connectBank.isPending}
+            className="flex items-center gap-2 h-10"
+          >
+            {connectBank.isPending ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+            {t('accounts.add_bank')}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8">
@@ -164,10 +176,19 @@ export default function AccountsPage() {
               <Building2 size={48} className="mb-4 text-[hsl(var(--text-secondary))] opacity-50" />
               <h3 className="text-lg font-semibold mb-2">{t('accounts.no_accounts')}</h3>
               <p className="max-w-md mb-6">{t('accounts.no_accounts_desc')}</p>
-              <Button onClick={handleConnectBank} disabled={connectBank.isPending} className="flex items-center gap-2">
-                {connectBank.isPending ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                {t('accounts.connect_bank')}
-              </Button>
+              <div className="flex justify-center items-center gap-2">
+                <select
+                  className="px-3 py-2 text-sm rounded-lg border border-[hsl(var(--border-color))] bg-transparent h-10"
+                  value={selectedBank}
+                  onChange={(e) => setSelectedBank(e.target.value)}
+                >
+                  {SUPPORTED_BANKS.map(bank => <option key={bank} value={bank} className="bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))]">{bank}</option>)}
+                </select>
+                <Button onClick={handleConnectBank} disabled={connectBank.isPending} className="flex items-center gap-2 h-10">
+                  {connectBank.isPending ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                  {t('accounts.connect_bank')}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

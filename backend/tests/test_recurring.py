@@ -5,14 +5,14 @@ from conftest import TEST_HOUSEHOLD_ID
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from app.database import (
+from app.models import (
     Account,
     Household,
     Posting,
     PostingAllocation,
     RecurringTransaction,
 )
-from app.recurring_service import (
+from app.services.recurring_service import (
     create_recurring,
     delete_recurring,
     detect_recurring,
@@ -37,7 +37,7 @@ def engine():
 @pytest.fixture()
 def _patch_engine(engine, monkeypatch):
     """Patch service modules to use the test engine."""
-    import app.recurring_service as rs
+    import app.services.recurring_service as rs
     monkeypatch.setattr(rs, "engine", engine)
 
 

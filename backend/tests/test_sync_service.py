@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.sync_service import (
+from app.services.sync_service import (
     EnableBankingAccountID,
     EnableBankingAmount,
     EnableBankingTransaction,

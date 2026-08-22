@@ -1,8 +1,8 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.auth import get_auth_dependency
-from app.household_service import (
+from app.core.auth import get_auth_dependency
+from app.services.household_service import (
     create_household,
     get_household_members,
     invite_member,
@@ -11,8 +11,14 @@ from app.household_service import (
     update_household,
     delete_household,
     restore_household,
+    update_member_role,
 )
-from app.schemas.requests import HouseholdCreateRequest, HouseholdUpdateRequest, HouseholdInviteRequest
+from app.schemas.requests import (
+    HouseholdCreateRequest,
+    HouseholdUpdateRequest,
+    HouseholdInviteRequest,
+    HouseholdMemberRoleUpdateRequest,
+)
 
 router = APIRouter(prefix="/api/households", tags=["households"])
 
@@ -53,6 +59,16 @@ def households_remove_member(
 ) -> dict[str, Any]:
     """Remove a member from a household (requires owner role)."""
     return remove_member(household_id, auth["user_id"], user_id)
+
+@router.patch("/{household_id}/members/{user_id}/role")
+def households_update_member_role(
+    household_id: str,
+    user_id: str,
+    payload: HouseholdMemberRoleUpdateRequest,
+    auth: dict[str, Any] = Depends(get_auth_dependency())
+) -> dict[str, Any]:
+    """Update a household member's role (requires owner role)."""
+    return update_member_role(household_id, auth["user_id"], user_id, payload.role)
 
 @router.delete("/{household_id}")
 def households_delete(

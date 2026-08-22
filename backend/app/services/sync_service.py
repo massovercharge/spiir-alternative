@@ -15,9 +15,9 @@ import requests
 from pydantic import BaseModel, field_validator
 from sqlmodel import Session, select
 
-from .config import get_data_dir
-from .database import Account, BankConnection, Posting, PostingAllocation, SyncJob, engine
-from .money import to_minor
+from app.core.config import get_data_dir
+from app.models import Account, BankConnection, Posting, PostingAllocation, SyncJob, engine
+from app.core.money import to_minor
 
 # ---------------------------------------------------------------------------
 # Enable Banking Configuration
@@ -192,7 +192,7 @@ def _normalize_and_persist(
     """
     import logging
 
-    from .database import current_household_id
+    from app.models import current_household_id
 
     account_uid = (
         account_data.get("uid")
@@ -234,7 +234,7 @@ def _normalize_and_persist(
     # Pre-fetch active categorization rules as objects to avoid N+1 queries in evaluate_posting
     from sqlmodel import col, select
 
-    from .database import CategorizationRule, RecurringTransaction
+    from app.models import CategorizationRule, RecurringTransaction
     active_rules = db.exec(
         select(CategorizationRule)
         .where(CategorizationRule.is_active == True)  # noqa: E712
@@ -483,7 +483,7 @@ def retrieve_transactions(
                         preferred_balance = balances[0]
 
                     if preferred_balance:
-                        from .money import to_minor
+                        from app.core.money import to_minor
                         amt_str = str((preferred_balance.get("balance_amount") or {}).get("amount", "0"))
 
                         with Session(engine) as inner_db:
@@ -574,7 +574,7 @@ def get_sync_status() -> dict[str, Any]:
 def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
     """Background thread target for retrieval."""
     if hh_id:
-        from .database import current_household_id
+        from app.models import current_household_id
         current_household_id.set(hh_id)
 
     def _update_job(status: str, progress: int, phase: str | None = None, **kwargs: Any) -> None:
@@ -633,7 +633,7 @@ def start_sync_job() -> dict[str, Any]:
         if isinstance(thread, threading.Thread) and thread.is_alive():
             return get_sync_status()
 
-        from .database import current_household_id
+        from app.models import current_household_id
         try:
             hh_id = current_household_id.get()
         except LookupError:

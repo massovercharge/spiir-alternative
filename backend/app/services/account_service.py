@@ -8,8 +8,8 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.database import Account, BankConnection, Posting, engine
-from app.money import format_amount
+from app.models import Account, BankConnection, Posting, engine
+from app.core.money import format_amount
 
 
 def list_accounts_with_balances() -> list[dict[str, Any]]:
@@ -60,7 +60,7 @@ def update_account(uid: str, name: str, account_type: str | None = None, savings
 
         # Changing account type or savings category can change how transfers are categorized,
         # so we re-run the detection logic retroactively.
-        from app.transfer_service import detect_internal_transfers
+        from app.services.transfer_service import detect_internal_transfers
         detect_internal_transfers()
 
         return {"uid": account.uid, "name": account.name, "account_type": account.account_type, "savings_category_id": account.savings_category_id}

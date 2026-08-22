@@ -77,43 +77,63 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
     return groups;
   }, [filteredCategories]);
 
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      const popoverWidth = 256;
-      
-      // Prevent popover from overflowing the right edge of the screen
-      const leftPos = Math.max(8, Math.min(rect.left, window.innerWidth - popoverWidth - 8));
-      
-      // If there's less than 300px below and more space above, open upwards
-      if (spaceBelow < 300 && spaceAbove > spaceBelow) {
-        setPopoverStyle({
-          position: 'fixed',
-          bottom: window.innerHeight - rect.top + 8,
-          left: leftPos,
-          width: popoverWidth, // 16rem = w-64
-          maxHeight: Math.min(spaceAbove - 16, 384) // max 384px (h-96)
-        });
-      } else {
-        // Open downwards
-        setPopoverStyle({
-          position: 'fixed',
-          top: rect.bottom + 8,
-          left: leftPos,
-          width: popoverWidth,
-          maxHeight: Math.min(spaceBelow - 16, 384)
-        });
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
       }
     }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isOpen]);
 
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom');
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current && !isMobile) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      if (spaceBelow < 300) {
+        setPlacement('top');
+      } else {
+        setPlacement('bottom');
+      }
+
+      // Fix z-index for virtualized lists by elevating the parent row
+      if (wrapperRef.current) {
+        const row = wrapperRef.current.closest('[data-index]');
+        if (row) {
+          (row as HTMLElement).style.zIndex = '9999';
+        }
+      }
+    } else if (!isOpen && wrapperRef.current) {
+      // Restore z-index when closed
+      const row = wrapperRef.current.closest('[data-index]');
+      if (row) {
+        (row as HTMLElement).style.zIndex = '';
+      }
+    }
+  }, [isOpen, isMobile]);
+
   return (
-    <div className={`relative min-w-0 max-w-full ${className}`}>
+    <div ref={wrapperRef} className={`relative min-w-0 max-w-full ${className}`}>
       {/* Trigger */}
       <button
         ref={buttonRef}
@@ -127,20 +147,82 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
       </button>
 
       {/* Popover */}
-      {isOpen && typeof document !== 'undefined' && createPortal(
-        <>
-          <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} />
+      {isOpen && typeof document !== 'undefined' && (
+        isMobile ? createPortal(
+          <>
+            <div className="fixed inset-0 z-[100] bg-black/60" onClick={() => setIsOpen(false)} />
+            <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
+              
+              {/* Mobile Header */}
+              <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl shrink-0">
+                <h3 className="font-semibold text-base">Vælg kategori</h3>
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="text-muted hover:text-[hsl(var(--text-primary))] font-medium"
+                >
+                  Luk
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="p-3 border-b border-[hsl(var(--border-color))] flex items-center gap-2 bg-[hsl(var(--bg-primary))] shrink-0">
+                <Search size={16} className="text-muted shrink-0" />
+                <input 
+                  type="text"
+                  placeholder={t('app.search') + "..."}
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full bg-transparent outline-none text-sm"
+                  autoFocus
+                />
+              </div>
+
+              {/* List */}
+              <div className="overflow-y-auto flex-1 p-2 space-y-4">
+                {isLoading && <p className="text-center text-sm text-muted p-4">Henter...</p>}
+                
+                {!isLoading && Object.keys(groupedCategories).length === 0 && (
+                  <p className="text-center text-sm text-muted p-4">Ingen kategorier fundet</p>
+                )}
+
+                {Object.entries(groupedCategories).map(([mainCatName, subs]) => (
+                  <div key={mainCatName} className="space-y-1">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-wider px-2 pt-1">
+                      {mainCatName.replace('-', ' ')}
+                    </div>
+                    {subs.map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => {
+                          activeOnChange(sub.id);
+                          setIsOpen(false);
+                        }}
+                        className="w-full text-left flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-[hsl(var(--brand-primary))] hover:text-white group transition-colors"
+                      >
+                        <span className="text-sm capitalize truncate">{sub.name.replace('-', ' ')}</span>
+                        {selectedCategoryId === sub.id && (
+                          <Check size={14} className="text-[hsl(var(--brand-primary))] group-hover:text-white" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>,
+          document.body
+        ) : (
           <div 
-            style={popoverStyle}
-            className="bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-xl shadow-xl z-[100] overflow-hidden flex flex-col"
+            className={`absolute left-0 w-64 max-h-[384px] bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-xl shadow-xl z-[100] overflow-hidden flex flex-col ${
+              placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
+            }`}
           >
-            
             {/* Search */}
-            <div className="p-3 border-b border-[hsl(var(--border-color))] flex items-center gap-2 bg-[hsl(var(--bg-primary))]">
+            <div className="p-3 border-b border-[hsl(var(--border-color))] flex items-center gap-2 bg-[hsl(var(--bg-primary))] shrink-0">
               <Search size={16} className="text-muted shrink-0" />
               <input 
                 type="text"
-                placeholder={t('app.search') + "..."}
+                placeholder={t('app.search', { defaultValue: 'Søg' }) + "..."}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full bg-transparent outline-none text-sm"
@@ -180,8 +262,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
               ))}
             </div>
           </div>
-        </>,
-        document.body
+        )
       )}
     </div>
   );

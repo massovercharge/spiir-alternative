@@ -46,10 +46,11 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
     setIsSplitMode(initiallySplit);
     
     if (transaction.allocations) {
+      const mult = transaction.amount_minor < 0 ? -1 : 1;
       setSplits(transaction.allocations.map((a: any) => ({
         id: a.id,
         amount_minor: a.amount_minor,
-        amount_input: (Math.abs(a.amount_minor) / 100).toString().replace('.', ','),
+        amount_input: ((a.amount_minor * mult) / 100).toString().replace('.', ','),
         category_id: a.category_id,
         item_name: a.item_name
       })));
@@ -71,13 +72,13 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
     patch.tags = tags;
 
     if (isSplitMode) {
-      const isExpense = transaction.amount_minor < 0;
+      const mult = transaction.amount_minor < 0 ? -1 : 1;
       const parsedSplits = splits.map(s => {
         let val = Math.round(parseFloat(s.amount_input.replace(',', '.')) * 100);
         if (isNaN(val)) val = 0;
         return {
           ...s,
-          amount_minor: isExpense ? -Math.abs(val) : Math.abs(val)
+          amount_minor: val * mult
         };
       });
       
@@ -133,8 +134,8 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   };
 
   const addSplit = () => {
-    const missingAmount = Math.max(0, targetSum - currentSum);
-    const amountStr = missingAmount > 0.01 ? missingAmount.toFixed(2).replace('.', ',') : '';
+    const missingAmount = targetSum - currentSum;
+    const amountStr = Math.abs(missingAmount) > 0.01 ? missingAmount.toFixed(2).replace('.', ',') : '';
     setSplits([...splits, { amount_minor: 0, amount_input: amountStr, category_id: null }]);
   };
 

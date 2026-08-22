@@ -479,7 +479,7 @@ export function TransactionFilters({
       {isMobileDrawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 z-[90] animate-fade-in" onClick={() => setIsMobileDrawerOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[100] overflow-y-auto flex flex-col animate-slide-in-up pb-safe text-sm">
+          <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[100] flex flex-col animate-slide-in-up text-sm overflow-hidden">
             
             {/* Header */}
             <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl sticky top-0 z-10">
@@ -630,7 +630,7 @@ export function TransactionFilters({
             </div>
             
             {/* Footer */}
-            <div className="p-4 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex gap-3 sticky bottom-0 z-10">
+            <div className="p-4 pb-safe border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex gap-3 sticky bottom-0 z-10">
               <button 
                 onClick={handleResetFilters}
                 className="flex-1 py-3 rounded-lg border border-[hsl(var(--border-color))] text-sm font-medium hover:bg-[hsl(var(--bg-tertiary))] transition-colors"

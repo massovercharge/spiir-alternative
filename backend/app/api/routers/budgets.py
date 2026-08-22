@@ -1,8 +1,8 @@
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.auth import get_auth_dependency
-from app.budget_service import (
+from app.core.auth import get_auth_dependency
+from app.services.budget_service import (
     generate_budget_suggestion,
     get_annual_summary,
     get_budget_bills,

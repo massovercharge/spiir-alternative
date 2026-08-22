@@ -1,8 +1,8 @@
 from typing import Any
 from fastapi import APIRouter, Depends
 
-from app.auth import get_auth_dependency
-from app.category_service import get_taxonomy_response
+from app.core.auth import get_auth_dependency
+from app.services.category_service import get_taxonomy_response
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 

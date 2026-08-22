@@ -1,8 +1,8 @@
 from typing import Any, Optional
 from fastapi import APIRouter, Depends
 
-from app.auth import get_auth_dependency
-from app.insights_service import (
+from app.core.auth import get_auth_dependency
+from app.services.insights_service import (
     get_category_trends,
     income_expense_series,
     sunburst_data,

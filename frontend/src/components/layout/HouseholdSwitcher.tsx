@@ -15,7 +15,7 @@ interface HouseholdSwitcherProps {
 export default function HouseholdSwitcher({ compact = false, className = '' }: HouseholdSwitcherProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { households, activeHouseholdId, setActiveHousehold } = useHousehold();
+  const { households, activeHouseholdId, setActiveHousehold, isLoadingHouseholds } = useHousehold();
   const createHouseholdMutation = useCreateHousehold();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -30,17 +30,28 @@ export default function HouseholdSwitcher({ compact = false, className = '' }: H
 
   useLayoutEffect(() => {
     if (isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const popoverWidth = 260;
-      const leftPos = Math.max(12, Math.min(rect.left, window.innerWidth - popoverWidth - 12));
-      
-      setPopoverStyle({
-        position: 'fixed',
-        top: rect.bottom + 8,
-        left: leftPos,
-        width: popoverWidth,
-        zIndex: 999,
-      });
+      const updatePos = () => {
+        if (!buttonRef.current) return;
+        const rect = buttonRef.current.getBoundingClientRect();
+        const popoverWidth = 260;
+        const leftPos = Math.max(12, Math.min(rect.left, window.innerWidth - popoverWidth - 12));
+        
+        setPopoverStyle({
+          position: 'fixed',
+          top: rect.bottom + 8,
+          left: leftPos,
+          width: popoverWidth,
+          zIndex: 999,
+        });
+      };
+
+      updatePos();
+      window.addEventListener('resize', updatePos);
+      window.addEventListener('scroll', updatePos, true);
+      return () => {
+        window.removeEventListener('resize', updatePos);
+        window.removeEventListener('scroll', updatePos, true);
+      };
     }
   }, [isOpen]);
 
@@ -88,7 +99,7 @@ export default function HouseholdSwitcher({ compact = false, className = '' }: H
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-tertiary))] hover:bg-[hsl(var(--bg-primary))] text-xs font-semibold text-[hsl(var(--text-primary))] transition-colors max-w-[160px] cursor-pointer"
         >
           <Users size={14} className="text-[hsl(var(--brand-primary))] shrink-0" />
-          <span className="truncate">{activeHousehold?.name || households[0]?.name || t('common.loading')}</span>
+          <span className="truncate">{activeHousehold?.name || households[0]?.name || (isLoadingHouseholds ? t('common.loading') : t('settings.createHousehold'))}</span>
           <ChevronDown size={14} className={`text-[hsl(var(--text-secondary))] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
@@ -152,14 +163,14 @@ export default function HouseholdSwitcher({ compact = false, className = '' }: H
                         disabled={!newHouseholdName.trim() || createHouseholdMutation.isPending}
                         className="flex-1 text-xs py-1 rounded-md bg-[hsl(var(--brand-primary))] text-white font-medium hover:opacity-90 disabled:opacity-50"
                       >
-                        {createHouseholdMutation.isPending ? 'Opretter...' : 'Opret'}
+                        {createHouseholdMutation.isPending ? t('common.saving') : t('settings.createButton')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsCreatingInline(false)}
                         className="px-2 text-xs py-1 rounded-md border border-[hsl(var(--border-color))] text-[hsl(var(--text-secondary))]"
                       >
-                        Annuller
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </form>
@@ -207,7 +218,7 @@ export default function HouseholdSwitcher({ compact = false, className = '' }: H
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
           <p className="text-sm font-semibold text-[hsl(var(--text-primary))] truncate">
-            {activeHousehold?.name || households[0]?.name || t('common.loading')}
+            {activeHousehold?.name || households[0]?.name || (isLoadingHouseholds ? t('common.loading') : t('settings.createHousehold'))}
           </p>
           <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--text-secondary))] font-medium">
             {activeHousehold?.role ? getRoleLabel(activeHousehold.role) : ''}
@@ -271,14 +282,14 @@ export default function HouseholdSwitcher({ compact = false, className = '' }: H
                     disabled={!newHouseholdName.trim() || createHouseholdMutation.isPending}
                     className="flex-1 text-xs py-1 rounded-md bg-[hsl(var(--brand-primary))] text-white font-medium hover:opacity-90 disabled:opacity-50"
                   >
-                    {createHouseholdMutation.isPending ? 'Opretter...' : 'Opret'}
+                    {createHouseholdMutation.isPending ? t('common.saving') : t('settings.createButton')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsCreatingInline(false)}
                     className="px-2 text-xs py-1 rounded-md border border-[hsl(var(--border-color))] text-[hsl(var(--text-secondary))]"
                   >
-                    Annuller
+                    {t('common.cancel')}
                   </button>
                 </div>
               </form>

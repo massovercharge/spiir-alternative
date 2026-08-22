@@ -3,7 +3,7 @@ import pytest
 from conftest import TEST_HOUSEHOLD_ID
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.database import (
+from app.models import (
     Account,
     BankConnection,
     Budget,
@@ -304,8 +304,8 @@ class TestSyncJob:
 class TestCategoryService:
     def test_seed_categories(self, engine):
         """Test that seeding populates the Category table."""
-        import app.category_service as cs
-        from app.category_service import DEFAULT_TAXONOMY, seed_categories
+        import app.services.category_service as cs
+        from app.services.category_service import DEFAULT_TAXONOMY, seed_categories
         original_engine = cs.engine
         cs.engine = engine
         try:
@@ -320,7 +320,7 @@ class TestCategoryService:
             cs.engine = original_engine
 
     def test_make_category_id(self):
-        from app.category_service import make_category_id
+        from app.services.category_service import make_category_id
         assert make_category_id("Bolig", "Boliglån/husleje") == "bolig|boliglån-husleje"
         assert make_category_id("Indkomst", "Løn") == "indkomst|løn"
 
@@ -331,7 +331,7 @@ class TestCategoryService:
 
 class TestTransactionService:
     def test_list_transactions(self, seeded_session, engine):
-        import app.transaction_service as ts
+        import app.services.transaction_service as ts
         original_engine = ts.engine
         ts.engine = engine
         try:
@@ -346,7 +346,7 @@ class TestTransactionService:
 
     def test_amount_is_string_in_response(self, seeded_session, engine):
         """§7: API amounts must be strings, not floats."""
-        import app.transaction_service as ts
+        import app.services.transaction_service as ts
         original_engine = ts.engine
         ts.engine = engine
         try:
@@ -358,7 +358,7 @@ class TestTransactionService:
             ts.engine = original_engine
 
     def test_list_with_pagination(self, seeded_session, engine):
-        import app.transaction_service as ts
+        import app.services.transaction_service as ts
         original_engine = ts.engine
         ts.engine = engine
         try:
@@ -369,7 +369,7 @@ class TestTransactionService:
             ts.engine = original_engine
 
     def test_list_with_search(self, seeded_session, engine):
-        import app.transaction_service as ts
+        import app.services.transaction_service as ts
         original_engine = ts.engine
         ts.engine = engine
         try:
@@ -381,7 +381,7 @@ class TestTransactionService:
 
     def test_update_transactions_logs_override(self, seeded_session, engine):
         """Updating a category should log the override."""
-        import app.transaction_service as ts
+        import app.services.transaction_service as ts
         original_engine = ts.engine
         ts.engine = engine
         try:
@@ -407,7 +407,7 @@ class TestTransactionService:
             ts.engine = original_engine
 
     def test_income_expense_series(self, seeded_session, engine):
-        import app.insights_service as ins
+        import app.services.insights_service as ins
         original_engine = ins.engine
         ins.engine = engine
         try:
@@ -423,7 +423,7 @@ class TestTransactionService:
             ins.engine = original_engine
 
     def test_income_expense_excludes_excluded(self, seeded_session, engine):
-        import app.insights_service as ins
+        import app.services.insights_service as ins
         original_engine = ins.engine
         ins.engine = engine
         try:

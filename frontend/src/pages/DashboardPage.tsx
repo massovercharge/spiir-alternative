@@ -12,6 +12,12 @@ import { SunburstChart } from 'echarts/charts';
 import { TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTransactions } from '../api/client';
+import { useCategories } from '../components/ui/CategoryPicker';
+import { TransactionDetailsSidebar } from '../components/ui/TransactionDetailsSidebar';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import { da, enUS } from 'date-fns/locale';
 
 echarts.use([SunburstChart, TooltipComponent, CanvasRenderer]);
 
@@ -78,7 +84,7 @@ function useIsMobile() {
 }
 
 export default function DashboardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const completeBankMutation = useCompleteBankConnection();
   const [isFinishingConnection, setIsFinishingConnection] = useState(false);
   const isMobile = useIsMobile();
@@ -92,15 +98,19 @@ export default function DashboardPage() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   // Clicked/focused category for scorecards
   const [focusedCategory, setFocusedCategory] = useState<{ name: string; value: number } | null>(null);
+  // Selected transaction for details sidebar
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
     if (code && !isFinishingConnection) {
+      // Clear the code from the URL immediately to prevent double-call
+      // (React StrictMode double-mount or fast re-renders could re-trigger)
+      window.history.replaceState({}, document.title, window.location.pathname);
       setIsFinishingConnection(true);
       completeBankMutation.mutate(code, {
         onSuccess: () => {
-          window.history.replaceState({}, document.title, window.location.pathname);
           setIsFinishingConnection(false);
         },
         onError: () => setIsFinishingConnection(false),
@@ -130,6 +140,69 @@ export default function DashboardPage() {
   }, [periodMode, selectedDate]);
 
   const { data: sunburstData, isLoading } = useInsightsSunburst(sunburstParams);
+
+  const { data: allCategories } = useCategories();
+  
+  const focusedCategoryId = useMemo(() => {
+    if (!focusedCategory || !allCategories) return undefined;
+    
+    const sub = allCategories.find(c => c.name === focusedCategory.name);
+    if (sub) return sub.id;
+    
+    const main = allCategories.find(c => c.mainCategoryName === focusedCategory.name);
+    if (main) return main.id.split('|')[0];
+    
+    return undefined;
+  }, [focusedCategory, allCategories]);
+
+  const searchName = (!focusedCategoryId && focusedCategory) ? focusedCategory.name : undefined;
+
+  const txDateParams = useMemo(() => {
+    if (periodMode === 'last12') {
+      const end = new Date();
+      const start = new Date();
+      start.setMonth(start.getMonth() - 12);
+      start.setDate(1);
+      return {
+        start_date: start.toISOString().slice(0, 10),
+        end_date: end.toISOString().slice(0, 10),
+      };
+    }
+    if (periodMode === 'month') {
+      const start = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      const end = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+      return {
+        start_date: start.toISOString().slice(0, 10),
+        end_date: end.toISOString().slice(0, 10),
+      };
+    }
+    const start = new Date(selectedDate.getFullYear(), 0, 1);
+    const end = new Date(selectedDate.getFullYear(), 11, 31);
+    return {
+      start_date: start.toISOString().slice(0, 10),
+      end_date: end.toISOString().slice(0, 10),
+    };
+  }, [periodMode, selectedDate]);
+
+  const { data: focusedTxData, isLoading: isLoadingFocusedTx } = useQuery({
+    queryKey: ['focused-transactions', txDateParams.start_date, txDateParams.end_date, focusedCategoryId, searchName],
+    queryFn: () => fetchTransactions(
+      100, 0, undefined, undefined, txDateParams.start_date, txDateParams.end_date, searchName, undefined, undefined, focusedCategoryId
+    ),
+    enabled: !!focusedCategory,
+  });
+
+  const formatTransactionDate = (dateStr: string, currentLang: string) => {
+    if (!dateStr) return t('transactions.unknown_date');
+    try {
+      const d = parseISO(dateStr);
+      if (isToday(d)) return t('transactions.today', 'I dag');
+      if (isYesterday(d)) return t('transactions.yesterday', 'I går');
+      return format(d, 'd. MMM yyyy', { locale: currentLang === 'en' ? enUS : da });
+    } catch (e) {
+      return dateStr.substring(0, 10);
+    }
+  };
 
   // Calculate totals from echarts_data
   const { totalExpense, categories } = useMemo(() => {
@@ -535,6 +608,70 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Transactions for Focused Category */}
+      <AnimatePresence>
+        {focusedCategory && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-normal text-[hsl(var(--text-secondary))]">
+                  Transaktioner for {focusedCategory.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingFocusedTx ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : !focusedTxData?.transactions || focusedTxData.transactions.length === 0 ? (
+                  <div className="text-center text-muted py-8">
+                    Ingen transaktioner at vise.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {focusedTxData.transactions.map((tx: any) => (
+                      <div 
+                        key={tx.id} 
+                        className="flex items-center justify-between p-3 bg-[hsl(var(--bg-tertiary))] rounded-lg cursor-pointer hover:bg-[hsl(var(--bg-secondary))] transition-colors"
+                        onClick={() => setSelectedTransaction(tx)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate text-[hsl(var(--text-primary))]">{tx.description}</p>
+                          <p className="text-xs text-muted">{formatTransactionDate(tx.booking_date, i18n.language)}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0 pl-4">
+                          <p className={`font-semibold ${tx.amount_minor > 0 ? "text-[hsl(var(--brand-success))]" : "text-[hsl(var(--text-primary))]"}`}>
+                            {tx.amount_minor > 0 ? '+' : ''}{(tx.amount_minor / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {focusedTxData.transactions.length === 100 && (
+                      <p className="text-center text-xs text-muted pt-2">Viser de seneste 100 transaktioner.</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {selectedTransaction && (
+          <TransactionDetailsSidebar
+            transaction={selectedTransaction}
+            onClose={() => setSelectedTransaction(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

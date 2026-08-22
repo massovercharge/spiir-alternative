@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.money import float_to_minor, format_amount, from_minor, to_minor
+from app.core.money import float_to_minor, format_amount, from_minor, to_minor
 
 
 class TestToMinor:

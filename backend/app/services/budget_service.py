@@ -11,7 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.database import (
+from app.models import (
     Budget,
     BudgetBill,
     Category,
@@ -19,7 +19,7 @@ from app.database import (
     PostingAllocation,
     engine,
 )
-from app.money import format_amount
+from app.core.money import format_amount
 
 
 def _utcnow_iso() -> str:
@@ -403,10 +403,13 @@ def get_annual_summary(year: int) -> dict[str, Any]:
 
     # Map budgets
     budget_map: dict[str, dict[int, int]] = {}
+    rollover_map: dict[str, bool] = {}
     for b in budgets:
         if b.category_id not in budget_map:
             budget_map[b.category_id] = {}
         budget_map[b.category_id][b.month] = b.amount_minor
+        if b.rollover:
+            rollover_map[b.category_id] = True
 
     # Map actuals
     actual_map: dict[str, dict[int, int]] = {}
@@ -439,14 +442,25 @@ def get_annual_summary(year: int) -> dict[str, Any]:
 
     for cat_id in sorted(categories):
         months_data = []
+        carryover = 0
+        has_rollover = rollover_map.get(cat_id, False)
+        
         for m in range(1, 13):
-            budgeted = budget_map.get(cat_id, {}).get(m, 0)
+            explicit_budgeted = budget_map.get(cat_id, {}).get(m, 0)
             actual = actual_map.get(cat_id, {}).get(m, 0)
+            
+            effective_budgeted = explicit_budgeted
+            if has_rollover:
+                effective_budgeted += carryover
+                carryover = effective_budgeted - actual
+                
             months_data.append({
                 "month": m,
-                "budgeted_minor": budgeted,
+                "budgeted_minor": explicit_budgeted,
+                "effective_budgeted_minor": effective_budgeted,
                 "actual_minor": actual,
-                "budgeted": format_amount(budgeted),
+                "budgeted": format_amount(explicit_budgeted),
+                "effective_budgeted": format_amount(effective_budgeted),
                 "actual": format_amount(actual),
             })
 
@@ -461,6 +475,7 @@ def get_annual_summary(year: int) -> dict[str, Any]:
             "category_id": cat_id,
             "category_type": meta.category_type if meta else "Expense",
             "expense_type": meta.expense_type if meta else "Variable",
+            "rollover": rollover_map.get(cat_id, False),
             "months": months_data,
             "total_budgeted_minor": sum(d["budgeted_minor"] for d in months_data),
             "total_actual_minor": sum(d["actual_minor"] for d in months_data),

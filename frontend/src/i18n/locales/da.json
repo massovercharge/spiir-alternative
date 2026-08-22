@@ -5,7 +5,13 @@
     "transactions": "Transaktioner",
     "budgets": "Budgetter",
     "accounts": "Konti",
-    "settings": "Indstillinger"
+    "settings": "Indstillinger",
+    "loginError": "Login Fejl",
+    "loginErrorGeneric": "Der opstod en fejl under login.",
+    "welcome": "Velkommen",
+    "loginToContinue": "Log ind for at få adgang til dit økonomiske overblik.",
+    "loginButton": "Log ind for at fortsætte",
+    "logout": "Log ud"
   },
   "insights": {
     "title": "Overblik",
@@ -40,7 +46,8 @@
     "yesterday": "I går",
     "unknown": "Ukendt",
     "uncategorized": "Ukategoriseret",
-    "find_similar": "Find lignende"
+    "find_similar": "Find lignende",
+    "yesRememberIt": "Ja, husk det"
   },
   "budgets": {
     "description": "Følg med i dit forbrug for {{year}} og hold styr på dine udgifter.",
@@ -121,17 +128,37 @@
     "failedToCreate": "Kunne ikke oprette husstand",
     "roleOwner": "Ejer",
     "roleMember": "Medlem",
+    "roleUpdated": "Rolle opdateret!",
+    "failedToUpdateRole": "Kunne ikke opdatere rolle",
+    "demoteOwnerConfirm": "Er du sikker på, at du vil ændre denne ejers rolle til medlem? De vil miste muligheden for at administrere husstanden.",
     "switchHousehold": "Skift aktiv husstand",
     "removeMember": "Fjern medlem",
     "removeMemberConfirm": "Er du sikker på, at du vil fjerne dette medlem?",
     "memberRemoved": "Medlem fjernet!",
+    "leaveHousehold": "Forlad husstand",
+    "leaveHouseholdConfirm": "Er du sikker på, at du vil forlade denne husstand?",
+    "leftHousehold": "Du har forladt husstanden!",
     "deleteHousehold": "Slet husstand",
     "deleteHouseholdConfirm": "Er du sikker på, at du vil slette husstanden '{{name}}'? Al data vil gå tabt efter 2 timer.",
     "householdDeleted": "Husstanden er markeret til sletning",
     "deletedHouseholds": "Nyligt slettede husstande (Kan fortrydes)",
     "deletedAt": "Slettes permanent: {{time}}",
     "restoreHousehold": "Fortryd sletning",
-    "householdRestored": "Sletning af husstand fortrudt!"
+    "householdRestored": "Sletning af husstand fortrudt!",
+    "categorizationRules": "Dine Kategoriseringsregler",
+    "loadingRules": "Henter regler...",
+    "noRulesYet": "Du har ikke oprettet nogen personlige regler endnu.",
+    "confirmDeleteRule": "Er du sikker på du vil slette denne regel? (Allerede ændrede transaktioner ændres ikke tilbage)",
+    "bankConnections": "Bankforbindelser",
+    "connectBankDescription": "Forbind dine bankkonti for automatisk import af transaktioner",
+    "syncing": "Synkroniserer...",
+    "sync": "Synkroniser",
+    "connectBank": "Forbind til bank",
+    "loadingConnections": "Henter forbindelser...",
+    "noActiveConnections": "Ingen aktive bankforbindelser endnu.",
+    "deleteBankConnection": "Fjern bankforbindelse",
+    "deleteBankConnectionConfirm": "Er du sikker på, at du vil fjerne denne bankforbindelse?",
+    "bankConnectionDeleted": "Bankforbindelse fjernet"
   },
   "releaseNotes": {
     "title": "Udgivelsesnoter",
@@ -145,6 +172,8 @@
     "delete": "Slet",
     "edit": "Rediger",
     "search": "Søg",
-    "you": "Dig"
+    "you": "Dig",
+    "saving": "Gemmer...",
+    "tryAgain": "Prøv igen"
   }
 }

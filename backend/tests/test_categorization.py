@@ -4,9 +4,9 @@ import pytest
 from conftest import TEST_HOUSEHOLD_ID
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from app.database import Account, Household, Posting, PostingAllocation
-from app.rules_service import create_rule
-from app.transaction_service import apply_rule_retroactively, update_transaction_category
+from app.models import Account, Household, Posting, PostingAllocation
+from app.services.rules_service import create_rule
+from app.services.transaction_service import apply_rule_retroactively, update_transaction_category
 
 
 @pytest.fixture()
@@ -23,10 +23,10 @@ def engine():
 
 @pytest.fixture()
 def _patch_engine(engine, monkeypatch):
-    import app.category_service as cs
-    import app.database as db_mod
-    import app.rules_service as rs
-    import app.transaction_service as ts
+    import app.services.category_service as cs
+    import app.models as db_mod
+    import app.services.rules_service as rs
+    import app.services.transaction_service as ts
     monkeypatch.setattr(db_mod, "engine", engine)
     monkeypatch.setattr(ts, "engine", engine)
     monkeypatch.setattr(rs, "engine", engine)
@@ -34,7 +34,7 @@ def _patch_engine(engine, monkeypatch):
 
 @pytest.fixture()
 def seeded_db(engine, _patch_engine):
-    from app.category_service import seed_categories
+    from app.services.category_service import seed_categories
     seed_categories()
 
     with Session(engine) as db:

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from app.database import current_household_id
-from app.sync_service import SyncJob, start_sync_job
+from app.models import current_household_id
+from app.services.sync_service import SyncJob, start_sync_job
 
 
 def test_start_sync_job_populates_household():
@@ -17,8 +17,8 @@ def test_start_sync_job_populates_household():
     # 2. Mock external dependencies to avoid database locks
     # We mock _run_sync_job so the thread completes instantly without doing any real work
     with (
-        patch("app.sync_service.Session") as mock_session_patch,
-        patch("app.sync_service._run_sync_job") as mock_run_sync_job,
+        patch("app.services.sync_service.Session") as mock_session_patch,
+        patch("app.services.sync_service._run_sync_job") as mock_run_sync_job,
     ):
         # Setup the mock DB session
         mock_db = MagicMock()
@@ -46,7 +46,7 @@ def test_start_sync_job_populates_household():
         assert added_job.household_id == test_hh_id
 
         # Wait for the mocked thread to finish
-        from app.sync_service import _RETRIEVE_STATE
+        from app.services.sync_service import _RETRIEVE_STATE
 
         t = _RETRIEVE_STATE.get("thread")
         if t:

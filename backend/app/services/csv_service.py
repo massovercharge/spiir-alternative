@@ -8,8 +8,8 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.category_service import list_categories
-from app.database import (
+from app.services.category_service import list_categories
+from app.models import (
     Account,
     Posting,
     PostingAllocation,

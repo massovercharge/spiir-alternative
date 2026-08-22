@@ -13,6 +13,7 @@ import { TransactionDetailsSidebar } from '../components/ui/TransactionDetailsSi
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 function formatTransactionDate(dateStr: string, t: any, currentLang: string) {
   if (!dateStr) return t('transactions.unknown_date');
@@ -89,14 +90,36 @@ export default function TransactionsPage() {
     );
   }, [transactions]);
 
+  const flattened = useMemo(() => {
+    const flat: any[] = [];
+    grouped.forEach(([dateKey, txs]: [string, any]) => {
+      flat.push({ type: 'header', dateKey });
+      txs.forEach((tx: any) => {
+        flat.push({ type: 'item', tx });
+      });
+    });
+    return flat;
+  }, [grouped]);
+
+  const virtualizer = useVirtualizer({
+    count: flattened.length,
+    getScrollElement: () => document.getElementById('scroll-container'),
+    estimateSize: (index: number) => flattened[index].type === 'header' ? 33 : 89,
+    overscan: 10,
+  });
+
   // Derived statistics for summary box
-  const txCount = transactions.length;
-  const uncategorizedCount = transactions.filter((t: any) => {
-    const catId = t.allocations?.[0]?.category_id;
-    return !catId || catId === 'diverse|ikke-kategoriseret' || catId === 'diverse|ukategoriseret';
-  }).length;
-  const totalAmount = transactions.reduce((sum: number, t: any) => sum + (t.amount_minor / 100), 0);
-  const avgAmount = txCount > 0 ? totalAmount / txCount : 0;
+  const { txCount, uncategorizedCount, totalAmount, avgAmount } = useMemo(() => {
+    const count = transactions.length;
+    const uncategorized = transactions.filter((t: any) => {
+      const catId = t.allocations?.[0]?.category_id;
+      return !catId || catId === 'diverse|ikke-kategoriseret' || catId === 'diverse|ukategoriseret';
+    }).length;
+    const total = transactions.reduce((sum: number, t: any) => sum + (t.amount_minor / 100), 0);
+    const avg = count > 0 ? total / count : 0;
+    
+    return { txCount: count, uncategorizedCount: uncategorized, totalAmount: total, avgAmount: avg };
+  }, [transactions]);
 
   const handleCategoryChange = (tx: any, newCategoryId: string) => {
     updateCategoryMutation.mutate({ transactionId: tx.id, categoryId: newCategoryId });
@@ -295,73 +318,95 @@ export default function TransactionsPage() {
             </div>
           )}
 
-          {!isLoading && grouped.map(([dateKey, txs]: [string, any], groupIndex) => (
-            <motion.div 
-              key={dateKey}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: groupIndex * 0.05 }}
-              className="border-b border-[hsl(var(--border-color))] last:border-0"
+          {!isLoading && flattened.length > 0 && (
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
             >
-              <div className="bg-[hsl(var(--bg-tertiary))] px-4 md:px-6 py-2 sticky top-0 z-10 border-y border-[hsl(var(--border-color))] first:border-t-0 text-xs font-semibold text-muted uppercase tracking-wider ml-10">
-                {formatTransactionDate(dateKey, t, i18n.language)}
-              </div>
-              <div className="divide-y divide-[hsla(var(--border-color),0.5)]">
-                {txs.map((tx: any) => {
-                  const amount = tx.amount_minor / 100;
-                  const description = tx.description || t('transactions.unknown', 'Ukendt');
-                  const categoryParts = (tx.allocations?.[0]?.category_id || '').split('|');
-                  const categoryName = categoryParts[1] ? categoryParts[1] : categoryParts[0] || t('transactions.uncategorized', 'Ukategoriseret');
-                  const isSelected = selectedIds.has(tx.id);
+              {virtualizer.getVirtualItems().map((virtualItem: any) => {
+                const item = flattened[virtualItem.index];
+                
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    {item.type === 'header' ? (
+                      <div className="bg-[hsl(var(--bg-tertiary))] px-4 md:px-6 py-2 border-y border-[hsl(var(--border-color))] text-xs font-semibold text-muted uppercase tracking-wider ml-10 z-10">
+                        {formatTransactionDate(item.dateKey, t, i18n.language)}
+                      </div>
+                    ) : (
+                      <div className="border-b border-[hsl(var(--border-color))]">
+                        {(() => {
+                          const tx = item.tx;
+                          const amount = tx.amount_minor / 100;
+                          const description = tx.description || t('transactions.unknown', 'Ukendt');
+                          const categoryParts = (tx.allocations?.[0]?.category_id || '').split('|');
+                          const categoryName = categoryParts[1] ? categoryParts[1] : categoryParts[0] || t('transactions.uncategorized', 'Ukategoriseret');
+                          const isSelected = selectedIds.has(tx.id);
 
-                  return (
-                    <div 
-                      key={tx.id} 
-                      className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-5 md:py-4 transition-colors group cursor-pointer ${isSelected ? 'bg-[hsla(var(--brand-primary),0.1)]' : 'hover:bg-[hsla(var(--bg-tertiary),0.5)]'}`}
-                      onClick={() => setSelectedTransaction(tx)}
-                    >
-                      <button 
-                        onClick={(e) => toggleSelection(tx.id, e)}
-                        className="text-muted hover:text-[hsl(var(--brand-primary))] transition-colors shrink-0"
-                      >
-                        {isSelected ? <CheckSquare size={18} className="text-[hsl(var(--brand-primary))]" /> : <Square size={18} className="opacity-30 group-hover:opacity-100" />}
-                      </button>
-                      
-                      <div className={`hidden sm:flex flex-shrink-0 w-10 h-10 rounded-full bg-[hsla(var(--border-color),0.5)] flex items-center justify-center text-muted group-hover:bg-[hsl(var(--bg-secondary))] group-hover:shadow-sm transition-all ${isSelected ? 'bg-[hsl(var(--bg-secondary))] shadow-sm' : ''}`}>
-                        {getCategoryIcon(tx.allocations?.[0]?.category_id || '')}
+                          return (
+                            <div 
+                              className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-5 md:py-4 transition-colors group cursor-pointer ${isSelected ? 'bg-[hsla(var(--brand-primary),0.1)]' : 'hover:bg-[hsla(var(--bg-tertiary),0.5)]'}`}
+                              onClick={() => setSelectedTransaction(tx)}
+                            >
+                              <button 
+                                onClick={(e) => toggleSelection(tx.id, e)}
+                                className="text-muted hover:text-[hsl(var(--brand-primary))] transition-colors shrink-0"
+                              >
+                                {isSelected ? <CheckSquare size={18} className="text-[hsl(var(--brand-primary))]" /> : <Square size={18} className="opacity-30 group-hover:opacity-100" />}
+                              </button>
+                              
+                              <div className={`hidden sm:flex flex-shrink-0 w-10 h-10 rounded-full bg-[hsla(var(--border-color),0.5)] flex items-center justify-center text-muted group-hover:bg-[hsl(var(--bg-secondary))] group-hover:shadow-sm transition-all ${isSelected ? 'bg-[hsl(var(--bg-secondary))] shadow-sm' : ''}`}>
+                                {getCategoryIcon(tx.allocations?.[0]?.category_id || '')}
+                              </div>
+                              
+                              <div className="flex-1 min-w-0 flex flex-col justify-center items-start" onClick={(e) => e.stopPropagation()}>
+                                <p className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words mb-1 max-w-full cursor-pointer" onClick={() => setSelectedTransaction(tx)}>{description}</p>
+                                <CategoryPicker 
+                                  selectedCategoryId={tx.allocations?.[0]?.category_id} 
+                                  onSelect={(newCatId) => handleCategoryChange(tx, newCatId)}
+                                />
+                                {tx.note && <span className="text-xs text-muted mt-1">📝 {tx.note}</span>}
+                                {tx.tags?.length > 0 && (
+                                  <div className="flex gap-1 mt-1">
+                                    {tx.tags.map((tag: string) => (
+                                      <span key={tag} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">#{tag}</span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className={`font-semibold ${amount > 0 ? "text-success" : ""}`}>
+                                  {amount > 0 ? '+' : ''}{amount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
+                                </p>
+                              </div>
+                              <div className="hidden sm:block flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="sm" className="px-2 h-8 w-8 rounded-full">
+                                  <MoreHorizontal size={16} />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
-                      
-                      <div className="flex-1 min-w-0 flex flex-col justify-center items-start" onClick={(e) => e.stopPropagation()}>
-                        <p className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words mb-1 max-w-full cursor-pointer" onClick={() => setSelectedTransaction(tx)}>{description}</p>
-                        <CategoryPicker 
-                          selectedCategoryId={tx.allocations?.[0]?.category_id} 
-                          onSelect={(newCatId) => handleCategoryChange(tx, newCatId)}
-                        />
-                        {tx.note && <span className="text-xs text-muted mt-1">📝 {tx.note}</span>}
-                        {tx.tags?.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            {tx.tags.map((t: string) => (
-                              <span key={t} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">#{t}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className={`font-semibold ${amount > 0 ? "text-success" : ""}`}>
-                          {amount > 0 ? '+' : ''}{amount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
-                        </p>
-                      </div>
-                      <div className="hidden sm:block flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="px-2 h-8 w-8 rounded-full">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          ))}
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -426,7 +471,7 @@ export default function TransactionsPage() {
                 disabled={createRuleMutation.isPending}
                 className="bg-[hsl(var(--brand-primary))] text-white"
               >
-                {createRuleMutation.isPending ? 'Gemmer...' : 'Ja, husk det'}
+                {createRuleMutation.isPending ? t('common.saving', 'Gemmer...') : t('transactions.yesRememberIt', 'Ja, husk det')}
               </Button>
             </div>
           </motion.div>

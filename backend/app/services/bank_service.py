@@ -7,11 +7,11 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.database import Account, BankConnection, engine
-from app.sync_service import _request_json, _utcnow_iso
+from app.models import Account, BankConnection, engine
+from app.services.sync_service import _request_json, _utcnow_iso
 
 
-def start_auth_session(redirect_url: str) -> dict[str, Any]:
+def start_auth_session(redirect_url: str, bank_name: str) -> dict[str, Any]:
     """Start the PSD2 authorization flow.
 
     Calls Enable Banking to generate an authorization URL where the user
@@ -22,16 +22,27 @@ def start_auth_session(redirect_url: str) -> dict[str, Any]:
     # Enable Banking nu kræver at vi angiver specifik bank, land, state og max 180 dages valid_until
     valid_until = (datetime.now(UTC) + timedelta(days=179)).isoformat()[:19] + "Z"
 
+    country = "DK"
+    if bank_name == "Revolut (LT)":
+        bank_name = "Revolut"
+        country = "LT"
+    elif bank_name == "Revolut (UK)":
+        bank_name = "Revolut"
+        country = "GB"
+
+    access_scopes = {
+        "valid_until": valid_until,
+    }
+
     payload = {
-        "access": {
-            "valid_until": valid_until
-        },
+        "access": access_scopes,
         "aspsp": {
-            "name": "Sparekassen Danmark",
-            "country": "DK"
+            "name": bank_name,
+            "country": country,
         },
         "state": uuid.uuid4().hex,
         "redirect_url": redirect_url,
+        "psu_type": "personal",
         "maximum_consent_validity": 180,
     }
 
@@ -52,6 +63,10 @@ def complete_auth_session(code: str) -> dict[str, Any]:
     # 1. Exchange code for session
     payload = {"code": code}
     session_response = _request_json("POST", "/sessions", json=payload)
+    print("=== RAW SESSION RESPONSE ===")
+    import json
+    print(json.dumps(session_response, indent=2))
+    print("============================")
 
     if "session_id" not in session_response:
         raise RuntimeError(f"Failed to create session: {session_response}")
@@ -59,6 +74,12 @@ def complete_auth_session(code: str) -> dict[str, Any]:
     session_id = session_response["session_id"]
     bank_name = session_response.get("aspsp", {}).get("name", "Unknown Bank")
     accounts_data = session_response.get("accounts", [])
+    if not accounts_data:
+        try:
+            acc_resp = _request_json("GET", f"/sessions/{session_id}/accounts")
+            accounts_data = acc_resp.get("accounts", [])
+        except Exception as e:
+            print(f"Failed to fetch accounts for session {session_id}: {e}")
 
     now = _utcnow_iso()
 
@@ -108,18 +129,21 @@ def complete_auth_session(code: str) -> dict[str, Any]:
                 db.add(new_acc)
 
         db.commit()
+        
+        # Capture ID before session closes to avoid DetachedInstanceError
+        conn_id = conn.id
 
     # Automatisk start synkronisering af transaktioner
     try:
-        from app.sync_service import start_sync_job
+        from app.services.sync_service import start_sync_job
         start_sync_job()
     except Exception as e:
         print(f"Failed to auto-start sync job: {e}")
 
     return {
         "status": "success",
-        "connection_id": conn.id,
-        "bank_name": conn.bank_name,
+        "connection_id": conn_id,
+        "bank_name": bank_name,
         "accounts_added": len(accounts_data),
     }
 
@@ -139,3 +163,30 @@ def list_bank_connections() -> list[dict[str, Any]]:
         }
         for c in connections
     ]
+
+
+def delete_bank_connection(connection_id: str) -> dict[str, Any]:
+    """Delete a bank connection.
+
+    Revokes the Enable Banking session (if active) and removes the
+    connection from the database. Linked accounts are kept but unlinked
+    (FK is SET NULL).
+    """
+    with Session(engine) as db:
+        conn = db.get(BankConnection, connection_id)
+        if not conn:
+            raise ValueError(f"Bank connection {connection_id} not found")
+
+        # Try to revoke the Enable Banking session
+        if conn.consent_id and conn.provider == "enablebanking":
+            try:
+                _request_json("DELETE", f"/sessions/{conn.consent_id}")
+            except Exception as e:
+                # Log but don't block deletion — session may already be expired
+                print(f"Failed to revoke Enable Banking session: {e}")
+
+        bank_name = conn.bank_name
+        db.delete(conn)
+        db.commit()
+
+    return {"status": "deleted", "bank_name": bank_name}

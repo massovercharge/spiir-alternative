@@ -1,5 +1,5 @@
-from typing import Any, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any, List, Literal, Optional
+from pydantic import BaseModel, Field, field_validator
 
 # Households
 class HouseholdCreateRequest(BaseModel):
@@ -10,6 +10,17 @@ class HouseholdUpdateRequest(BaseModel):
 
 class HouseholdInviteRequest(BaseModel):
     email: str = Field(..., min_length=3)
+    role: Optional[Literal["owner", "member"]] = Field(default="member")
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, v: Any) -> str:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
+class HouseholdMemberRoleUpdateRequest(BaseModel):
+    role: Literal["owner", "member"]
 
 # Accounts
 class AccountUpdateRequest(BaseModel):
@@ -85,6 +96,7 @@ class BudgetBillsUpsertRequest(BaseModel):
 # Sync & Bank
 class BankConnectRequest(BaseModel):
     redirect_url: str
+    bank_name: str
 
 class BankCallbackRequest(BaseModel):
     code: str

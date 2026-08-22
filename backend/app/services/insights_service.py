@@ -11,8 +11,8 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
-from app.database import Category, Posting, PostingAllocation, engine
-from app.money import format_amount
+from app.models import Category, Posting, PostingAllocation, engine
+from app.core.money import format_amount
 
 
 def _utcnow_iso() -> str:
@@ -88,7 +88,7 @@ def income_expense_series(year: int | None = None) -> dict[str, Any]:
 
 def sunburst_data(year: int | None = None, month: int | None = None, filter_type: str | None = None, start_date: str | None = None, end_date: str | None = None) -> dict[str, Any]:
     """Build hierarchical sunburst chart data grouped by category, optionally filtered by month/year, date range, and expense_type."""
-    from app.category_service import list_categories
+    from app.services.category_service import list_categories
 
     with Session(engine) as db:
         query = (
@@ -444,7 +444,7 @@ def get_category_trends() -> list[dict[str, Any]]:
 
 def category_drilldown(category_name: str, year: int) -> dict[str, Any]:
     """Get monthly trends and top transactions for a specific category name (main or sub)."""
-    from app.category_service import list_categories
+    from app.services.category_service import list_categories
 
     # 1. Find all matching category IDs
     categories = list_categories()

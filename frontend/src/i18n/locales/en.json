@@ -5,7 +5,13 @@
     "transactions": "Transactions",
     "budgets": "Budgets",
     "accounts": "Accounts",
-    "settings": "Settings"
+    "settings": "Settings",
+    "loginError": "Login Error",
+    "loginErrorGeneric": "An error occurred during login.",
+    "welcome": "Welcome",
+    "loginToContinue": "Log in to access your financial overview.",
+    "loginButton": "Log in to continue",
+    "logout": "Log out"
   },
   "insights": {
     "title": "Overview",
@@ -40,7 +46,8 @@
     "yesterday": "Yesterday",
     "unknown": "Unknown",
     "uncategorized": "Uncategorized",
-    "find_similar": "Find similar"
+    "find_similar": "Find similar",
+    "yesRememberIt": "Yes, remember it"
   },
   "budgets": {
     "description": "Track your spending for {{year}} and stay on top of your expenses.",
@@ -121,17 +128,37 @@
     "failedToCreate": "Failed to create household",
     "roleOwner": "Owner",
     "roleMember": "Member",
+    "roleUpdated": "Role updated!",
+    "failedToUpdateRole": "Failed to update role",
+    "demoteOwnerConfirm": "Are you sure you want to demote this owner to a member? They will lose permissions to manage the household.",
     "switchHousehold": "Switch active household",
     "removeMember": "Remove member",
     "removeMemberConfirm": "Are you sure you want to remove this member?",
     "memberRemoved": "Member removed!",
+    "leaveHousehold": "Leave household",
+    "leaveHouseholdConfirm": "Are you sure you want to leave this household?",
+    "leftHousehold": "You left the household!",
     "deleteHousehold": "Delete household",
     "deleteHouseholdConfirm": "Are you sure you want to delete the household '{{name}}'? All data will be lost after 2 hours.",
     "householdDeleted": "Household marked for deletion",
     "deletedHouseholds": "Recently deleted households (Undoable)",
-    "deletedAt": "Permanently deleted: {{time}}",
-    "restoreHousehold": "Undo delete",
-    "householdRestored": "Household deletion undone!"
+    "deletedAt": "Will be permanently deleted: {{time}}",
+    "restoreHousehold": "Restore",
+    "householdRestored": "Household restored!",
+    "categorizationRules": "Your Categorization Rules",
+    "loadingRules": "Loading rules...",
+    "noRulesYet": "You haven't created any personal rules yet.",
+    "confirmDeleteRule": "Are you sure you want to delete this rule? (Already modified transactions will not be reverted)",
+    "bankConnections": "Bank Connections",
+    "connectBankDescription": "Connect your bank accounts for automatic transaction import",
+    "syncing": "Syncing...",
+    "sync": "Sync",
+    "connectBank": "Connect to bank",
+    "loadingConnections": "Loading connections...",
+    "noActiveConnections": "No active bank connections yet.",
+    "deleteBankConnection": "Remove bank connection",
+    "deleteBankConnectionConfirm": "Are you sure you want to remove this bank connection?",
+    "bankConnectionDeleted": "Bank connection removed"
   },
   "releaseNotes": {
     "title": "Release Notes",
@@ -145,6 +172,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "search": "Search",
-    "you": "You"
+    "you": "You",
+    "saving": "Saving...",
+    "tryAgain": "Try again"
   }
 }

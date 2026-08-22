@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from .database import Category, PostingAllocation, engine
+from app.models import Category, PostingAllocation, engine
 
 # ---------------------------------------------------------------------------
 # Default Taxonomy

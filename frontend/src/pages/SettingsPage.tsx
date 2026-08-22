@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { SUPPORTED_BANKS } from '../api/constants';
 import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText } from 'lucide-react';
-import { useBankConnections, useConnectBank, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold } from '../api/client';
+import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/Button';
@@ -18,6 +19,7 @@ export default function SettingsPage() {
   
   const { data: bankConnections, isLoading: isLoadingBanks } = useBankConnections();
   const connectBankMutation = useConnectBank();
+  const deleteBankConnectionMutation = useDeleteBankConnection();
   const startSyncMutation = useStartSync();
   const queryClient = useQueryClient();
   const [isPollingSync, setIsPollingSync] = React.useState(false);
@@ -57,14 +59,18 @@ export default function SettingsPage() {
   const { data: members = [] } = useHouseholdMembers(activeHouseholdId || '');
   const inviteMemberMutation = useInviteHouseholdMember();
   const removeMemberMutation = useRemoveHouseholdMember();
+  const updateRoleMutation = useUpdateHouseholdMemberRole();
   const deleteHouseholdMutation = useDeleteHousehold();
   const restoreHouseholdMutation = useRestoreHousehold();
   const createHouseholdMutation = useCreateHousehold();
   const updateHouseholdMutation = useUpdateHousehold();
   
+  const [activeTab, setActiveTab] = React.useState<'general' | 'households' | 'rules'>('general');
   const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteRole, setInviteRole] = React.useState('member');
   const [newHouseholdName, setNewHouseholdName] = React.useState('');
   const [renameHouseholdName, setRenameHouseholdName] = React.useState('');
+  const [selectedBank, setSelectedBank] = React.useState('Sparekassen Danmark');
 
   React.useEffect(() => {
     if (currentHousehold?.name) {
@@ -95,7 +101,7 @@ export default function SettingsPage() {
   };
 
   const handleConnectBank = () => {
-    connectBankMutation.mutate(window.location.origin + '/dashboard', {
+    connectBankMutation.mutate({ redirectUrl: window.location.origin + '/dashboard', bankName: selectedBank }, {
       onSuccess: (data) => {
         if (data.auth_url) {
           window.location.href = data.auth_url;
@@ -290,18 +296,41 @@ export default function SettingsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
-                          {member.role}
-                        </span>
-                        {currentHousehold?.role === 'owner' && !isMe && (
+                        {currentHousehold?.role === 'owner' && !isMe && member.id ? (
+                          <select
+                            value={member.role}
+                            onChange={(e) => {
+                              const newRole = e.target.value;
+                              if (member.role === 'owner' && newRole === 'member') {
+                                if (!window.confirm(t('settings.demoteOwnerConfirm', 'Er du sikker på, at du vil ændre denne ejers rolle til medlem? De vil miste muligheden for at administrere husstanden.'))) {
+                                  return;
+                                }
+                              }
+                              updateRoleMutation.mutate({ householdId: activeHouseholdId!, userId: member.id!, role: newRole }, {
+                                onSuccess: () => toast.success(t('settings.roleUpdated', 'Rolle opdateret!')),
+                                onError: (err: any) => toast.error(err?.message || t('settings.failedToUpdateRole', 'Kunne ikke opdatere rolle'))
+                              });
+                            }}
+                            disabled={updateRoleMutation.isPending}
+                            className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2.5 py-1 rounded-md bg-[hsla(var(--brand-primary),0.08)] border border-[hsla(var(--brand-primary),0.2)] hover:border-[hsla(var(--brand-primary),0.4)] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--brand-primary))] cursor-pointer transition-colors"
+                          >
+                            <option value="owner" className="bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))]">{t('settings.roleOwner', 'Ejer')}</option>
+                            <option value="member" className="bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))]">{t('settings.roleMember', 'Medlem')}</option>
+                          </select>
+                        ) : (
+                          <span className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-primary))] px-2 py-1 rounded bg-[hsla(var(--brand-primary),0.1)]">
+                            {member.role === 'owner' ? t('settings.roleOwner', 'Ejer') : t('settings.roleMember', 'Medlem')}
+                          </span>
+                        )}
+                        {currentHousehold?.role === 'owner' && !isMe && member.id && (
                           <Button
                             variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:bg-red-500/10 h-8 w-8 p-0"
+                            size="icon"
+                            className="bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
                             onClick={() => {
                               if (window.confirm(t('settings.removeMemberConfirm', 'Er du sikker på, at du vil fjerne dette medlem?'))) {
                                 removeMemberMutation.mutate(
-                                  { householdId: activeHouseholdId!, userId: member.id || member.email },
+                                  { householdId: activeHouseholdId!, userId: member.id },
                                   {
                                     onSuccess: () => toast.success(t('settings.memberRemoved', 'Medlem fjernet!')),
                                     onError: (err: any) => toast.error(err?.message || 'Error')
@@ -312,6 +341,27 @@ export default function SettingsPage() {
                             disabled={removeMemberMutation.isPending}
                           >
                             <Trash2 size={16} />
+                          </Button>
+                        )}
+                        {currentHousehold?.role !== 'owner' && isMe && member.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500 border-red-500/20 hover:bg-red-500/10 text-xs px-2.5 py-1 h-auto"
+                            onClick={() => {
+                              if (window.confirm(t('settings.leaveHouseholdConfirm', 'Er du sikker på, at du vil forlade denne husstand?'))) {
+                                removeMemberMutation.mutate(
+                                  { householdId: activeHouseholdId!, userId: member.id },
+                                  {
+                                    onSuccess: () => toast.success(t('settings.leftHousehold', 'Du har forladt husstanden')),
+                                    onError: (err: any) => toast.error(err?.message || 'Error')
+                                  }
+                                );
+                              }
+                            }}
+                            disabled={removeMemberMutation.isPending}
+                          >
+                            {t('settings.leaveHousehold', 'Forlad husstand')}
                           </Button>
                         )}
                       </div>
@@ -331,12 +381,21 @@ export default function SettingsPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                 />
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-[hsl(var(--border-color))] bg-transparent text-sm cursor-pointer"
+                >
+                  <option value="member">{t('settings.roleMember', 'Medlem')}</option>
+                  <option value="owner">{t('settings.roleOwner', 'Ejer')}</option>
+                </select>
                 <Button 
                   onClick={() => {
                     if (activeHouseholdId && inviteEmail) {
-                      inviteMemberMutation.mutate({ householdId: activeHouseholdId, email: inviteEmail }, {
+                      inviteMemberMutation.mutate({ householdId: activeHouseholdId, email: inviteEmail, role: inviteRole }, {
                         onSuccess: () => {
                           setInviteEmail('');
+                          setInviteRole('member');
                           toast.success(t('settings.householdInvited'));
                         },
                         onError: (err: any) => {
@@ -481,14 +540,14 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListFilter size={20} className="text-[hsl(var(--brand-primary))]" />
-              Dine Kategoriseringsregler
+              {t('settings.categorizationRules', 'Dine Kategoriseringsregler')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingRules ? (
-              <p className="text-sm text-muted">Henter regler...</p>
+              <p className="text-sm text-muted">{t('settings.loadingRules', 'Henter regler...')}</p>
             ) : userRules.length === 0 ? (
-              <p className="text-sm text-muted">Du har ikke oprettet nogen personlige regler endnu.</p>
+              <p className="text-sm text-muted">{t('settings.noRulesYet', 'Du har ikke oprettet nogen personlige regler endnu.')}</p>
             ) : (
               <div className="space-y-3">
                 {userRules.map((rule: any) => {
@@ -507,7 +566,7 @@ export default function SettingsPage() {
                         size="sm" 
                         className="text-error hover:bg-[hsla(var(--error),0.1)]"
                         onClick={() => {
-                          if (confirm('Er du sikker på du vil slette denne regel? (Allerede ændrede transaktioner ændres ikke tilbage)')) {
+                          if (confirm(t('settings.confirmDeleteRule', 'Er du sikker på du vil slette denne regel? (Allerede ændrede transaktioner ændres ikke tilbage)'))) {
                             deleteRuleMutation.mutate(rule.id);
                           }
                         }}
@@ -531,10 +590,10 @@ export default function SettingsPage() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 size={20} className="text-[hsl(var(--brand-primary))]" />
-                  Bankforbindelser
+                  {t('settings.bankConnections', 'Bankforbindelser')}
                 </CardTitle>
                 <p className="text-sm text-muted">
-                  Forbind dine bankkonti for automatisk import af transaktioner
+                  {t('settings.connectBankDescription', 'Forbind dine bankkonti for automatisk import af transaktioner')}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -544,20 +603,31 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-[hsl(var(--border-color))] rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
                 >
                   <RefreshCw size={16} className={startSyncMutation.isPending || isPollingSync ? 'animate-spin' : ''} />
-                  {isPollingSync ? 'Synkroniserer...' : 'Synkroniser'}
+                  {isPollingSync ? t('settings.syncing', 'Synkroniserer...') : t('settings.sync', 'Synkroniser')}
                 </button>
                 <div className="flex flex-col items-end gap-1">
-                  <button
-                    onClick={handleConnectBank}
-                    disabled={connectBankMutation.isPending}
-                    className="btn btn-primary disabled:opacity-50"
-                  >
-                    <Plus size={16} />
-                    Forbind til bank
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="px-3 py-2 h-[38px] text-sm rounded-lg border border-[hsl(var(--border-color))] bg-transparent"
+                      value={selectedBank}
+                      onChange={(e) => setSelectedBank(e.target.value)}
+                    >
+                      {SUPPORTED_BANKS.map(bank => (
+                        <option key={bank} value={bank} className="bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))]">{bank}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleConnectBank}
+                      disabled={connectBankMutation.isPending}
+                      className="btn btn-primary disabled:opacity-50"
+                    >
+                      <Plus size={16} />
+                      {t('settings.connectBank', 'Forbind til bank')}
+                    </button>
+                  </div>
                   {connectBankMutation.isError && (
                     <span className="text-xs text-red-500">
-                      Fejl: {connectBankMutation.error?.message}
+                      {t('common.error', 'Fejl')}: {connectBankMutation.error?.message}
                     </span>
                   )}
                 </div>
@@ -566,10 +636,10 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             {isLoadingBanks ? (
-              <div className="py-8 text-center text-muted animate-pulse">Henter forbindelser...</div>
+              <div className="py-8 text-center text-muted animate-pulse">{t('settings.loadingConnections', 'Henter forbindelser...')}</div>
             ) : bankConnections?.length === 0 ? (
               <div className="py-8 text-center text-muted border-2 border-dashed border-[hsl(var(--border-color))] rounded-lg">
-                Ingen aktive bankforbindelser endnu.
+                {t('settings.noActiveConnections', 'Ingen aktive bankforbindelser endnu.')}
               </div>
             ) : (
               <div className="space-y-4">
@@ -584,7 +654,19 @@ export default function SettingsPage() {
                         <div className="text-xs text-muted">Forbundet: {new Date(conn.created_at).toLocaleDateString()} &middot; Status: {conn.status}</div>
                       </div>
                     </div>
-                    <button className="p-2 text-[hsl(var(--text-secondary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+                    <button
+                      className="p-2 text-[hsl(var(--text-secondary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                      disabled={deleteBankConnectionMutation.isPending}
+                      title={t('settings.deleteBankConnection', 'Fjern bankforbindelse')}
+                      onClick={() => {
+                        if (window.confirm(t('settings.deleteBankConnectionConfirm', 'Er du sikker på, at du vil fjerne denne bankforbindelse?'))) {
+                          deleteBankConnectionMutation.mutate(conn.id, {
+                            onSuccess: () => toast.success(t('settings.bankConnectionDeleted', 'Bankforbindelse fjernet')),
+                            onError: (err: any) => toast.error(err?.message || t('common.error', 'Der skete en fejl'))
+                          });
+                        }
+                      }}
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>

@@ -13,6 +13,10 @@ export function setHouseholdId(id: string) {
   currentHouseholdId = id;
 }
 
+export function getHouseholdId() {
+  return currentHouseholdId;
+}
+
 export function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
@@ -145,11 +149,11 @@ export async function fetchInsightsAverages(year: number) {
   return res.json();
 }
 
-export async function connectBank(redirectUrl: string) {
+export async function connectBank(redirectUrl: string, bankName: string) {
   const res = await fetch(`${API_BASE}/api/bank/connect`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ redirect_url: redirectUrl })
+    body: JSON.stringify({ redirect_url: redirectUrl, bank_name: bankName })
   });
   if (!res.ok) throw new Error('Failed to start bank connection');
   return res.json();
@@ -233,6 +237,15 @@ export async function upsertBudget(payload: { category_id: string; year: number;
 export async function fetchBankConnections() {
   const res = await fetch(`${API_BASE}/api/bank/connections`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch bank connections');
+  return res.json();
+}
+
+export async function deleteBankConnection(connectionId: string) {
+  const res = await fetch(`${API_BASE}/api/bank/connections/${connectionId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to delete bank connection');
   return res.json();
 }
 
@@ -336,11 +349,11 @@ export async function fetchHouseholdMembers(householdId: string) {
   return res.json();
 }
 
-export async function inviteHouseholdMember(householdId: string, email: string) {
+export async function inviteHouseholdMember(householdId: string, email: string, role: string = 'member') {
   const res = await fetch(`${API_BASE}/api/households/${householdId}/members`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email, role })
   });
   if (!res.ok) {
     const error = await res.json();
@@ -357,6 +370,19 @@ export async function removeHouseholdMember(householdId: string, userId: string)
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.detail || 'Failed to remove member');
+  }
+  return res.json();
+}
+
+export async function updateHouseholdMemberRole(householdId: string, userId: string, role: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/members/${userId}/role`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ role })
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || 'Failed to update member role');
   }
   return res.json();
 }
@@ -407,14 +433,14 @@ export interface Account {
 
 export function useTransactions(limit = 50, offset = 0, filter_type?: string, tag?: string, start_date?: string, end_date?: string, search?: string, amountOp?: string, amountVal?: number, categoryId?: string) {
   return useQuery({
-    queryKey: ['transactions', limit, offset, filter_type, tag, start_date, end_date, search, amountOp, amountVal, categoryId],
+    queryKey: ['transactions', currentHouseholdId, limit, offset, filter_type, tag, start_date, end_date, search, amountOp, amountVal, categoryId],
     queryFn: () => fetchTransactions(limit, offset, filter_type, tag, start_date, end_date, search, amountOp, amountVal, categoryId),
   });
 }
 
 export function useTags() {
   return useQuery({
-    queryKey: ['tags'],
+    queryKey: ['tags', currentHouseholdId],
     queryFn: fetchTags,
   });
 }
@@ -463,14 +489,14 @@ export function useLinkReceiptToTransaction() {
 
 export function useIncomeExpenseSeries(year?: number) {
   return useQuery({
-    queryKey: ['insights', 'income-expense-series', year],
+    queryKey: ['insights', 'income-expense-series', currentHouseholdId, year],
     queryFn: () => fetchIncomeExpenseSeries(year),
   });
 }
 
 export function useBudgets(year: number, categoryId?: string) {
   return useQuery({
-    queryKey: ['budgets', year, categoryId],
+    queryKey: ['budgets', currentHouseholdId, year, categoryId],
     queryFn: () => fetchBudgets(year, undefined, categoryId),
   });
 }
@@ -480,29 +506,29 @@ export function useUpsertBudget() {
   return useMutation({
     mutationFn: (payload: Parameters<typeof upsertBudget>[0]) => upsertBudget(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['budgets', variables.year] });
-      queryClient.invalidateQueries({ queryKey: ['budgets-summary', variables.year] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
     }
   });
 }
 
 export function useRecurring() {
   return useQuery({
-    queryKey: ['recurring'],
+    queryKey: ['recurring', currentHouseholdId],
     queryFn: fetchRecurring,
   });
 }
 
 export function useAccounts() {
   return useQuery({
-    queryKey: ['accounts'],
+    queryKey: ['accounts', currentHouseholdId],
     queryFn: fetchAccounts,
   });
 }
 
 export function useAccountBalanceHistory(uid: string, days = 365) {
   return useQuery({
-    queryKey: ['accounts', uid, 'history', days],
+    queryKey: ['accounts', currentHouseholdId, uid, 'history', days],
     queryFn: () => fetchAccountBalanceHistory(uid, days),
     enabled: !!uid,
   });
@@ -523,21 +549,21 @@ export function useUpdateAccount() {
 
 export function useBudgetsSummary(year: number) {
   return useQuery({
-    queryKey: ['budgets-summary', year],
+    queryKey: ['budgets-summary', currentHouseholdId, year],
     queryFn: () => fetchBudgetsSummary(year),
   });
 }
 
 export function useInsightsSunburst(params: { year?: number; month?: number; filterType?: string; startDate?: string; endDate?: string } = {}) {
   return useQuery({
-    queryKey: ['insights', 'sunburst', params.year, params.month, params.filterType, params.startDate, params.endDate],
+    queryKey: ['insights', 'sunburst', currentHouseholdId, params.year, params.month, params.filterType, params.startDate, params.endDate],
     queryFn: () => fetchInsightsSunburst(params),
   });
 }
 
 export function useInsightsAverages(year: number) {
   return useQuery({
-    queryKey: ['insights', 'averages', year],
+    queryKey: ['insights', 'averages', currentHouseholdId, year],
     queryFn: () => fetchInsightsAverages(year),
     enabled: !!year,
   });
@@ -545,7 +571,7 @@ export function useInsightsAverages(year: number) {
 
 export function useCategoryDrilldown(categoryName: string | null, year: number) {
   return useQuery({
-    queryKey: ['insights', 'category-drilldown', categoryName, year],
+    queryKey: ['insights', 'category-drilldown', currentHouseholdId, categoryName, year],
     queryFn: () => fetchCategoryDrilldown(categoryName!, year),
     enabled: !!categoryName,
   });
@@ -579,7 +605,7 @@ export async function upsertBudgetBills(payload: { category_id: string; year: nu
 
 export function useBudgetBills(categoryId: string | null, year: number) {
   return useQuery({
-    queryKey: ['budget-bills', categoryId, year],
+    queryKey: ['budget-bills', currentHouseholdId, categoryId, year],
     queryFn: () => fetchBudgetBills(categoryId!, year),
     enabled: !!categoryId,
   });
@@ -638,13 +664,13 @@ export function useImportStoreboxLink() {
 
 export function useConnectBank() {
   return useMutation({
-    mutationFn: (redirectUrl: string) => connectBank(redirectUrl),
+    mutationFn: ({ redirectUrl, bankName }: { redirectUrl: string; bankName: string }) => connectBank(redirectUrl, bankName),
   });
 }
 
 export function useBankConnections() {
   return useQuery({
-    queryKey: ['bank-connections'],
+    queryKey: ['bank-connections', currentHouseholdId],
     queryFn: fetchBankConnections,
   });
 }
@@ -652,6 +678,17 @@ export function useBankConnections() {
 export function useCompleteBankConnection() {
   return useMutation({
     mutationFn: (code: string) => completeBankConnection(code),
+  });
+}
+
+export function useDeleteBankConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (connectionId: string) => deleteBankConnection(connectionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-connections'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    }
   });
 }
 
@@ -663,7 +700,7 @@ export function useStartSync() {
 
 export function useSyncStatus(isPolling: boolean) {
   return useQuery({
-    queryKey: ['syncStatus'],
+    queryKey: ['syncStatus', currentHouseholdId],
     queryFn: () => getSyncStatus(),
     refetchInterval: isPolling ? 2000 : false, // Poll every 2 seconds if isPolling is true
     enabled: isPolling,
@@ -701,7 +738,7 @@ export function useCreateCustomRule() {
 
 export function useRules(source?: string) {
   return useQuery({
-    queryKey: ['rules', source],
+    queryKey: ['rules', currentHouseholdId, source],
     queryFn: () => fetchRules(source),
   });
 }
@@ -767,9 +804,20 @@ export function useHouseholdMembers(householdId: string) {
 export function useInviteHouseholdMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, email }: { householdId: string; email: string }) => inviteHouseholdMember(householdId, email),
+    mutationFn: ({ householdId, email, role = 'member' }: { householdId: string; email: string; role?: string }) => inviteHouseholdMember(householdId, email, role),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
+    }
+  });
+}
+
+export function useUpdateHouseholdMemberRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, userId, role }: { householdId: string; userId: string; role: string }) => updateHouseholdMemberRole(householdId, userId, role),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['households'] });
     }
   });
 }

@@ -24,7 +24,7 @@ from sqlalchemy.orm import Mapper, with_loader_criteria
 from sqlalchemy.orm import Session as SASession
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
 
-from .config import get_data_dir
+from app.core.config import get_data_dir
 
 # Context var for multi-tenancy
 current_household_id: contextvars.ContextVar[str] = contextvars.ContextVar("current_household_id")

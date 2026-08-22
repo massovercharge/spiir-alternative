@@ -34,20 +34,23 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
       } else {
         setHouseholdId(activeHouseholdId);
       }
+    } else if (!isLoading && activeHouseholdId) {
+      setActiveHouseholdId(null);
+      localStorage.removeItem('peng_household_id');
+      setHouseholdId('');
     }
-  }, [activeHouseholds, activeHouseholdId, queryClient]);
+  }, [activeHouseholds, activeHouseholdId, isLoading, queryClient]);
 
   const setActiveHousehold = (id: string) => {
     setActiveHouseholdId(id);
     localStorage.setItem('peng_household_id', id);
     setHouseholdId(id);
-    // Invalidate domain queries without wiping the households list
+    // Reset all domain queries to prevent data leakage and stale data flashing
+    queryClient.resetQueries({
+      predicate: (query) => query.queryKey[0] !== 'households'
+    });
+    // Ensure the households list is fresh
     queryClient.invalidateQueries({ queryKey: ['households'] });
-    queryClient.invalidateQueries({ queryKey: ['transactions'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['budgets'] });
-    queryClient.invalidateQueries({ queryKey: ['insights'] });
-    queryClient.invalidateQueries({ queryKey: ['categories'] });
   };
 
   return (

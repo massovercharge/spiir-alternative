@@ -14,12 +14,12 @@ from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
 
-from .config import (
+from app.core.config import (
     get_kvitteringer_category_overrides_file,
     get_kvitteringer_db_path,
     get_storebox_source_dir,
 )
-from .storage import create_backup, ensure_runtime_dirs
+from app.core.storage import create_backup, ensure_runtime_dirs
 
 SCHEMA_VERSION = "2026-04-12"
 SCHEMA_LOCK = threading.Lock()
@@ -1121,7 +1121,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 product_number = None
                 total_price_minor = _to_minor(raw_line.get("price") or 0)
                 item_price_minor = _to_minor(raw_line.get("price") or 0)
-                is_discount_line = normalized_name == DISCOUNT_PREFIX or normalized_name.startswith(f"{DISCOUNT_PREFIX} ")
+                is_discount_line = DISCOUNT_PREFIX in normalized_name
                 count_raw = None
                 is_negative_non_discount_line = (not is_discount_line) and (
                     (count_raw is not None and float(count_raw) < 0)
@@ -1143,40 +1143,6 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     }
                 )
 
-                if is_discount_line:
-                    amount_minor = abs(total_price_minor)
-                    attribution_status = "unassigned"
-                    attributed_occurrence_id = None
-                    reason = "no_previous_item"
-                    if last_non_discount_occurrence_id and not previous_was_discount:
-                        attribution_status = "attributed"
-                        attributed_occurrence_id = last_non_discount_occurrence_id
-                        reason = "adjacent_previous_item"
-                        for occurrence in occurrences:
-                            if occurrence["occurrence_id"] != attributed_occurrence_id:
-                                continue
-                            occurrence["discount_minor"] += amount_minor
-                            occurrence["net_total_minor"] = occurrence["gross_total_minor"] - occurrence["discount_minor"]
-                            occurrence["unit_price_minor"] = _safe_unit_price_minor(
-                                occurrence["net_total_minor"],
-                                occurrence["quantity"],
-                            )
-                            break
-                    elif previous_was_discount:
-                        reason = "consecutive_discount_block"
-
-                    discounts.append(
-                        {
-                            "receipt_id": receipt_id,
-                            "line_index": line_index,
-                            "amount_minor": amount_minor,
-                            "attribution_status": attribution_status,
-                            "attributed_occurrence_id": attributed_occurrence_id,
-                            "reason": reason,
-                        }
-                    )
-                    previous_was_discount = True
-                    continue
 
                 quantity = _coerce_quantity(count_raw, total_price_minor, is_discount_line)
                 variant_signature = _variant_signature(normalized_name)

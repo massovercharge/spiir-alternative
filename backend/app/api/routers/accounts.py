@@ -1,8 +1,8 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.account_service import list_accounts_with_balances, update_account, get_account_balance_history
-from app.auth import get_auth_dependency
+from app.services.account_service import list_accounts_with_balances, update_account, get_account_balance_history
+from app.core.auth import get_auth_dependency
 from app.schemas.requests import AccountUpdateRequest
 
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])

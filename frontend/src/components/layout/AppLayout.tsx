@@ -5,14 +5,17 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 import { useLogto } from '@logto/react';
 
-import DashboardPage from '../../pages/DashboardPage';
-import TransactionsPage from '../../pages/TransactionsPage';
-import BudgetsPage from '../../pages/BudgetsPage';
-import AccountsPage from '../../pages/AccountsPage';
-import SettingsPage from '../../pages/SettingsPage';
-import InsightsPage from '../../pages/InsightsPage';
-import Callback from '../../pages/Callback';
-import ReleaseNotesPage from '../../pages/ReleaseNotesPage';
+import { Suspense, lazy } from 'react';
+
+const DashboardPage = lazy(() => import('../../pages/DashboardPage'));
+const TransactionsPage = lazy(() => import('../../pages/TransactionsPage'));
+const BudgetsPage = lazy(() => import('../../pages/BudgetsPage'));
+const AccountsPage = lazy(() => import('../../pages/AccountsPage'));
+const SettingsPage = lazy(() => import('../../pages/SettingsPage'));
+const InsightsPage = lazy(() => import('../../pages/InsightsPage'));
+const Callback = lazy(() => import('../../pages/Callback'));
+const ReleaseNotesPage = lazy(() => import('../../pages/ReleaseNotesPage'));
+
 import { HouseholdProvider } from '../../context/HouseholdContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
@@ -61,15 +64,15 @@ export default function AppLayout() {
           <div className="w-16 h-16 bg-[hsl(var(--brand-danger))] rounded-full mx-auto flex items-center justify-center text-white mb-4">
             <LayoutDashboard size={32} />
           </div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--text-primary))]">Login Fejl</h2>
+          <h2 className="text-2xl font-bold text-[hsl(var(--text-primary))]">{t('app.loginError', 'Login Fejl')}</h2>
           <p className="text-[hsl(var(--text-secondary))] break-words">
             {error?.message || signInError}
           </p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.href = '/'}
             className="mt-6 w-full bg-[hsl(var(--brand-primary))] hover:bg-[hsl(var(--brand-primary-dark))] text-white font-medium py-2 px-4 rounded-xl transition-all"
           >
-            Prøv igen
+            {t('common.tryAgain', 'Prøv igen')}
           </button>
         </div>
       </div>
@@ -93,19 +96,19 @@ export default function AppLayout() {
             <LayoutDashboard size={40} className="text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-2">Velkommen</h1>
-            <p className="text-[hsl(var(--text-secondary))]">Log ind for at få adgang til dit økonomiske overblik.</p>
+            <h1 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-2">{t('app.welcome', 'Velkommen')}</h1>
+            <p className="text-[hsl(var(--text-secondary))]">{t('app.loginToContinue', 'Log ind for at få adgang til dit økonomiske overblik.')}</p>
           </div>
           <button 
             onClick={() => {
               signIn(`${window.location.origin}/callback`).catch((err: Error) => {
                 console.error("SignIn error:", err);
-                setSignInError(err.message || "Der opstod en fejl under login.");
+                setSignInError(err.message || t('app.loginErrorGeneric', "Der opstod en fejl under login."));
               });
             }}
             className="w-full bg-[hsl(var(--brand-primary))] hover:bg-[hsl(var(--brand-primary-dark))] text-white font-medium py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
           >
-            Log ind for at fortsætte
+            {t('app.loginButton', 'Log ind for at fortsætte')}
           </button>
         </div>
       </div>
@@ -115,10 +118,12 @@ export default function AppLayout() {
   // If we are on /callback but not authenticated, we still need to render the Routes
   if (!isAuthenticated && window.location.pathname === '/callback') {
     return (
-      <Routes>
-        <Route path="/callback" element={<Callback />} />
-        <Route path="*" element={<Navigate to="/callback" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[hsl(var(--bg-primary))]"><Loader2 size={48} className="animate-spin text-[hsl(var(--brand-primary))]" /></div>}>
+        <Routes>
+          <Route path="/callback" element={<Callback />} />
+          <Route path="*" element={<Navigate to="/callback" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
@@ -165,7 +170,7 @@ export default function AppLayout() {
             className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-lg text-[hsl(var(--text-secondary))] hover:bg-[hsl(var(--bg-tertiary))] hover:text-[hsl(var(--brand-danger))] transition-colors"
           >
             <LogOut size={20} />
-            <span>Log ud</span>
+            <span>{t('app.logout', 'Log ud')}</span>
           </button>
         </div>
       </aside>
@@ -194,18 +199,25 @@ export default function AppLayout() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto pb-24 md:pb-0 relative z-0">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/transactions" element={<TransactionsPage />} />
-            <Route path="/budgets" element={<BudgetsPage />} />
-            <Route path="/insights" element={<InsightsPage />} />
-            <Route path="/accounts" element={<AccountsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/settings/release-notes" element={<ReleaseNotesPage />} />
-            <Route path="/callback" element={<Callback />} />
-          </Routes>
+        <div id="scroll-container" className="flex-1 overflow-y-auto pb-24 md:pb-0 relative z-0">
+          <Suspense fallback={
+            <div className="flex h-full w-full items-center justify-center">
+              <Loader2 size={32} className="animate-spin text-[hsl(var(--brand-primary))]" />
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/transactions" element={<TransactionsPage />} />
+              <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/accounts" element={<AccountsPage />} />
+              <Route path="/insights" element={<InsightsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/release-notes" element={<ReleaseNotesPage />} />
+              <Route path="/callback" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Suspense>
         </div>
       </main>
 

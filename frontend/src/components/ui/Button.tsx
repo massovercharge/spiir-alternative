@@ -7,7 +7,7 @@ function cn(...inputs: ClassValue[]) {
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
 }
 
 export function Button({ 
@@ -27,6 +27,7 @@ export function Button({
           'px-3 py-1.5 text-sm': size === 'sm',
           'px-4 py-2': size === 'md',
           'px-6 py-3 text-lg': size === 'lg',
+          'h-8 w-8 p-0': size === 'icon',
         },
         className
       )}

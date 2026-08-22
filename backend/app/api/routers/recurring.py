@@ -1,8 +1,8 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.auth import get_auth_dependency
-from app.recurring_service import (
+from app.core.auth import get_auth_dependency
+from app.services.recurring_service import (
     create_recurring,
     delete_recurring,
     detect_recurring,

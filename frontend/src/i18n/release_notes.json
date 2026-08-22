@@ -1,5 +1,29 @@
 [
   {
+    "version": "v1.4.0",
+    "date": "2026-08-22",
+    "changes": {
+      "en": [
+        "Major backend architecture refactoring into domain-driven structure (core, models, services, api routers)",
+        "Added household member role management, allowing owners to promote members to co-owners",
+        "Added ability to choose member role when inviting to a household",
+        "Enforced last-owner protection so a household always retains at least one owner",
+        "Added bank selector dropdown supporting all Danish PSD2 banks during connection",
+        "Fixed transaction categorization issue for uncategorized transactions missing allocations and synced ML logging",
+        "UI polish and comprehensive translations across settings, accounts, and household management"
+      ],
+      "da": [
+        "Stor backend-arkitekturrefaktorering til domæneopdelt struktur (core, models, services, api routers)",
+        "Tilføjet styring af husstandsroller, så ejere kan forfremme medlemmer til medejere",
+        "Tilføjet mulighed for at vælge rolle ved invitation til en husstand",
+        "Sikret beskyttelse af den sidste ejer, så en husstand altid har mindst én aktiv ejer",
+        "Tilføjet bankvælger til understøttelse af alle danske PSD2-banker ved tilkobling",
+        "Løst problem med kategorisering af transaktioner, der manglede allokeringsdata, samt synkroniseret ML-logning",
+        "Generelle UI-forbedringer og komplette oversættelser på tværs af indstillinger, konti og husstande"
+      ]
+    }
+  },
+  {
     "version": "v1.3.2",
     "date": "2026-07-22",
     "changes": {

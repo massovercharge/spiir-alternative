@@ -53,10 +53,10 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
   
   const monthTransactions = monthTransactionsData?.transactions || [];
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [initializedCategoryId, setInitializedCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isInitialized) return;
+    if (initializedCategoryId === category.category_id) return;
     if (isLoadingBudgets || isLoadingBills) return;
 
     if (isFixedOrIncome) {
@@ -67,7 +67,7 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
           amountInput: (Math.abs(b.amount_minor) / 100).toString().replace('.', ','),
           activeMonths: new Set(b.months)
         })));
-        setIsInitialized(true);
+        setInitializedCategoryId(category.category_id);
       } else if (budgets && budgets.length > 0) {
         const nonZeroBudgets = budgets.filter((b: any) => b.amount_minor !== 0);
         if (nonZeroBudgets.length > 0) {
@@ -84,14 +84,14 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
             amountInput: (avg / 100).toString().replace('.', ','),
             activeMonths: active
           }]);
-          setIsInitialized(true);
+          setInitializedCategoryId(category.category_id);
         } else {
           setBills([]);
-          setIsInitialized(true);
+          setInitializedCategoryId(category.category_id);
         }
       } else {
         setBills([]);
-        setIsInitialized(true);
+        setInitializedCategoryId(category.category_id);
       }
     } else {
       if (budgets && budgets.length > 0) {
@@ -109,15 +109,15 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
           for (let i = 1; i <= 12; i++) active.add(i);
         }
         setActiveMonths(active);
-        setIsInitialized(true);
+        setInitializedCategoryId(category.category_id);
       } else {
         setAmountInput('');
         setRollover(false);
         setActiveMonths(new Set([1,2,3,4,5,6,7,8,9,10,11,12]));
-        setIsInitialized(true);
+        setInitializedCategoryId(category.category_id);
       }
     }
-  }, [budgets, budgetBills, isFixedOrIncome, isInitialized, isLoadingBudgets, isLoadingBills]);
+  }, [budgets, budgetBills, isFixedOrIncome, initializedCategoryId, isLoadingBudgets, isLoadingBills, category.category_id, label]);
 
   const handleSave = () => {
     if (isFixedOrIncome) {
@@ -168,13 +168,31 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
   };
 
   const signMult = category.category_type === 'Income' ? 1 : -1;
+  let carryover = 0;
   const chartData = Array.from({ length: 12 }, (_, i) => {
     const monthNum = i + 1;
     const mData = category.months?.find((m: any) => m.month === monthNum);
+    
+    let explicitBudgetMinor = 0;
+    if (isFixedOrIncome) {
+      explicitBudgetMinor = mData ? mData.budgeted_minor : 0;
+    } else {
+      const parsedAmount = parseFloat(amountInput.replace(',', '.')) || 0;
+      explicitBudgetMinor = activeMonths.has(monthNum) ? Math.round(parsedAmount * 100) * signMult : 0;
+    }
+    
+    const actualMinor = mData ? mData.actual_minor : 0;
+    
+    let effectiveBudgetMinor = explicitBudgetMinor;
+    if (rollover) {
+      effectiveBudgetMinor += carryover;
+      carryover = effectiveBudgetMinor - actualMinor;
+    }
+
     return {
       name: MONTH_INITIALS[i],
-      [t('budgets.budgeted', 'Budget')]: mData ? (mData.budgeted_minor * signMult) / 100 : 0,
-      [t('budgets.actual', 'Faktisk')]: mData ? (mData.actual_minor * signMult) / 100 : 0,
+      [t('budgets.budgeted', 'Budget')]: (effectiveBudgetMinor * signMult) / 100,
+      [t('budgets.actual', 'Faktisk')]: (actualMinor * signMult) / 100,
     };
   });
 
@@ -445,7 +463,8 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
             </div>
           )}
 
-          <div className="flex items-center justify-between p-4 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-lg">
+          {!isFixedOrIncome && (
+            <div className="flex items-center justify-between p-4 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-lg">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[hsl(var(--brand-primary))] bg-opacity-20 text-[hsl(var(--brand-primary))] rounded-lg">
                 <RefreshCw size={20} />
@@ -466,6 +485,7 @@ export function BudgetDetailsSidebar({ category, year, onClose }: BudgetDetailsS
               <div className="w-11 h-6 bg-[hsl(var(--bg-tertiary))] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[hsl(var(--brand-primary))]"></div>
             </label>
           </div>
+          )}
         </div>
 
         <div className="p-4 pb-28 md:pb-4 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex justify-end gap-3">

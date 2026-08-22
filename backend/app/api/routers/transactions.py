@@ -1,8 +1,8 @@
 from typing import Any, Annotated, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 
-from app.auth import get_auth_dependency
-from app.transaction_service import (
+from app.core.auth import get_auth_dependency
+from app.services.transaction_service import (
     get_transaction,
     list_transactions,
     split_allocation,

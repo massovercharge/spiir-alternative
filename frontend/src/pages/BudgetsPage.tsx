@@ -23,7 +23,7 @@ function getMonthStates(months: any[], currentMonth: number, isCurrentYear: bool
     if (mData.budgeted_minor === 0 && mData.actual_minor === 0) return 'inactive';
 
     const actual = Math.abs(mData.actual_minor);
-    const budgeted = Math.abs(mData.budgeted_minor);
+    const budgeted = Math.abs(mData.effective_budgeted_minor ?? mData.budgeted_minor ?? 0);
 
     if (isIncome) {
       if (actual < budgeted && budgeted > 0) return 'over'; // Bad (Red)
@@ -42,7 +42,7 @@ function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: an
   const currentMonthData = months.find((m: any) => m.month === currentMonth);
   
   const used = Math.abs(currentMonthData?.actual_minor || 0) / 100;
-  const total = Math.abs(currentMonthData?.budgeted_minor || 0) / 100;
+  const total = Math.abs(currentMonthData?.effective_budgeted_minor ?? currentMonthData?.budgeted_minor ?? 0) / 100;
   
   const percentage = total > 0 ? Math.min((used / total) * 100, 100) : 100;
   const isIncome = category.category_type === 'Income';
@@ -199,30 +199,33 @@ export default function BudgetsPage() {
   const { data: summary, isLoading } = useBudgetsSummary(currentYear);
   const generateBudgets = useGenerateBudgets();
 
-  const categoriesWithLabels = summary?.categories?.map((c: any) => {
-    const labelParts = c.category_id.split('|');
-    const mainLabel = labelParts[0].charAt(0).toUpperCase() + labelParts[0].slice(1);
-    const subLabel = labelParts[1] ? labelParts[1] : labelParts[0];
+  const categoriesWithLabels = useMemo(() => {
+    return summary?.categories?.map((c: any) => {
+      const labelParts = c.category_id.split('|');
+      const mainLabel = labelParts[0].charAt(0).toUpperCase() + labelParts[0].slice(1);
+      const subLabel = labelParts[1] ? labelParts[1] : labelParts[0];
+      return {
+        ...c,
+        label: labelParts[1] ? `${mainLabel} - ${subLabel}` : subLabel
+      };
+    }) || [];
+  }, [summary?.categories]);
+
+  const { allIncome, allBillsRaw, budgetedConsumption, unbudgetedConsumption } = useMemo(() => {
+    const hasData = (c: any) => Math.abs(c.total_budgeted_minor) > 0 || Math.abs(c.total_actual_minor) > 0;
+    
     return {
-      ...c,
-      label: labelParts[1] ? `${mainLabel} - ${subLabel}` : subLabel
+      allIncome: categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Income'),
+      allBillsRaw: categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Expense' && c.expense_type === 'Fixed'),
+      budgetedConsumption: categoriesWithLabels.filter((c: any) => Math.abs(c.total_budgeted_minor) > 0 && c.category_type === 'Expense' && c.expense_type === 'Variable'),
+      unbudgetedConsumption: categoriesWithLabels.filter((c: any) => 
+        c.total_budgeted_minor === 0 && 
+        c.category_type === 'Expense' && 
+        c.expense_type === 'Variable' && 
+        Math.abs(c.total_actual_minor) > 0
+      ).sort((a: any, b: any) => Math.abs(b.total_actual_minor) - Math.abs(a.total_actual_minor))
     };
-  }) || [];
-
-  const hasData = (c: any) => Math.abs(c.total_budgeted_minor) > 0 || Math.abs(c.total_actual_minor) > 0;
-
-  const allIncome = categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Income');
-  const allBillsRaw = categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Expense' && c.expense_type === 'Fixed');
-  const budgetedConsumption = categoriesWithLabels.filter((c: any) => c.total_budgeted_minor > 0 && c.category_type === 'Expense' && c.expense_type === 'Variable');
-  
-
-  
-  const unbudgetedConsumption = categoriesWithLabels.filter((c: any) => 
-    c.total_budgeted_minor === 0 && 
-    c.category_type === 'Expense' && 
-    c.expense_type === 'Variable' && 
-    Math.abs(c.total_actual_minor) > 0
-  ).sort((a: any, b: any) => Math.abs(b.total_actual_minor) - Math.abs(a.total_actual_minor));
+  }, [categoriesWithLabels]);
 
   const TabButton = ({ id, label }: { id: TabType, label: string }) => (
     <button

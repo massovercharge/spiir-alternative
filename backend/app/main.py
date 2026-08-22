@@ -12,10 +12,10 @@ from fastapi import FastAPI, Depends
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.auth import get_auth_dependency
-from app.database import create_db_and_tables
-from app.category_service import seed_categories
-from app.rules_service import seed_spiir_rules
+from app.core.auth import get_auth_dependency
+from app.models import create_db_and_tables
+from app.services.category_service import seed_categories
+from app.services.rules_service import seed_spiir_rules
 
 # Import Routers
 from app.api.routers import (
@@ -39,7 +39,11 @@ async def lifespan(app: FastAPI):
     """Initialize the database, seed categories, and seed Spiir rules on startup."""
     create_db_and_tables()
     seed_categories()
-    seed_spiir_rules()
+    new_rules_count = seed_spiir_rules()
+    
+    if new_rules_count > 0:
+        from app.services.rules_service import apply_rules_to_uncategorized
+        apply_rules_to_uncategorized()
     
     # Start background workers
     import asyncio
@@ -63,8 +67,18 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    from fastapi.responses import JSONResponse
+    from fastapi import Request
+
     # All API routes require auth
     dependencies = [Depends(get_auth_dependency())]
+
+    @app.exception_handler(ValueError)
+    async def value_error_handler(request: Request, exc: ValueError):
+        return JSONResponse(
+            status_code=400,
+            content={"detail": str(exc)},
+        )
 
     # Health check
     @app.get("/api/health")

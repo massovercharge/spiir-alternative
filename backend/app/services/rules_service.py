@@ -22,8 +22,8 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
-from app.category_service import make_category_id
-from app.database import (
+from app.services.category_service import make_category_id
+from app.models import (
     CategorizationRule,
     Posting,
     PostingAllocation,
@@ -43,7 +43,6 @@ def _utcnow_iso() -> str:
 _DATE_RE = re.compile(r"\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b")
 _PAYMENT_PREFIXES = [
     re.compile(r"dankort[- ]?køb", re.I),
-    re.compile(r"dankort[- ]?nota", re.I),
     re.compile(r"visa/dankort", re.I),
     re.compile(r"\bkontaktløs\b", re.I),
     re.compile(r"\bvisa\b", re.I),
@@ -56,7 +55,7 @@ _PAYMENT_PREFIXES = [
     re.compile(r"\boverførsel\b", re.I),
 ]
 _NOTA_RE = re.compile(
-    r"\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota(?:\s*nr\.?|\.nr\.?|\.|\:)?\s*[a-z0-9]+\b|\bnotanr\.?\s*[a-z0-9]+\b|\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota\b|\bnotanr\.?\b",
+    r"\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota(?:\s*nr\.?|\.nr\.?|\.|\:)?\s*[0-9]+\b|\bnotanr\.?\s*[0-9]+\b|\b(?:dankort[- ]?|visa(?:[/-]dankort)?[- ]?)?nota\b|\bnotanr\.?\b",
     re.I,
 )
 _SPECIAL_CHARS_RE = re.compile(r"[^a-zæøå0-9\s]")
@@ -216,7 +215,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ]),
     ("Andre leveomkostninger", "TV & streaming", [
         "kabel tv", "viasat", "sattelit", "antenneforening", "radio",
-        "netflix", "hbo", "viaplay", "disney+", "disney plus",
+        "netflix", "netflix.com", "hbo", "viaplay", "disney+", "disney plus",
         "dr licens", "tv2 play", "amazon prime",
     ]),
     ("Andre leveomkostninger", "Telefoni & internet", [
@@ -387,6 +386,10 @@ def seed_spiir_rules() -> int:
                 if keyword_lower.startswith("re:"):
                     is_regex = True
                     pattern_str = keyword_lower[3:]
+                else:
+                    pattern_str = preprocess_description(pattern_str)
+                    if not pattern_str:
+                        continue
 
                 # Check if this exact rule already exists (idempotent)
                 existing = db.exec(
@@ -733,7 +736,7 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
         db.commit()
 
     # Now detect and categorize internal transfers
-    from app.transfer_service import detect_internal_transfers
+    from app.services.transfer_service import detect_internal_transfers
     transfer_results = detect_internal_transfers()
 
     return {

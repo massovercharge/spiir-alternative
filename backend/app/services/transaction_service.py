@@ -12,7 +12,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlmodel import Session, col, delete, select
 
-from .database import (
+from app.models import (
     Account,
     CategorizationRule,
     Category,
@@ -23,7 +23,7 @@ from .database import (
     Tag,
     engine,
 )
-from .money import format_amount
+from app.core.money import format_amount
 
 
 def _utcnow_iso() -> str:
@@ -60,10 +60,6 @@ def list_transactions(
         if account_uid:
             query = query.where(Posting.account_uid == account_uid)
 
-        if search:
-            pattern = f"%{search}%"
-            query = query.where(col(Posting.original_description).ilike(pattern))
-
         if start_date:
             query = query.where(eff_date >= start_date)
         if end_date:
@@ -79,7 +75,7 @@ def list_transactions(
                 query = query.where(Posting.amount_minor == amount_minor)
 
         # Joins for filtering
-        needs_alloc = filter_type in ("regninger", "forbrug", "ukategoriseret", "ekstraordinær") or tag or category_id
+        needs_alloc = filter_type in ("regninger", "forbrug", "ukategoriseret", "ekstraordinær") or tag or category_id or bool(search)
         if needs_alloc:
             query = query.join(PostingAllocation, PostingAllocation.posting_id == Posting.id, isouter=True)
 
@@ -108,53 +104,19 @@ def list_transactions(
                 else:
                     query = query.where(PostingAllocation.category_id.startswith(f"{category_id}|"))
 
-        # Get total count
-        count_query = select(func.count(Posting.id.distinct()))
-        count_query = count_query.select_from(Posting)
-
-        if account_uid:
-            count_query = count_query.where(Posting.account_uid == account_uid)
         if search:
-            count_query = count_query.where(col(Posting.original_description).ilike(f"%{search}%"))
-        if start_date:
-            count_query = count_query.where(eff_date >= start_date)
-        if end_date:
-            count_query = count_query.where(eff_date <= end_date)
-
-        if amount_op and amount_value is not None:
-            amount_minor = int(amount_value * 100)
-            if amount_op == "gt":
-                count_query = count_query.where(Posting.amount_minor > amount_minor)
-            elif amount_op == "lt":
-                count_query = count_query.where(Posting.amount_minor < amount_minor)
-            elif amount_op == "eq":
-                count_query = count_query.where(Posting.amount_minor == amount_minor)
-
-        if needs_alloc:
-            count_query = count_query.join(PostingAllocation, PostingAllocation.posting_id == Posting.id, isouter=True)
-            if filter_type == "ukategoriseret":
-                count_query = count_query.where(
-                    PostingAllocation.category_id.is_(None) |
-                    PostingAllocation.category_id.in_(["diverse|ikke-kategoriseret", "diverse|ukategoriseret"])
+            pattern = f"%{search}%"
+            if needs_alloc:
+                query = query.where(
+                    col(Posting.original_description).ilike(pattern) |
+                    col(PostingAllocation.item_name).ilike(pattern) |
+                    col(PostingAllocation.note).ilike(pattern)
                 )
-            elif filter_type == "ekstraordinær":
-                count_query = count_query.where(PostingAllocation.is_extraordinary)
-            elif filter_type in ("regninger", "forbrug"):
-                count_query = count_query.join(Category, PostingAllocation.category_id == Category.id, isouter=True)
-                if filter_type == "regninger":
-                    count_query = count_query.where(Category.expense_type == "Fixed")
-                else:
-                    count_query = count_query.where(Category.expense_type == "Variable")
-            if tag:
-                count_query = count_query.join(PostingAllocationTagLink, PostingAllocationTagLink.allocation_id == PostingAllocation.id)
-                count_query = count_query.join(Tag, Tag.id == PostingAllocationTagLink.tag_id)
-                count_query = count_query.where(Tag.name == tag)
-            if category_id:
-                if "|" in category_id:
-                    count_query = count_query.where(PostingAllocation.category_id == category_id)
-                else:
-                    count_query = count_query.where(PostingAllocation.category_id.startswith(f"{category_id}|"))
+            else:
+                query = query.where(col(Posting.original_description).ilike(pattern))
 
+        # Get total count using the same base query
+        count_query = select(func.count()).select_from(query.order_by(None).subquery())
         total_count = db.exec(count_query).one_or_none() or 0
 
         if offset:
@@ -261,8 +223,10 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
             ).first()
 
             if alloc is None:
+                from app.models.all_models import current_household_id
                 alloc = PostingAllocation(
                     posting_id=posting_id,
+                    household_id=current_household_id.get(),
                     amount_minor=posting.amount_minor,
                 )
                 db.add(alloc)
@@ -273,7 +237,9 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
 
                 # Log the override for ML training
                 if new_cat != old_cat:
+                    from app.models.all_models import current_household_id
                     db.add(CategoryOverrideLog(
+                        household_id=current_household_id.get(),
                         original_description=posting.original_description,
                         old_category_id=old_cat,
                         new_category_id=new_cat or "",
@@ -439,13 +405,36 @@ def _serialize_posting(
 def update_transaction_category(posting_id: str, category_id: str) -> bool:
     """Update the primary category of a single transaction."""
     with Session(engine) as db:
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting_id)).first()
-        if not alloc:
+        posting = db.get(Posting, posting_id)
+        if not posting:
             return False
 
-        alloc.category_id = category_id
-        alloc.updated_at = _utcnow_iso()
-        db.add(alloc)
+        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting_id)).first()
+        old_cat = alloc.category_id if alloc else None
+
+        if not alloc:
+            alloc = PostingAllocation(
+                posting_id=posting_id,
+                household_id=posting.household_id,
+                amount_minor=posting.amount_minor,
+                category_id=category_id,
+            )
+            db.add(alloc)
+        else:
+            alloc.category_id = category_id
+            alloc.updated_at = _utcnow_iso()
+            db.add(alloc)
+
+        # Log category override for ML/rules
+        if category_id != old_cat:
+            db.add(CategoryOverrideLog(
+                household_id=posting.household_id,
+                original_description=posting.original_description,
+                old_category_id=old_cat,
+                new_category_id=category_id or "",
+                merchant_category_code=posting.merchant_category_code,
+            ))
+
         db.commit()
         return True
 
@@ -454,7 +443,7 @@ def apply_rule_retroactively(rule_id: str) -> int:
 
     Returns the number of updated postings.
     """
-    from app.rules_service import get_compiled_regex, preprocess_description
+    from app.services.rules_service import get_compiled_regex, preprocess_description
 
     updated_count = 0
     with Session(engine) as db:
@@ -526,7 +515,7 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
         if not fallback_category_id or fallback_category_id in (
             "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
         ):
-            from app.rules_service import evaluate_posting
+            from app.services.rules_service import evaluate_posting
             fallback_category_id = evaluate_posting(posting) or fallback_category_id
 
         splits = []
@@ -536,7 +525,7 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
         receipt_total = receipt_data["receipt"].get("receipt_total_minor", 0)
         multiplier = -1 if posting.amount_minor < 0 and receipt_total > 0 else 1
 
-        from app.rules_service import evaluate_text
+        from app.services.rules_service import evaluate_text
 
         for occ in occurrences:
             # net_total_minor is the item's total including item-level discounts
@@ -544,10 +533,13 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             sum_items += amt
 
             item_name = occ.get("display_name")
-            # Try item-specific categorization first, fall back to original category
+            # Try item-specific categorization first, but force Dagligvarer if transaction is Dagligvarer
             category_id = None
-            if item_name:
+            if fallback_category_id and fallback_category_id == "husholdning|dagligvarer":
+                category_id = fallback_category_id
+            elif item_name:
                 category_id = evaluate_text(item_name)
+            
             if not category_id:
                 category_id = fallback_category_id
 
