@@ -8,6 +8,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
+from app.core.money import to_minor
 from app.models import (
     Account,
     Posting,
@@ -33,8 +34,8 @@ def _parse_amount(amount_str: str) -> int:
         return 0
     clean = amount_str.replace('.', '').replace(',', '.')
     try:
-        return int(round(float(clean) * 100))
-    except ValueError:
+        return to_minor(clean)
+    except (ValueError, TypeError):
         return 0
 
 def _parse_date(date_str: str) -> str:
@@ -190,9 +191,8 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
                 posting_id=posting_id,
                 amount_minor=amount_minor,
                 category_id=cat_id,
-                description=description,
                 note=row.get("Comment", ""),
-                is_extraordinary=(row.get("Extraordinary", "No").lower() == "yes")
+                is_extraordinary=(row.get("Extraordinary", "No").lower() == "yes"),
             )
             db.add(alloc)
             db.flush() # Need to flush to get alloc.id for tags

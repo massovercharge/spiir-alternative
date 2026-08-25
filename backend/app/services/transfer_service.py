@@ -48,7 +48,7 @@ def detect_internal_transfers() -> dict[str, Any]:
         transfer_cat_id = make_category_id("Vis ikke", "Kontooverførsel")
         transfer_cat = db.get(Category, transfer_cat_id)
         if not transfer_cat:
-            transfer_cat = Category(id=transfer_cat_id, main_name="Vis ikke", name="Kontooverførsel", expense_type="Variable")
+            transfer_cat = Category(id=transfer_cat_id, main_name="Vis ikke", sub_name="Kontooverførsel", expense_type="Variable")
             db.add(transfer_cat)
             db.commit()
 
