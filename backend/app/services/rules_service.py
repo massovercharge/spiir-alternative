@@ -13,9 +13,8 @@ Architecture:
 The system is designed so the app works FULLY without ML. ML is optional
 and pluggable via a simple interface in the decision logic.
 """
-from __future__ import annotations
-
 import contextlib
+import functools
 import re
 from datetime import UTC, datetime
 from typing import Any
@@ -464,29 +463,33 @@ def clean_and_migrate_stored_rules() -> int:
 # Rule Evaluation Engine
 # ---------------------------------------------------------------------------
 
-def get_compiled_regex(rule: CategorizationRule) -> re.Pattern | None:
-    """Compile and cache the regex pattern for a CategorizationRule.
+@functools.lru_cache(maxsize=2048)
+def _compile_pattern_cached(pattern: str, is_regex: bool, partial_match: bool) -> re.Pattern | None:
+    if is_regex:
+        with contextlib.suppress(re.error):
+            return re.compile(pattern, re.IGNORECASE)
+        return None
 
-    Uses a dynamic attribute on the rule object to cache the compilation result.
-    """
+    cleaned = pattern.lower()
+    pattern_cleaned = _SPECIAL_CHARS_RE.sub(" ", cleaned)
+    pattern_cleaned = _WHITESPACE_RE.sub(" ", pattern_cleaned).strip()
+    if not pattern_cleaned:
+        return None
+    if partial_match:
+        return re.compile(re.escape(pattern_cleaned))
+    return re.compile(rf"\b{re.escape(pattern_cleaned)}\b")
+
+
+def get_compiled_regex(rule: CategorizationRule) -> re.Pattern | None:
+    """Compile and cache the regex pattern for a CategorizationRule."""
     if hasattr(rule, "_compiled_regex"):
         return rule._compiled_regex
 
-    compiled = None
-    if rule.is_regex:
-        with contextlib.suppress(re.error):
-            compiled = re.compile(rule.match_pattern, re.IGNORECASE)
-    else:
-        pattern = rule.match_pattern.lower()
-        # Clean pattern of special characters
-        pattern_cleaned = _SPECIAL_CHARS_RE.sub(" ", pattern)
-        pattern_cleaned = _WHITESPACE_RE.sub(" ", pattern_cleaned).strip()
-        if pattern_cleaned:
-            if getattr(rule, "partial_match", False):
-                compiled = re.compile(re.escape(pattern_cleaned))
-            else:
-                compiled = re.compile(rf"\b{re.escape(pattern_cleaned)}\b")
-
+    compiled = _compile_pattern_cached(
+        rule.match_pattern,
+        bool(rule.is_regex),
+        bool(getattr(rule, "partial_match", False)),
+    )
     rule._compiled_regex = compiled
     return compiled
 
@@ -701,12 +704,14 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
         try:
             with Session(engine) as db:
                 postings = db.exec(select(Posting)).all()
+                all_allocs = db.exec(select(PostingAllocation)).all()
+
+                allocs_by_posting: dict[str, list[PostingAllocation]] = {}
+                for a in all_allocs:
+                    allocs_by_posting.setdefault(a.posting_id, []).append(a)
 
                 for posting in postings:
-                    allocs = db.exec(
-                        select(PostingAllocation)
-                        .where(PostingAllocation.posting_id == posting.id)
-                    ).all()
+                    allocs = allocs_by_posting.get(posting.id, [])
 
                     has_real_category = any(
                         a.category_id and a.category_id not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")

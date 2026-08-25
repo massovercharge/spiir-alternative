@@ -115,3 +115,9 @@ def get_imap_config() -> dict[str, object]:
         "folder": _env("INBOUND_EMAIL_IMAP_FOLDER", "PENG_IMAP_FOLDER", "SPIIR_IMAP_FOLDER") or "INBOX",
         "poll_interval": max(10, int(interval_val)),
     }
+
+
+def get_inbound_email_webhook_secret() -> str | None:
+    """Return the optional shared secret for authenticating inbound webhook calls."""
+    return _env("INBOUND_EMAIL_WEBHOOK_SECRET", "PENG_WEBHOOK_SECRET")
+

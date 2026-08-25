@@ -7,14 +7,21 @@ export default {
       // Hent hele den rå MIME/RFC822 e-mail stream
       const rawEmail = await new Response(message.raw).arrayBuffer();
 
+      // Headers inklusiv eventuel webhook hemmelighed
+      const headers = {
+        "Content-Type": "message/rfc822",
+        "X-Inbound-From": message.from,
+        "X-Inbound-To": message.to,
+      };
+      const secret = env.INBOUND_EMAIL_WEBHOOK_SECRET || env.PENG_WEBHOOK_SECRET;
+      if (secret) {
+        headers["X-Webhook-Secret"] = secret;
+      }
+
       // Videresend til Peng webhook
       const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "message/rfc822",
-          "X-Inbound-From": message.from,
-          "X-Inbound-To": message.to,
-        },
+        headers: headers,
         body: rawEmail,
       });
 

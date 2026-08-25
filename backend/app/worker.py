@@ -1,9 +1,12 @@
 import asyncio
 import datetime
+import logging
 
 from sqlmodel import Session, select
 
 from app.models import Household, HouseholdMember, engine
+
+logger = logging.getLogger("peng.worker")
 
 
 async def purge_deleted_households_worker():
@@ -31,7 +34,7 @@ async def purge_deleted_households_worker():
                                 deleted_time = deleted_time.replace(tzinfo=datetime.UTC)
 
                             if deleted_time < cutoff:
-                                print(f"[WORKER] Purging household {hh.id} ({hh.name}) as it was deleted > 2 hours ago", flush=True)
+                                logger.info("Purging household %s (%s) as it was deleted > 2 hours ago", hh.id, hh.name)
 
                                 # Since SQLite does not automatically handle ON DELETE CASCADE if the schema
                                 # was created before ondelete="CASCADE" was added, we must manually delete dependent records.
@@ -76,13 +79,13 @@ async def purge_deleted_households_worker():
                                         try:
                                             db.flush()
                                         except Exception as e:
-                                            print(f"[WORKER] Failed when flushing {model.__name__}: {e}", flush=True)
+                                            logger.error("Failed when flushing %s: %s", model.__name__, e)
                                             raise
 
                                 # Check if household was restored during purge processing
                                 db.refresh(hh)
                                 if not hh.deleted_at:
-                                    print(f"[WORKER] Household {hh.id} was restored during purge, aborting deletion", flush=True)
+                                    logger.info("Household %s was restored during purge, aborting deletion", hh.id)
                                     db.rollback()
                                     continue
 
@@ -91,12 +94,12 @@ async def purge_deleted_households_worker():
                                 try:
                                     db.commit()
                                 except Exception as e:
-                                    print(f"[WORKER] Failed when committing household {hh.id}: {e}", flush=True)
+                                    logger.error("Failed when committing household %s: %s", hh.id, e)
                                     raise
                         except Exception as e:
-                            print(f"[WORKER] Error purging household {hh.id}: {e}", flush=True)
+                            logger.error("Error purging household %s: %s", hh.id, e)
                             db.rollback()
         except Exception as e:
-            print(f"[WORKER] Global error: {e}", flush=True)
+            logger.error("Global error in purge worker: %s", e)
 
         await asyncio.sleep(60 * 10)  # Check every 10 minutes

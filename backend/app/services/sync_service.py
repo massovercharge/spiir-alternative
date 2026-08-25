@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import logging
 import os
 import threading
 import uuid
@@ -18,6 +19,8 @@ from sqlmodel import Session, select
 from app.core.config import get_data_dir
 from app.core.money import to_minor
 from app.models import Account, BankConnection, Posting, PostingAllocation, SyncJob, engine
+
+logger = logging.getLogger("peng.sync_service")
 
 # ---------------------------------------------------------------------------
 # Enable Banking Configuration
@@ -190,8 +193,6 @@ def _normalize_and_persist(
     Implements rule #5: all minor units, deduplication via consistent IDs.
     Returns the number of new transactions created.
     """
-    import logging
-
     from app.models import current_household_id
 
     account_uid = (
@@ -249,12 +250,12 @@ def _normalize_and_persist(
         .where(RecurringTransaction.status == "active")
     ).all()
 
-    for raw_dict in raw_txs:
+    for i, raw_dict in enumerate(raw_txs):
         try:
             tx = EnableBankingTransaction.model_validate(raw_dict)
         except Exception as e:
             if "entry_reference" in raw_dict:
-                print(f"Skipping malformed transaction {raw_dict.get('entry_reference')}: {e}")
+                logger.warning("Skipping malformed transaction %s: %s", raw_dict.get("entry_reference"), e)
             continue
 
         try:
@@ -328,12 +329,15 @@ def _normalize_and_persist(
             match_posting_to_recurring(posting, alloc, recurring_txs=active_recurring)
 
             new_count += 1
-            db.commit()  # commit per-transaction so one failure doesn't roll back the whole account
+            db.flush()
+            if (i + 1) % 100 == 0:
+                db.commit()
         except Exception as e:
-            logging.error(f"Error persisting transaction {tx_id}: {e}")
+            logger.error("Error persisting transaction %s: %s", tx_id, e)
             db.rollback()
             continue
 
+    db.commit()
     return new_count
 
 
@@ -464,7 +468,7 @@ def retrieve_transactions(
                             break
                 except Exception as e:
                     import traceback
-                    print(f"Error fetching account {account_uid}: {traceback.format_exc()}")
+                    logger.error("Error fetching account %s: %s", account_uid, traceback.format_exc())
                     account_errors[account_uid] = str(e)
                     continue
 
@@ -492,7 +496,7 @@ def retrieve_transactions(
                                 db_acc.balance_minor = to_minor(amt_str)
                                 inner_db.commit()
                 except Exception as e:
-                    print(f"Failed to fetch balances for {account_uid}: {e}")
+                    logger.warning("Failed to fetch balances for %s: %s", account_uid, e)
 
                 total_fetched += len(raw_transactions)
                 notify(
@@ -610,7 +614,7 @@ def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
             if linked > 0:
                 msg += f" (Forbandt {linked} kvitteringer)"
         except Exception as e:
-            print(f"Failed to auto-link receipts after sync: {e}")
+            logger.warning("Failed to auto-link receipts after sync: %s", e)
 
         _update_job(
             "succeeded" if not account_errors else "completed_with_errors", 100, msg,

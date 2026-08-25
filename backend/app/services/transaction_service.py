@@ -7,6 +7,7 @@ and API responses return amounts as strings (e.g. ``"100.50"``).
 from __future__ import annotations
 
 import contextlib
+import logging
 from datetime import UTC, datetime
 from typing import Any
 
@@ -14,7 +15,7 @@ from sqlalchemy import func
 from sqlmodel import Session, col, delete, select
 
 import app.models as models
-from app.core.money import format_amount
+from app.core.money import format_amount, to_minor
 from app.models import (
     Account,
     CategorizationRule,
@@ -26,6 +27,8 @@ from app.models import (
     Tag,
 )
 from app.models.all_models import Household, current_household_id
+
+logger = logging.getLogger("peng.transaction_service")
 
 engine = models.engine
 
@@ -74,7 +77,7 @@ def list_transactions(
             query = query.where(eff_date <= end_date)
 
         if amount_op and amount_value is not None:
-            amount_minor = int(amount_value * 100)
+            amount_minor = to_minor(str(amount_value))
             if amount_op == "gt":
                 query = query.where(Posting.amount_minor > amount_minor)
             elif amount_op == "lt":
@@ -649,7 +652,7 @@ def auto_link_receipts(
                             link_receipt_to_transaction(posting.id, receipt_id, is_auto=True)
                             linked_count += 1
                     except Exception as e:
-                        print(f"Error auto-linking posting {posting.id}: {e}")
+                        logger.warning("Error auto-linking posting %s: %s", posting.id, e)
         finally:
             current_household_id.reset(token)
 

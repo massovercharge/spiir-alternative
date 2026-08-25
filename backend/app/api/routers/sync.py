@@ -44,7 +44,6 @@ def bank_callback(payload: BankCallbackRequest, auth: dict[str, Any] = Depends(g
     try:
         return complete_auth_session(payload.code)
     except Exception as exc:
-        print(f"=== BANK CALLBACK ERROR: {exc} ===", flush=True)
         logging.exception("Failed in bank_callback: %s", str(exc))
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

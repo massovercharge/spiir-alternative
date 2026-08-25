@@ -18,6 +18,20 @@ from app.services.inbound_email_service import (
 router = APIRouter(tags=["inbound"])
 
 
+def _verify_webhook_secret(request: Request) -> None:
+    from app.core.config import get_inbound_email_webhook_secret
+    secret = get_inbound_email_webhook_secret()
+    if not secret:
+        return
+    provided = (
+        request.headers.get("x-webhook-secret")
+        or request.headers.get("x-inbound-secret")
+        or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+    )
+    if not provided or provided != secret:
+        raise HTTPException(status_code=401, detail="Invalid webhook secret")
+
+
 # ---------------------------------------------------------------------------
 # Public Inbound Webhooks (Unauthenticated / Token-routed)
 # ---------------------------------------------------------------------------
@@ -25,6 +39,7 @@ router = APIRouter(tags=["inbound"])
 @router.post("/api/inbound/email")
 async def inbound_email_webhook(request: Request) -> dict[str, Any]:
     """Public webhook endpoint for receiving incoming forwarded emails (raw MIME or JSON)."""
+    _verify_webhook_secret(request)
     content_type = request.headers.get("content-type", "").lower()
 
     if "application/json" in content_type:
@@ -45,6 +60,7 @@ async def inbound_email_webhook(request: Request) -> dict[str, Any]:
 @router.post("/api/inbound/email/{token}")
 async def inbound_email_webhook_with_token(token: str, request: Request) -> dict[str, Any]:
     """Public webhook endpoint with household token explicitly in the URL path."""
+    _verify_webhook_secret(request)
     from sqlmodel import Session, select
 
     import app.models as models

@@ -25,7 +25,6 @@ def list_households(user_id: str) -> list[dict[str, Any]]:
                     "created_at": hh.created_at,
                     "deleted_at": hh.deleted_at,
                 })
-        print(f"[DEBUG] list_households for user_id={user_id} -> returning {len(result)} households: {[r['name'] for r in result]}", flush=True)
         return result
 
 def create_household(user_id: str, name: str) -> dict[str, Any]:

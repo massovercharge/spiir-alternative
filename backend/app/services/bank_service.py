@@ -1,6 +1,4 @@
-"""Bank service — handles PSD2 consent flow via Enable Banking."""
-from __future__ import annotations
-
+import logging
 import uuid
 from datetime import UTC
 from typing import Any
@@ -9,6 +7,8 @@ from sqlmodel import Session, select
 
 from app.models import Account, BankConnection, engine
 from app.services.sync_service import _request_json, _utcnow_iso
+
+logger = logging.getLogger("peng.bank_service")
 
 
 def start_auth_session(redirect_url: str, bank_name: str) -> dict[str, Any]:
@@ -63,10 +63,7 @@ def complete_auth_session(code: str) -> dict[str, Any]:
     # 1. Exchange code for session
     payload = {"code": code}
     session_response = _request_json("POST", "/sessions", json=payload)
-    print("=== RAW SESSION RESPONSE ===")
-    import json
-    print(json.dumps(session_response, indent=2))
-    print("============================")
+    logger.info("Received session response for code exchange")
 
     if "session_id" not in session_response:
         raise RuntimeError(f"Failed to create session: {session_response}")
@@ -79,7 +76,7 @@ def complete_auth_session(code: str) -> dict[str, Any]:
             acc_resp = _request_json("GET", f"/sessions/{session_id}/accounts")
             accounts_data = acc_resp.get("accounts", [])
         except Exception as e:
-            print(f"Failed to fetch accounts for session {session_id}: {e}")
+            logger.error("Failed to fetch accounts for session %s: %s", session_id, e)
 
     now = _utcnow_iso()
 
@@ -138,7 +135,7 @@ def complete_auth_session(code: str) -> dict[str, Any]:
         from app.services.sync_service import start_sync_job
         start_sync_job()
     except Exception as e:
-        print(f"Failed to auto-start sync job: {e}")
+        logger.warning("Failed to auto-start sync job: %s", e)
 
     return {
         "status": "success",
@@ -183,7 +180,7 @@ def delete_bank_connection(connection_id: str) -> dict[str, Any]:
                 _request_json("DELETE", f"/sessions/{conn.consent_id}")
             except Exception as e:
                 # Log but don't block deletion — session may already be expired
-                print(f"Failed to revoke Enable Banking session: {e}")
+                logger.warning("Failed to revoke Enable Banking session: %s", e)
 
         bank_name = conn.bank_name
         db.delete(conn)
