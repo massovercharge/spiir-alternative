@@ -36,4 +36,5 @@ rsync -avz --delete \
 
 # Trigger a rebuild and restart on the remote server
 echo "Executing remote deployment steps on $SERVER..."
-ssh -T $SERVER "cd $REMOTE_DIR && docker compose up --build -d --remove-orphans && docker image prune -f && echo 'Deployment successful!'"
+ssh -T $SERVER "cd $REMOTE_DIR && mkdir -p data && chown -R 1000:1000 data && chmod -R u+rwX data && docker compose up --build -d --remove-orphans && docker image prune -f && echo 'Deployment successful!'"
+

@@ -15,6 +15,7 @@ docs/
 │   ├── enable-banking.md  # Bank connectivity configuration
 │   ├── self-hosting.md    # Docker deployment guide
 │   └── contributing.md    # Contribution guidelines
+├── code_review/           # Phased full-stack code review & refactoring roadmap
 └── reference/             # Reference material
     ├── category-taxonomy.md      # Default category structure
     └── environment-variables.md  # Complete env var reference
