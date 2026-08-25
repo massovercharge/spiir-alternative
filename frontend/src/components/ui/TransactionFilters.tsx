@@ -47,6 +47,13 @@ export function TransactionFilters({
   const [tempSearch, setTempSearch] = useState(search);
   const [tempAmount, setTempAmount] = useState(amountVal ? amountVal.toString() : '');
   const [categorySearch, setCategorySearch] = useState('');
+  const categoryListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (categoryListRef.current) {
+      categoryListRef.current.scrollTop = 0;
+    }
+  }, [categorySearch, showCategoryDropdown]);
 
   useEffect(() => {
     setTempSearch(search);
@@ -329,7 +336,7 @@ export function TransactionFilters({
             </button>
             
             {showCategoryDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in flex flex-col max-h-80">
+              <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-1 w-64 max-w-[calc(100vw-32px)] bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in flex flex-col max-h-80">
                 
                 <div className="p-2 border-b border-[hsl(var(--border-color))] flex items-center gap-2 sticky top-0 bg-[hsl(var(--bg-primary))] z-10">
                   <Search size={16} className="text-muted shrink-0" />
@@ -344,7 +351,7 @@ export function TransactionFilters({
                   />
                 </div>
 
-                <div className="overflow-y-auto flex-1">
+                <div ref={categoryListRef} className="overflow-y-auto flex-1">
                   <button 
                     className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors font-medium border-b border-[hsl(var(--border-color))]"
                     onClick={() => { setCategoryId(''); setShowCategoryDropdown(false); setCategorySearch(''); }}
@@ -367,10 +374,10 @@ export function TransactionFilters({
                         className="p-2 mr-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
                         onClick={(e) => toggleCategoryExpand(mainCat, e)}
                       >
-                        {expandedCategories[mainCat] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {(expandedCategories[mainCat] || categorySearch.trim().length > 0) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </button>
                     </div>
-                    {expandedCategories[mainCat] && (
+                    {(expandedCategories[mainCat] || categorySearch.trim().length > 0) && (
                       <div className="flex flex-col bg-[hsl(var(--bg-tertiary))] py-1">
                         {subCats.map((c: any) => (
                           <button 

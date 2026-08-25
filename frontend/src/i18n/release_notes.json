@@ -5,11 +5,15 @@
     "changes": {
       "en": [
         "Fixed category selection on mobile devices (Android & iOS) where category picker closed without applying the chosen category",
-        "Improved touch and tap responsiveness in mobile category selector sheets and popovers"
+        "Ensured category picker popover strictly stays within screen boundaries and never overflows the viewport",
+        "Automatically reset scroll position to top when searching categories so filtered results are immediately visible without scrolling",
+        "Automatically expand matching category groups while searching in transaction filters"
       ],
       "da": [
         "Rettet fejl ved valg af kategori på mobile enheder (Android & iOS), hvor kategorivælgeren lukkede uden at gemme den valgte kategori",
-        "Forbedret touch- og tryk-respons i kategorivælgerens mobil-visning"
+        "Sikret at kategorivælgeren forbliver indenfor skærmen og ikke flyder ud over vinduets kanter",
+        "Nulstiller automatisk scroll-positionen til toppen når der søges, så søgeresultaterne ses straks uden manuel scrolling",
+        "Folder automatisk matchende underkategorier ud ved søgning i transaktionsfiltrene"
       ]
     }
   },

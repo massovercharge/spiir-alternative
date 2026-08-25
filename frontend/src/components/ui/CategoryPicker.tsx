@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, ChevronDown, Check } from 'lucide-react';
@@ -79,7 +79,17 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Auto-scroll list to top when search query changes or dropdown opens
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = 0;
+    }
+  }, [search, isOpen]);
+
+  // Click / touch outside handler
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       const target = event.target as Node;
@@ -112,33 +122,58 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom');
+  // Desktop screen-bounded positioning
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen && buttonRef.current && !isMobile) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      
-      if (spaceBelow < 300) {
-        setPlacement('top');
-      } else {
-        setPlacement('bottom');
-      }
+      const updatePosition = () => {
+        if (!buttonRef.current) return;
+        const rect = buttonRef.current.getBoundingClientRect();
+        const popoverWidth = 280;
+        const padding = 12;
 
-      // Fix z-index for virtualized lists by elevating the parent row
-      if (wrapperRef.current) {
-        const row = wrapperRef.current.closest('[data-index]');
-        if (row) {
-          (row as HTMLElement).style.zIndex = '9999';
+        // Keep horizontal position strictly within viewport
+        let left = rect.left;
+        if (left + popoverWidth > window.innerWidth - padding) {
+          left = window.innerWidth - popoverWidth - padding;
         }
-      }
-    } else if (!isOpen && wrapperRef.current) {
-      // Restore z-index when closed
-      const row = wrapperRef.current.closest('[data-index]');
-      if (row) {
-        (row as HTMLElement).style.zIndex = '';
-      }
+        if (left < padding) {
+          left = padding;
+        }
+
+        // Keep vertical position and maxHeight strictly within viewport
+        const spaceBelow = window.innerHeight - rect.bottom - padding;
+        const spaceAbove = rect.top - padding;
+
+        let top: number;
+        let maxHeight: number;
+
+        if (spaceBelow >= 260 || spaceBelow >= spaceAbove) {
+          top = rect.bottom + 6;
+          maxHeight = Math.min(384, Math.max(160, spaceBelow));
+        } else {
+          maxHeight = Math.min(384, Math.max(160, spaceAbove));
+          top = Math.max(padding, rect.top - maxHeight - 6);
+        }
+
+        setPopoverStyle({
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${popoverWidth}px`,
+          maxHeight: `${maxHeight}px`,
+          zIndex: 9999,
+        });
+      };
+
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
     }
   }, [isOpen, isMobile]);
 
@@ -165,7 +200,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
               className="fixed inset-0 z-[100] bg-black/60" 
               onClick={() => setIsOpen(false)} 
             />
-            <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[101] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
+            <div className="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[101] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
               
               {/* Mobile Header */}
               <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl shrink-0">
@@ -193,7 +228,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
               </div>
 
               {/* List */}
-              <div className="overflow-y-auto flex-1 p-2 space-y-4">
+              <div ref={listRef} className="overflow-y-auto flex-1 p-2 space-y-4">
                 {isLoading && <p className="text-center text-sm text-muted p-4">{t('common.loading', 'Henter...')}</p>}
                 
                 {!isLoading && Object.keys(groupedCategories).length === 0 && (
@@ -227,11 +262,11 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
             </div>
           </div>,
           document.body
-        ) : (
+        ) : createPortal(
           <div 
-            className={`absolute left-0 w-64 max-h-[384px] bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-xl shadow-xl z-[100] overflow-hidden flex flex-col ${
-              placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
-            }`}
+            ref={portalRef}
+            style={popoverStyle}
+            className="bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in duration-150"
           >
             {/* Search */}
             <div className="p-3 border-b border-[hsl(var(--border-color))] flex items-center gap-2 bg-[hsl(var(--bg-primary))] shrink-0">
@@ -247,7 +282,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto flex-1 p-2 space-y-4">
+            <div ref={listRef} className="overflow-y-auto flex-1 p-2 space-y-4">
               {isLoading && <p className="text-center text-sm text-muted p-4">{t('common.loading', 'Henter...')}</p>}
               
               {!isLoading && Object.keys(groupedCategories).length === 0 && (
@@ -278,7 +313,8 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                 </div>
               ))}
             </div>
-          </div>
+          </div>,
+          document.body
         )
       )}
     </div>
