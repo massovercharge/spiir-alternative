@@ -15,7 +15,7 @@ fi
 echo "Deploying spiir-alternative to $SERVER..."
 
 # Ensure the remote directory exists
-ssh $SERVER "mkdir -p $REMOTE_DIR"
+ssh -T $SERVER "mkdir -p $REMOTE_DIR"
 
 # Rsync the runnable codebase to the server, excluding local docs, caches, secrets, and generated data.
 rsync -avz --delete \
