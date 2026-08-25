@@ -74,8 +74,15 @@ def transaction_link_receipt(transaction_id: str, payload: TransactionLinkReceip
     """Link a receipt to a transaction and automatically split it into items."""
     return link_receipt_to_transaction(transaction_id, payload.receipt_id)
 
+@router.get("/{transaction_id}/suggested-receipts")
+def transaction_suggested_receipts(transaction_id: str) -> list[dict[str, Any]]:
+    """Get suggested Storebox receipts matching this transaction."""
+    from app.services.transaction_service import get_suggested_receipts_for_transaction
+    return get_suggested_receipts_for_transaction(transaction_id)
+
 @router.get("/tags")
 def tags_list_endpoint() -> dict[str, list[dict[str, str]]]:
     """Get all tags created by the user."""
     tags = list_tags()
     return {"tags": [{"id": t.id, "name": t.name} for t in tags]}
+

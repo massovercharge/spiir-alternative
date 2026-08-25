@@ -81,6 +81,35 @@ export async function linkReceiptToTransaction(transactionId: string, receiptId:
   return res.json();
 }
 
+export interface SuggestedReceiptItem {
+  name: string;
+  amount_minor: number;
+  quantity?: number;
+}
+
+export interface SuggestedReceipt {
+  receipt_id: string;
+  merchant_name: string;
+  merchant_key: string;
+  purchase_date: string;
+  purchase_timestamp: string;
+  total_price_minor: number;
+  currency: string;
+  confidence: 'high' | 'medium' | 'suggested';
+  date_diff_days?: number | null;
+  is_exact_amount: boolean;
+  is_merchant_match: boolean;
+  items_preview: SuggestedReceiptItem[];
+}
+
+export async function fetchSuggestedReceipts(transactionId: string): Promise<SuggestedReceipt[]> {
+  const res = await fetch(`${API_BASE}/api/transactions/${transactionId}/suggested-receipts`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to fetch suggested receipts');
+  return res.json();
+}
+
 export async function fetchIncomeExpenseSeries(year?: number) {
   let url = `${API_BASE}/api/insights/income-expense-series`;
   if (year) {
@@ -567,7 +596,17 @@ export function useLinkReceiptToTransaction() {
       queryClient.invalidateQueries({ queryKey: ['insights'] });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['suggested-receipts'] });
     }
+  });
+}
+
+export function useSuggestedReceipts(transactionId: string | null | undefined, enabled = true) {
+  return useQuery<SuggestedReceipt[]>({
+    queryKey: ['suggested-receipts', transactionId, currentHouseholdId],
+    queryFn: () => fetchSuggestedReceipts(transactionId!),
+    enabled: Boolean(transactionId) && enabled,
+    staleTime: 60 * 1000,
   });
 }
 

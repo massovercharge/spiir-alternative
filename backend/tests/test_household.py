@@ -1,12 +1,13 @@
-import pytest
-from sqlmodel import Session, select
-from fastapi import HTTPException
-
-from app.models import Household, HouseholdMember, User
-from app.models import all_models
-from app.services.household_service import invite_member, get_household_members
-from app.core.auth import _sync_user_and_household
 from unittest.mock import MagicMock
+
+import pytest
+from fastapi import HTTPException
+from sqlmodel import Session, select
+
+from app.core.auth import _sync_user_and_household
+from app.models import Household, HouseholdMember, User, all_models
+from app.services.household_service import invite_member
+
 
 def test_invite_member_and_pending_sync():
     with Session(all_models.engine) as db:
@@ -214,7 +215,7 @@ def test_update_member_role_and_last_owner_protection():
         assert "at least one owner" in exc.value.detail
 
 def test_update_transaction_category_creates_missing_allocation():
-    from app.models import Posting, PostingAllocation, Account, BankConnection
+    from app.models import Account, BankConnection, Posting, PostingAllocation
     from app.services.transaction_service import update_transaction_category
 
     with Session(all_models.engine) as db:

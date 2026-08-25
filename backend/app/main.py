@@ -45,6 +45,13 @@ async def lifespan(app: FastAPI):
         from app.services.rules_service import apply_rules_to_uncategorized
         apply_rules_to_uncategorized()
 
+    try:
+        from app.services.transaction_service import auto_link_receipts
+        auto_link_receipts()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Error running startup auto-link receipts: %s", e)
+
     # Start background workers
     import asyncio
 

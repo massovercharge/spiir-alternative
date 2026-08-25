@@ -1,5 +1,23 @@
 [
   {
+    "version": "v1.5.2",
+    "date": "2026-08-25",
+    "changes": {
+      "en": [
+        "Significantly improved Storebox receipt matching with robust merchant chain recognition and token overlap (e.g. REMA 1000, Netto, Føtex, Coop, Meny, Lidl)",
+        "Expanded transaction date window to 7 days prior to accommodate weekend and bank holiday card settlements",
+        "Added Storebox receipt suggestions in the transaction details sidebar with 1-click connecting and item previews",
+        "Automated startup auto-linking to catch and split past unlinked Storebox receipts across all households"
+      ],
+      "da": [
+        "Væsentligt forbedret genkendelse og automatisk matching af Storebox-kvitteringer med butikskæde-genkendelse og token-matching (fx REMA 1000, Netto, Føtex, Coop, Meny, Lidl)",
+        "Udvidet datovindue til 7 dage bagud for at håndtere Dankort- og kortafregning over weekender og helligdage",
+        "Tilføjet forslag til matchende Storebox-kvitteringer i transaktions-sidebaren med 1-klik-forbindelse og forhåndsvisning af varer",
+        "Automatisk kørsel ved opstart der forbinder og splitter tidligere uforbundne Storebox-kvitteringer på tværs af husstande"
+      ]
+    }
+  },
+  {
     "version": "v1.5.1",
     "date": "2026-08-24",
     "changes": {

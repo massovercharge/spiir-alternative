@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, Plus, Trash2, Search } from 'lucide-react';
+import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, Plus, Trash2, Search, Sparkles, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { Button } from './Button';
 import CategoryPicker from './CategoryPicker';
-import { useUpdateTransactions, useSplitTransaction, useLinkReceiptToTransaction } from '../../api/client';
+import { useUpdateTransactions, useSplitTransaction, useLinkReceiptToTransaction, useSuggestedReceipts } from '../../api/client';
 
 interface TransactionDetailsSidebarProps {
   transaction: any;
@@ -25,6 +25,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   
   // Receipt linking state
   const [isLinkingReceipt, setIsLinkingReceipt] = useState(false);
+  const [showManualReceiptInput, setShowManualReceiptInput] = useState(false);
   const [receiptIdInput, setReceiptIdInput] = useState('');
   
   // Split state
@@ -35,6 +36,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   const updateMutation = useUpdateTransactions();
   const splitMutation = useSplitTransaction();
   const linkMutation = useLinkReceiptToTransaction();
+  const { data: suggestions, isLoading: isLoadingSuggestions } = useSuggestedReceipts(transaction?.id, isLinkingReceipt);
 
   useEffect(() => {
     setCustomDate(transaction.custom_date || transaction.booking_date);
@@ -440,23 +442,107 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
 
               <div className="pt-4 border-t border-[hsl(var(--border-color))] space-y-3">
                 {isLinkingReceipt ? (
-                  <div className="space-y-2 bg-[hsl(var(--bg-secondary))] p-3 rounded-lg border border-[hsl(var(--border-color))]">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Storebox Receipt ID</label>
-                    <input 
-                      type="text" 
-                      value={receiptIdInput}
-                      onChange={(e) => setReceiptIdInput(e.target.value)}
-                      placeholder="fx 08p9sixdiwk2a0pwf4s37zxea..."
-                      className="w-full bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="primary" size="sm" className="flex-1" onClick={handleLinkReceipt} disabled={!receiptIdInput.trim() || linkMutation.isPending}>
-                        {linkMutation.isPending ? 'Forbinder...' : 'Forbind'}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { setIsLinkingReceipt(false); setReceiptIdInput(''); }}>
-                        Annuller
+                  <div className="space-y-3 bg-[hsl(var(--bg-secondary))] p-3 rounded-lg border border-[hsl(var(--border-color))]">
+                    <div className="flex items-center justify-between pb-1 border-b border-[hsl(var(--border-color))]">
+                      <div className="flex items-center gap-1.5 font-semibold text-xs text-primary uppercase tracking-wider">
+                        <Sparkles size={14} />
+                        <span>{t('transactions.suggestedReceipts', 'Matchende Storebox-kvitteringer')}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => {
+                          setIsLinkingReceipt(false);
+                          setShowManualReceiptInput(false);
+                          setReceiptIdInput('');
+                        }}
+                      >
+                        {t('common.cancel', 'Annuller')}
                       </Button>
                     </div>
+
+                    {isLoadingSuggestions ? (
+                      <p className="text-xs text-muted py-2 text-center">{t('transactions.searchingSuggestions', 'Søger efter kvitteringer...')}</p>
+                    ) : suggestions && suggestions.length > 0 ? (
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {suggestions.map((sug) => (
+                          <div
+                            key={sug.receipt_id}
+                            className="p-2.5 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] hover:border-primary/50 rounded-lg text-xs space-y-1.5 transition-colors"
+                          >
+                            <div className="flex items-center justify-between font-medium">
+                              <span className="font-semibold text-sm text-[hsl(var(--text-primary))]">{sug.merchant_name}</span>
+                              <span className="text-[hsl(var(--text-primary))]">
+                                {(sug.total_price_minor / 100).toFixed(2).replace('.', ',')} {sug.currency}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-muted text-[11px]">
+                              <span>{sug.purchase_date}</span>
+                              {sug.confidence === 'high' && (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium text-[10px]">
+                                  {t('transactions.exactMatch', 'Stærkt match')}
+                                </span>
+                              )}
+                            </div>
+                            {sug.items_preview && sug.items_preview.length > 0 && (
+                              <div className="text-muted text-[11px] truncate pt-1 border-t border-[hsl(var(--border-color))]/50">
+                                {sug.items_preview.map((it) => `${it.name} (${(it.amount_minor / 100).toFixed(2).replace('.', ',')} kr)`).join(' • ')}
+                              </div>
+                            )}
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="w-full mt-1.5 flex items-center justify-center gap-1.5"
+                              disabled={linkMutation.isPending}
+                              onClick={() => {
+                                linkMutation.mutate(
+                                  { transactionId: transaction.id, receiptId: sug.receipt_id },
+                                  {
+                                    onSuccess: () => {
+                                      setIsLinkingReceipt(false);
+                                      onClose();
+                                    }
+                                  }
+                                );
+                              }}
+                            >
+                              <Check size={14} />
+                              {linkMutation.isPending ? t('common.connecting', 'Forbinder...') : t('transactions.linkThisReceipt', 'Forbind denne kvittering')}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted py-2 text-center">{t('transactions.noReceiptsFound', 'Ingen matchende kvitteringer fundet automatisk.')}</p>
+                    )}
+
+                    <div className="pt-2 border-t border-[hsl(var(--border-color))] space-y-2">
+                      <button
+                        type="button"
+                        className="text-[11px] text-muted hover:text-[hsl(var(--text-primary))] flex items-center justify-between w-full"
+                        onClick={() => setShowManualReceiptInput(!showManualReceiptInput)}
+                      >
+                        <span>{t('transactions.orEnterManualId', 'Eller indtast Storebox Receipt ID manuelt:')}</span>
+                        {showManualReceiptInput ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                      
+                      {showManualReceiptInput && (
+                        <div className="space-y-2 pt-1">
+                          <input 
+                            type="text" 
+                            value={receiptIdInput}
+                            onChange={(e) => setReceiptIdInput(e.target.value)}
+                            placeholder="fx 08p9sixdiwk2a0pwf4s37zxea..."
+                            className="w-full bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded p-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <Button variant="outline" size="sm" className="w-full" onClick={handleLinkReceipt} disabled={!receiptIdInput.trim() || linkMutation.isPending}>
+                            {linkMutation.isPending ? 'Forbinder...' : 'Forbind manuel ID'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
                     {linkMutation.isError && (
                       <p className="text-xs text-red-500 mt-2">{(linkMutation.error as Error).message || 'Der opstod en fejl'}</p>
                     )}

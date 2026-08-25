@@ -23,8 +23,8 @@ def engine():
 
 @pytest.fixture()
 def _patch_engine(engine, monkeypatch):
-    import app.services.category_service as cs
     import app.models as db_mod
+    import app.services.category_service as cs
     import app.services.rules_service as rs
     import app.services.transaction_service as ts
     monkeypatch.setattr(db_mod, "engine", engine)

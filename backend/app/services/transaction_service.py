@@ -12,6 +12,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlmodel import Session, col, delete, select
 
+import app.models as models
 from app.core.money import format_amount
 from app.models import (
     Account,
@@ -22,8 +23,12 @@ from app.models import (
     PostingAllocation,
     PostingAllocationTagLink,
     Tag,
-    engine,
 )
+from app.models.all_models import Household, current_household_id
+
+
+def _get_engine():
+    return globals().get("engine") or models.engine
 
 
 def _utcnow_iso() -> str:
@@ -49,7 +54,7 @@ def list_transactions(
     category_id: str | None = None,
 ) -> dict[str, Any]:
     """Return paginated postings with optional filters."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         eff_date = func.coalesce(Posting.custom_date, Posting.booking_date)
 
         query = select(Posting).distinct().order_by(
@@ -163,7 +168,7 @@ def list_transactions(
 
 def get_transaction(transaction_id: str) -> dict[str, Any] | None:
     """Return a single posting by ID with its allocations."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         posting = db.get(Posting, transaction_id)
         if posting is None:
             return None
@@ -194,7 +199,7 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
 
 def list_tags() -> list[Tag]:
     """Return all tags ordered by name."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         return db.exec(select(Tag).order_by(Tag.name)).all()
 
 def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> dict[str, Any]:
@@ -209,7 +214,7 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
     now = _utcnow_iso()
     updated = 0
 
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         for posting_id in transaction_ids:
             posting = db.get(Posting, posting_id)
             if posting is None:
@@ -300,7 +305,7 @@ def split_allocation(posting_id: str, splits: list[dict[str, Any]]) -> dict[str,
 
     now = _utcnow_iso()
 
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         posting = db.get(Posting, posting_id)
         if posting is None:
             raise ValueError(f"Posting {posting_id} not found")
@@ -404,7 +409,7 @@ def _serialize_posting(
 
 def update_transaction_category(posting_id: str, category_id: str) -> bool:
     """Update the primary category of a single transaction."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         posting = db.get(Posting, posting_id)
         if not posting:
             return False
@@ -446,7 +451,7 @@ def apply_rule_retroactively(rule_id: str) -> int:
     from app.services.rules_service import get_compiled_regex, preprocess_description
 
     updated_count = 0
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         rule = db.get(CategorizationRule, rule_id)
         if not rule:
             return 0
@@ -484,7 +489,7 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
     if not receipt_data:
         raise ValueError(f"Receipt {receipt_id} not found in Storebox DB")
 
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         posting = db.get(Posting, posting_id)
         if not posting:
             raise ValueError(f"Posting {posting_id} not found")
@@ -579,44 +584,98 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
         return split_allocation(posting_id, splits)
 
 
-def auto_link_receipts(min_date: str | None = None, max_date: str | None = None) -> int:
+def auto_link_receipts(
+    min_date: str | None = None,
+    max_date: str | None = None,
+    household_id: str | None = None,
+) -> int:
     """
     Scans un-split Postings for matches with imported receipts and automatically links and splits them.
     """
+    from sqlalchemy.orm import selectinload
+
     from .kvitteringer_service import link_peng_transaction_to_receipt
+
     linked_count = 0
 
-    with Session(engine) as db:
-        from sqlalchemy.orm import selectinload
-        query = select(Posting).where(col(Posting.amount_minor) < 0).options(selectinload(Posting.allocations))
+    target_households: list[str] = []
+    if household_id:
+        target_households = [household_id]
+    else:
+        try:
+            active_hh = current_household_id.get()
+            if active_hh:
+                target_households = [active_hh]
+        except LookupError:
+            pass
 
-        if min_date:
-            query = query.where(col(Posting.booking_date) >= min_date)
-        if max_date:
-            query = query.where(col(Posting.booking_date) <= max_date)
+        if not target_households:
+            with Session(_get_engine()) as db:
+                hhs = db.exec(select(Household.id)).all()
+                target_households = list(hhs)
 
-        postings = db.exec(query).all()
+    for hh_id in target_households:
+        token = current_household_id.set(hh_id)
+        try:
+            with Session(_get_engine()) as db:
+                query = select(Posting).where(col(Posting.amount_minor) < 0).options(selectinload(Posting.allocations))
 
-        for posting in postings:
-            # Check if it already has more than 1 allocation or any allocation with an item_name
-            if len(posting.allocations) > 1 or any(a.item_name is not None for a in posting.allocations):
-                continue
+                if min_date:
+                    query = query.where(col(Posting.booking_date) >= min_date)
+                if max_date:
+                    query = query.where(col(Posting.booking_date) <= max_date)
 
-            payload = {
-                "transaction_id": posting.id,
-                "booking_date": posting.booking_date,
-                "amount": posting.amount_minor / 100.0,
-                "description": posting.original_description,
-            }
+                postings = db.exec(query).all()
 
-            try:
-                result = link_peng_transaction_to_receipt(payload)
-                if result.get("linked") and not result.get("cached"):
-                    # We found a new match!
-                    receipt_id = str(result.get("receipt_id"))
-                    link_receipt_to_transaction(posting.id, receipt_id, is_auto=True)
-                    linked_count += 1
-            except Exception as e:
-                print(f"Error auto-linking posting {posting.id}: {e}")
+                for posting in postings:
+                    # Check if it already has more than 1 allocation or any allocation with an item_name
+                    if len(posting.allocations) > 1 or any(a.item_name is not None for a in posting.allocations):
+                        continue
+
+                    payload = {
+                        "transaction_id": posting.id,
+                        "booking_date": posting.booking_date,
+                        "amount": posting.amount_minor / 100.0,
+                        "description": posting.original_description,
+                    }
+
+                    try:
+                        result = link_peng_transaction_to_receipt(payload)
+                        if result.get("linked"):
+                            receipt_id = str(result.get("receipt_id"))
+                            link_receipt_to_transaction(posting.id, receipt_id, is_auto=True)
+                            linked_count += 1
+                    except Exception as e:
+                        print(f"Error auto-linking posting {posting.id}: {e}")
+        finally:
+            current_household_id.reset(token)
 
     return linked_count
+
+
+def get_suggested_receipts_for_transaction(posting_id: str) -> list[dict[str, Any]]:
+    """Find candidate Storebox receipts that potentially match a given posting."""
+    from datetime import date
+
+    from .kvitteringer_service import find_suggested_receipts
+
+    with Session(_get_engine()) as db:
+        posting = db.get(Posting, posting_id)
+        if not posting:
+            return []
+
+        p_date = None
+        if posting.booking_date:
+            try:
+                p_date = date.fromisoformat(posting.booking_date[:10])
+            except Exception:
+                pass
+
+        target_amount_minor = abs(posting.amount_minor)
+        return find_suggested_receipts(
+            target_amount_minor=target_amount_minor,
+            transaction_date=p_date,
+            description=posting.original_description,
+            limit=10,
+        )
+

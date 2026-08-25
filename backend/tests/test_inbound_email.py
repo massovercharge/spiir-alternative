@@ -247,3 +247,68 @@ def test_inbound_api_endpoints(test_client):
     assert res_clear.status_code == 200
     assert res_clear.json()["success"] is True
 
+
+def test_merchant_matching_variations():
+    from app.services.kvitteringer_service import _description_matches_merchant
+
+    # Real-world REMA 1000 example with store location and card prefix
+    desc1 = "REMA1000 TOMMERUP, TOMMERUP Notanr 15641"
+    assert _description_matches_merchant(desc1, "REMA1000", "rema1000") is True
+    assert _description_matches_merchant(desc1, "REMA 1000", "rema-1000") is True
+    assert _description_matches_merchant(desc1, "REMA 1000 Tommerup", "rema-1000-tommerup") is True
+    assert _description_matches_merchant(desc1, "REMA1000, Tallerupvej 18-20, 5690, Tommerup", "rema1000") is True
+
+    # Netto, Føtex, Meny, Matas, Coop
+    assert _description_matches_merchant("Dankort-nota NETTO 4321", "Netto", "netto") is True
+    assert _description_matches_merchant("FOETEX VESTERBRO", "Føtex", "foetex") is True
+    assert _description_matches_merchant("MENY RUNGSTED", "Meny", "meny") is True
+    assert _description_matches_merchant("MATAS 1234 ODENSE", "Matas", "matas") is True
+    assert _description_matches_merchant("COOP 365DISCOUNT KBH", "365discount", "coop") is True
+
+
+def test_suggested_receipts_endpoint(test_client):
+    import uuid
+
+    from sqlmodel import Session, select
+
+    import app.models as models
+    from app.models.all_models import Account, Household, Posting
+
+    with Session(models.engine) as db:
+        hh = db.exec(select(Household)).first()
+        if not hh:
+            hh = Household(name="Test HH")
+            db.add(hh)
+            db.commit()
+            db.refresh(hh)
+
+        acc = Account(
+            uid=str(uuid.uuid4()),
+            household_id=hh.id,
+            account_id="acc-001",
+            iban="DK0000000000",
+            name="Lønkonto",
+            currency="DKK",
+        )
+        db.add(acc)
+        db.commit()
+        db.refresh(acc)
+
+        posting = Posting(
+            id=str(uuid.uuid4()),
+            household_id=hh.id,
+            account_uid=acc.uid,
+            booking_date="2026-08-05",
+            original_description="REMA1000 TOMMERUP, TOMMERUP Notanr 15641",
+            amount_minor=-4295,
+            currency="DKK",
+        )
+        db.add(posting)
+        db.commit()
+        db.refresh(posting)
+
+    res = test_client.get(f"/api/transactions/{posting.id}/suggested-receipts")
+    assert res.status_code == 200
+    assert isinstance(res.json(), list)
+
+

@@ -47,7 +47,13 @@
     "unknown": "Ukendt",
     "uncategorized": "Ukategoriseret",
     "find_similar": "Find lignende",
-    "yesRememberIt": "Ja, husk det"
+    "yesRememberIt": "Ja, husk det",
+    "suggestedReceipts": "Matchende Storebox-kvitteringer",
+    "exactMatch": "Stærkt match",
+    "linkThisReceipt": "Forbind denne kvittering",
+    "orEnterManualId": "Eller indtast Storebox Receipt ID manuelt:",
+    "searchingSuggestions": "Søger efter kvitteringer...",
+    "noReceiptsFound": "Ingen matchende kvitteringer fundet automatisk."
   },
   "budgets": {
     "description": "Følg med i dit forbrug for {{year}} og hold styr på dine udgifter.",

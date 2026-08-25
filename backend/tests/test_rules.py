@@ -11,7 +11,6 @@ import pytest
 from conftest import TEST_HOUSEHOLD_ID
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from app.services.category_service import seed_categories
 from app.models import (
     Account,
     CategorizationRule,
@@ -19,6 +18,7 @@ from app.models import (
     Posting,
     PostingAllocation,
 )
+from app.services.category_service import seed_categories
 from app.services.rules_service import (
     _SPIIR_HINTS,
     apply_rules_to_uncategorized,
@@ -49,8 +49,8 @@ def engine():
 @pytest.fixture()
 def _patch_engine(engine, monkeypatch):
     """Patch all service modules to use the test engine."""
-    import app.services.category_service as cs
     import app.models as db_mod
+    import app.services.category_service as cs
     import app.services.rules_service as rs
 
     monkeypatch.setattr(cs, "engine", engine)

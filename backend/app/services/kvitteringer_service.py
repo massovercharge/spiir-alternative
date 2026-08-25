@@ -2599,21 +2599,95 @@ def _transaction_date(payload: dict[str, Any]) -> date | None:
     return None
 
 
+RETAIL_BRAND_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("REMA1000", re.compile(r"\b(?:rema\s*1000|rema1000|rema)\b", re.IGNORECASE)),
+    ("NETTO", re.compile(r"\bnetto\b", re.IGNORECASE)),
+    ("FOETEX", re.compile(r"\b(?:f[øo]tex|foetex)\b", re.IGNORECASE)),
+    ("BILKA", re.compile(r"\bbilka\b", re.IGNORECASE)),
+    ("MENY", re.compile(r"\bmeny\b", re.IGNORECASE)),
+    ("LIDL", re.compile(r"\blidl\b", re.IGNORECASE)),
+    ("ALDI", re.compile(r"\baldi\b", re.IGNORECASE)),
+    ("SPAR", re.compile(r"\bspar\b", re.IGNORECASE)),
+    ("MIN_KOEBMAND", re.compile(r"\bmin\s*k[øo]bmand\b", re.IGNORECASE)),
+    ("LETKOEB", re.compile(r"\blet[‐\- ]?k[øo]b\b", re.IGNORECASE)),
+    ("NEMLIG", re.compile(r"\bnemlig\b", re.IGNORECASE)),
+    ("WOLT", re.compile(r"\bwolt\b", re.IGNORECASE)),
+    ("JUST_EAT", re.compile(r"\bjust\s*eat\b", re.IGNORECASE)),
+    ("COOP", re.compile(r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta)\b", re.IGNORECASE)),
+    ("MATAS", re.compile(r"\bmatas\b", re.IGNORECASE)),
+    ("NORMAL", re.compile(r"\bnormal\b", re.IGNORECASE)),
+    ("7ELEVEN", re.compile(r"\b(?:7\s*eleven|7eleven|seven\s*eleven)\b", re.IGNORECASE)),
+    ("CIRCLE_K", re.compile(r"\b(?:circle\s*k|circlek)\b", re.IGNORECASE)),
+    ("Q8", re.compile(r"\b(?:q8|f24)\b", re.IGNORECASE)),
+    ("SHELL", re.compile(r"\bshell\b", re.IGNORECASE)),
+    ("OK_BENZIN", re.compile(r"\b(?:ok\s*plus|ok\s*benzin|ok\s*tank)\b", re.IGNORECASE)),
+    ("UNOX", re.compile(r"\b(?:uno\s*x|unox)\b", re.IGNORECASE)),
+    ("IKEA", re.compile(r"\bikea\b", re.IGNORECASE)),
+    ("JYSK", re.compile(r"\bjysk\b", re.IGNORECASE)),
+    ("SILVAN", re.compile(r"\bsilvan\b", re.IGNORECASE)),
+    ("BAUHAUS", re.compile(r"\bbauhaus\b", re.IGNORECASE)),
+    ("JEM_OG_FIX", re.compile(r"\b(?:jem\s*(?:&|og)\s*fix|jemogfix)\b", re.IGNORECASE)),
+    ("STARK", re.compile(r"\bstark\b", re.IGNORECASE)),
+    ("XL_BYG", re.compile(r"\b(?:xl\s*byg|xlbyg)\b", re.IGNORECASE)),
+    ("POWER", re.compile(r"\bpower\b", re.IGNORECASE)),
+    ("ELGIGANTEN", re.compile(r"\belgiganten\b", re.IGNORECASE)),
+    ("BOG_OG_IDE", re.compile(r"\bbog\s*(?:&|og)\s*id[eé]\b", re.IGNORECASE)),
+    ("SPORT24", re.compile(r"\bsport\s*24\b", re.IGNORECASE)),
+    ("INTERSPORT", re.compile(r"\bintersport\b", re.IGNORECASE)),
+    ("SYNOPTIK", re.compile(r"\bsynoptik\b", re.IGNORECASE)),
+    ("LOUIS_NIELSEN", re.compile(r"\blouis\s*nielsen\b", re.IGNORECASE)),
+    ("THIELE", re.compile(r"\bthiele\b", re.IGNORECASE)),
+    ("MCDONALDS", re.compile(r"\bmcdonalds?\b", re.IGNORECASE)),
+    ("BURGER_KING", re.compile(r"\bburger\s*king\b", re.IGNORECASE)),
+    ("SUNSET", re.compile(r"\bsunset(?:\s*boulevard)?\b", re.IGNORECASE)),
+    ("ESPRESSO_HOUSE", re.compile(r"\bespresso\s*house\b", re.IGNORECASE)),
+    ("LAGKAGEHUSET", re.compile(r"\blagkagehuset\b", re.IGNORECASE)),
+    ("JOE_AND_THE_JUICE", re.compile(r"\bjoe\s*(?:&|and)\s*the\s*juice\b", re.IGNORECASE)),
+    ("STARBUCKS", re.compile(r"\bstarbucks\b", re.IGNORECASE)),
+    ("MAGASIN", re.compile(r"\bmagasin(?:\s*du\s*nord)?\b", re.IGNORECASE)),
+    ("SALLING", re.compile(r"\bsalling\b", re.IGNORECASE)),
+    ("ILLUM", re.compile(r"\billum\b", re.IGNORECASE)),
+]
+
+GENERIC_MERCHANT_NOISE_TOKENS = {
+    "NOTANR", "DK", "DANMARK", "KORT", "DANKORT", "VISA", "MASTERCARD",
+    "KOEB", "KOB", "BUTIK", "SUPERMARKED", "AFDELING", "STORE", "SHOP", "PAY", "MOBILEPAY"
+}
+
+
 def _description_matches_merchant(description: str | None, merchant_name: str, merchant_key: str) -> bool:
     if not description:
         return False
-    normalized_description = re.sub(r"[^A-Z0-9]+", "", _normalize_name(description))
-    normalized_merchant_name = re.sub(r"[^A-Z0-9]+", "", _normalize_name(merchant_name))
-    normalized_merchant_key = re.sub(r"[^A-Z0-9]+", "", merchant_key.upper())
+    norm_desc = _normalize_name(description)
+    norm_merchant = _normalize_name(merchant_name)
+    norm_key = _normalize_name(merchant_key)
 
-    coop_brands = ("KVICKLY", "SUPERBRUGSEN", "DAGLIBRUGSEN", "365DISCOUNT", "IRMA", "FAKTA", "COOP")
-    is_coop = any(normalized_merchant_name.startswith(b) for b in coop_brands) or any(normalized_merchant_key.startswith(b) for b in coop_brands)
-    if is_coop and "COOP" in normalized_description:
+    # 1. Retail brand match
+    for _, pattern in RETAIL_BRAND_PATTERNS:
+        in_merchant = bool(pattern.search(merchant_name) or pattern.search(norm_merchant) or pattern.search(merchant_key))
+        in_desc = bool(pattern.search(description) or pattern.search(norm_desc))
+        if in_merchant and in_desc:
+            return True
+
+    # 2. Substring match
+    clean_desc = re.sub(r"[^A-Z0-9]+", "", norm_desc)
+    clean_merchant = re.sub(r"[^A-Z0-9]+", "", norm_merchant)
+    clean_key = re.sub(r"[^A-Z0-9]+", "", norm_key)
+    if clean_merchant and len(clean_merchant) >= 3 and (clean_merchant in clean_desc or clean_desc in clean_merchant):
+        return True
+    if clean_key and len(clean_key) >= 3 and (clean_key in clean_desc or clean_desc in clean_key):
         return True
 
-    return bool(normalized_merchant_name and normalized_merchant_name in normalized_description) or bool(
-        normalized_merchant_key and normalized_merchant_key in normalized_description
-    )
+    # 3. Word Token Overlap (store/city/brand tokens >= 3 letters)
+    merchant_tokens = {
+        t for t in re.findall(r"[A-Z0-9]{3,}", norm_merchant + " " + norm_key)
+        if t not in GENERIC_MERCHANT_NOISE_TOKENS
+    }
+    desc_tokens = {
+        t for t in re.findall(r"[A-Z0-9]{3,}", norm_desc)
+        if t not in GENERIC_MERCHANT_NOISE_TOKENS
+    }
+    return bool(merchant_tokens and desc_tokens and (merchant_tokens & desc_tokens))
 
 
 def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, object]:
@@ -2654,10 +2728,10 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
                 "cached": False,
             }
         target_amount_minor = abs(_to_minor(payload.get("amount") or 0))
-        # Bank booking can be delayed by a few days after the receipt purchase date.
-        # Allow receipt dates from transaction_date - 4 days to transaction_date + 1 day
-        min_date = (transaction_date - timedelta(days=4)).isoformat()
-        max_date = (transaction_date + timedelta(days=1)).isoformat()
+        # Bank booking can be delayed by up to a week after receipt purchase date (weekends/holidays).
+        # Allow receipt dates from transaction_date - 7 days to transaction_date + 2 days
+        min_date = (transaction_date - timedelta(days=7)).isoformat()
+        max_date = (transaction_date + timedelta(days=2)).isoformat()
 
         rows = connection.execute(
             "SELECT r.receipt_id, r.purchase_date, r.receipt_total_minor, m.display_name AS merchant_name, r.merchant_key "
@@ -2675,7 +2749,7 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
             for row in rows
             if _description_matches_merchant(payload.get("description"), row["merchant_name"], row["merchant_key"])
         ]
-        if len(strong_candidates) != 1:
+        if not strong_candidates:
             return {
                 "linked": False,
                 "receipt_id": None,
@@ -2684,7 +2758,12 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
                 "cached": False,
             }
 
+        # If multiple candidates, pick the candidate closest to the transaction date
+        strong_candidates.sort(
+            key=lambda r: abs((date.fromisoformat(r["purchase_date"][:10]) - transaction_date).days)
+        )
         receipt_id = strong_candidates[0]["receipt_id"]
+
         connection.execute(
             "INSERT OR REPLACE INTO peng_receipt_link(transaction_id, receipt_id, confidence, reason, transaction_payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?)",
             (
@@ -2704,3 +2783,120 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
         "reason": PENG_LINK_REASON,
         "cached": False,
     }
+
+
+def find_suggested_receipts(
+    target_amount_minor: int,
+    transaction_date: date | None = None,
+    description: str | None = None,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Find Storebox receipts that potentially match a given transaction for suggestions."""
+    if not _database_exists():
+        return []
+
+    with _connect() as connection:
+        # 1. Exact amount match candidates (within 60 days if date available)
+        exact_rows = []
+        if transaction_date:
+            min_date = (transaction_date - timedelta(days=60)).isoformat()
+            max_date = (transaction_date + timedelta(days=14)).isoformat()
+            exact_rows = connection.execute(
+                "SELECT r.receipt_id, r.purchase_date, r.purchase_timestamp, r.receipt_total_minor, r.currency, "
+                "m.display_name AS merchant_name, r.merchant_key "
+                "FROM receipt r JOIN merchant m ON m.merchant_key = r.merchant_key "
+                "WHERE r.purchase_date BETWEEN ? AND ? AND r.receipt_total_minor = ? ORDER BY r.purchase_timestamp DESC LIMIT ?",
+                (min_date, max_date, target_amount_minor, limit),
+            ).fetchall()
+        else:
+            exact_rows = connection.execute(
+                "SELECT r.receipt_id, r.purchase_date, r.purchase_timestamp, r.receipt_total_minor, r.currency, "
+                "m.display_name AS merchant_name, r.merchant_key "
+                "FROM receipt r JOIN merchant m ON m.merchant_key = r.merchant_key "
+                "WHERE r.receipt_total_minor = ? ORDER BY r.purchase_timestamp DESC LIMIT ?",
+                (target_amount_minor, limit),
+            ).fetchall()
+
+        # 2. Merchant match candidates within date range
+        merchant_rows = []
+        if transaction_date and description:
+            min_date = (transaction_date - timedelta(days=14)).isoformat()
+            max_date = (transaction_date + timedelta(days=7)).isoformat()
+            all_nearby = connection.execute(
+                "SELECT r.receipt_id, r.purchase_date, r.purchase_timestamp, r.receipt_total_minor, r.currency, "
+                "m.display_name AS merchant_name, r.merchant_key "
+                "FROM receipt r JOIN merchant m ON m.merchant_key = r.merchant_key "
+                "WHERE r.purchase_date BETWEEN ? AND ? ORDER BY r.purchase_timestamp DESC LIMIT 50",
+                (min_date, max_date),
+            ).fetchall()
+            for row in all_nearby:
+                if _description_matches_merchant(description, row["merchant_name"], row["merchant_key"]):
+                    merchant_rows.append(row)
+
+        # Merge and deduplicate candidates by receipt_id
+        seen_ids = set()
+        candidates = []
+        for r in list(exact_rows) + list(merchant_rows):
+            rid = r["receipt_id"]
+            if rid not in seen_ids:
+                seen_ids.add(rid)
+                candidates.append(r)
+
+        results = []
+        for r in candidates:
+            rid = r["receipt_id"]
+            occ_rows = connection.execute(
+                "SELECT display_name, net_total_minor, quantity FROM item_occurrence WHERE receipt_id = ? ORDER BY source_line_index LIMIT 6",
+                (rid,),
+            ).fetchall()
+
+            desc_match = _description_matches_merchant(description, r["merchant_name"], r["merchant_key"]) if description else False
+            amt_match = (r["receipt_total_minor"] == target_amount_minor)
+
+            date_diff = 999
+            if transaction_date and r["purchase_date"]:
+                try:
+                    p_date = date.fromisoformat(r["purchase_date"][:10])
+                    date_diff = abs((p_date - transaction_date).days)
+                except Exception:
+                    pass
+
+            confidence = "suggested"
+            if amt_match and desc_match and date_diff <= 7:
+                confidence = "high"
+            elif (amt_match and date_diff <= 14) or (desc_match and date_diff <= 7):
+                confidence = "medium"
+
+            items_preview = [
+                {
+                    "name": occ["display_name"],
+                    "amount_minor": occ["net_total_minor"],
+                    "quantity": occ["quantity"],
+                }
+                for occ in occ_rows
+            ]
+
+            results.append({
+                "receipt_id": rid,
+                "merchant_name": r["merchant_name"],
+                "merchant_key": r["merchant_key"],
+                "purchase_date": r["purchase_date"],
+                "purchase_timestamp": r["purchase_timestamp"],
+                "total_price_minor": r["receipt_total_minor"],
+                "currency": r["currency"] or "DKK",
+                "confidence": confidence,
+                "date_diff_days": date_diff if date_diff != 999 else None,
+                "is_exact_amount": amt_match,
+                "is_merchant_match": desc_match,
+                "items_preview": items_preview,
+            })
+
+        def sort_key(item: dict[str, Any]) -> tuple[int, int, int]:
+            conf_rank = {"high": 0, "medium": 1, "suggested": 2}.get(str(item.get("confidence")), 3)
+            d_diff = item["date_diff_days"] if item.get("date_diff_days") is not None else 999
+            amt_rank = 0 if item.get("is_exact_amount") else 1
+            return (conf_rank, d_diff, amt_rank)
+
+        results.sort(key=sort_key)
+        return results[:limit]
+
