@@ -305,18 +305,25 @@ def process_inbound_email(
                     if u.startswith("http") and u not in found_links:
                         found_links.append(u)
 
+                # Prioritize accept/confirm link if found
+                accept_links = [link for link in found_links if any(k in link.lower() for k in ("accept", "confirm", "verify"))]
+                primary_link = accept_links[0] if accept_links else None
+
                 if text_body:
                     cleaned_snippet = " ".join(text_body.split())[:250]
                     snippet = f" Indhold: \"{cleaned_snippet}\""
 
-                links_str = f" Links: {', '.join(found_links)}" if found_links else ""
-                err_msg = f"Ingen Storebox download-link fundet.{links_str}{snippet}"
+                if primary_link:
+                    err_msg = f"Bekræftelsesmail modtaget. Link: {primary_link}"
+                else:
+                    links_str = f" Links: {' '.join(found_links)}" if found_links else ""
+                    err_msg = f"Ingen Storebox download-link fundet.{links_str}{snippet}"
 
                 with Session(engine) as db:
                     log_item = db.get(InboundEmail, log_id)
                     if log_item:
                         log_item.status = "no_link"
-                        log_item.error_message = err_msg[:500]
+                        log_item.error_message = err_msg
                         db.add(log_item)
                         db.commit()
                 return {

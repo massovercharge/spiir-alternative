@@ -977,22 +977,29 @@ export default function SettingsPage() {
                           </div>
                           {log.error_message && (
                             <div className="text-[11px] text-muted dark:text-zinc-400 mt-1 break-all">
-                              {log.error_message.split(/(https?:\/\/[^\s<>]+)/g).map((part, i) =>
-                                part.startsWith('http') ? (
-                                  <a
-                                    key={i}
-                                    href={part}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[hsl(var(--brand-primary))] underline font-medium hover:opacity-80 inline-flex items-center gap-0.5 mx-1"
-                                  >
-                                    {part}
-                                    <ExternalLink size={10} />
-                                  </a>
-                                ) : (
+                              {log.error_message.split(/(https?:\/\/[^\s<>]+)/g).map((part, i) => {
+                                if (part.startsWith('http')) {
+                                  const cleanUrl = part.replace(/[.,;:!?)\]'"]+$/, '');
+                                  const trailing = part.slice(cleanUrl.length);
+                                  return (
+                                    <span key={i}>
+                                      <a
+                                        href={cleanUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[hsl(var(--brand-primary))] underline font-medium hover:opacity-80 inline-flex items-center gap-0.5 mx-1"
+                                      >
+                                        {cleanUrl}
+                                        <ExternalLink size={10} />
+                                      </a>
+                                      {trailing}
+                                    </span>
+                                  );
+                                }
+                                return (
                                   <span key={i} className={isFailed ? "text-red-500 dark:text-red-400" : ""}>{part}</span>
-                                )
-                              )}
+                                );
+                              })}
                             </div>
                           )}
                         </div>
