@@ -41,9 +41,12 @@ async def lifespan(app: FastAPI):
     seed_categories()
     new_rules_count = seed_spiir_rules()
 
-    if new_rules_count > 0:
+    try:
         from app.services.rules_service import apply_rules_to_uncategorized
         apply_rules_to_uncategorized()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Error applying rules to uncategorized on startup: %s", e)
 
     try:
         from app.services.transaction_service import auto_link_receipts

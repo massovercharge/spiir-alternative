@@ -666,15 +666,27 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
     - Rules have been modified
     - Existing postings were imported without categorization
 
-    Only postings with NO allocation, or whose only allocation points to
+    Only postings with NO allocation, or whose allocations point to
     the default "diverse|ikke-kategoriseret" category, are processed.
     """
+    from app.models.all_models import Household, current_household_id
+
     now = _utcnow_iso()
     categorized = 0
     skipped = 0
 
+    target_households: list[str] = []
+    with contextlib.suppress(LookupError):
+        current_hh = current_household_id.get()
+        if current_hh:
+            target_households = [current_hh]
+
+    if not target_households:
+        with Session(engine) as db:
+            hhs = db.exec(select(Household.id)).all()
+            target_households = list(hhs)
+
     with Session(engine) as db:
-        # Pre-fetch all active rules once for batch evaluation
         active_rules = db.exec(
             select(CategorizationRule)
             .where(CategorizationRule.is_active == True)  # noqa: E712
@@ -684,56 +696,69 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
             )
         ).all()
 
-        # Find all postings
-        postings = db.exec(select(Posting)).all()
+    for hh_id in target_households:
+        token = current_household_id.set(hh_id)
+        try:
+            with Session(engine) as db:
+                postings = db.exec(select(Posting)).all()
 
-        for posting in postings:
-            # Check existing allocations
-            allocs = db.exec(
-                select(PostingAllocation)
-                .where(PostingAllocation.posting_id == posting.id)
-            ).all()
+                for posting in postings:
+                    allocs = db.exec(
+                        select(PostingAllocation)
+                        .where(PostingAllocation.posting_id == posting.id)
+                    ).all()
 
-            # Skip if posting already has a meaningful categorization
-            # (i.e., any allocation that is NOT the default fallback)
-            has_real_category = any(
-                a.category_id and a.category_id != "diverse|ikke-kategoriseret"
-                for a in allocs
-            )
-            if has_real_category:
-                skipped += 1
-                continue
+                    has_real_category = any(
+                        a.category_id and a.category_id not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                        for a in allocs
+                    )
+                    if has_real_category:
+                        skipped += 1
+                        continue
 
-            # Also skip if there are splits (multiple allocations) —
-            # the user has manually configured these
-            if len(allocs) > 1:
-                skipped += 1
-                continue
+                    # If splits exist with all un-categorized, categorize the splits
+                    if len(allocs) > 1:
+                        all_uncat = all(
+                            not a.category_id or a.category_id in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                            for a in allocs
+                        )
+                        if all_uncat:
+                            matched_category = evaluate_posting(posting, rules=active_rules)
+                            if matched_category:
+                                for a in allocs:
+                                    a.category_id = matched_category
+                                    a.updated_at = now
+                                    db.add(a)
+                                categorized += 1
+                                continue
+                        skipped += 1
+                        continue
 
-            # Try to match a rule
-            matched_category = evaluate_posting(posting, rules=active_rules)
-            if matched_category is None:
-                skipped += 1
-                continue
+                    # Try to match a rule
+                    matched_category = evaluate_posting(posting, rules=active_rules)
+                    if matched_category is None:
+                        skipped += 1
+                        continue
 
-            if allocs:
-                # Update the existing fallback allocation
-                alloc = allocs[0]
-                alloc.category_id = matched_category
-                alloc.updated_at = now
-            else:
-                # Create a new allocation
-                db.add(PostingAllocation(
-                    posting_id=posting.id,
-                    category_id=matched_category,
-                    amount_minor=posting.amount_minor,
-                    created_at=now,
-                    updated_at=now,
-                ))
+                    if allocs:
+                        alloc = allocs[0]
+                        alloc.category_id = matched_category
+                        alloc.updated_at = now
+                        db.add(alloc)
+                    else:
+                        db.add(PostingAllocation(
+                            posting_id=posting.id,
+                            category_id=matched_category,
+                            amount_minor=posting.amount_minor,
+                            created_at=now,
+                            updated_at=now,
+                        ))
 
-            categorized += 1
+                    categorized += 1
 
-        db.commit()
+                db.commit()
+        finally:
+            current_household_id.reset(token)
 
     # Now detect and categorize internal transfers
     from app.services.transfer_service import detect_internal_transfers
