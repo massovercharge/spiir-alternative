@@ -1,5 +1,25 @@
 [
   {
+    "version": "v1.6.0",
+    "date": "2026-08-25",
+    "changes": {
+      "en": [
+        "Major full-stack refactoring across backend services, minor-unit financial arithmetic, and modularized frontend API architecture",
+        "Performance optimizations: batched database sync commits, regex caching, and elimination of N+1 query overhead in categorization rules",
+        "Container security hardening: unprivileged 'peng' system user, automated directory permissions, and inbound webhook secret validation",
+        "Budgeting enhancements: side-effect-free budget suggestions with dedicated apply action and automatic snapshot backup rotation",
+        "Added Architecture Decision Records (ADR-0004 & ADR-0005) and integrated Vitest automated testing suite"
+      ],
+      "da": [
+        "Stor full-stack refaktorering af backend-tjenester, præcisionsberegning i øre/cent og modulær frontend-API-arkitektur",
+        "Ydelsesoptimeringer: batching af databasesynkronisering, regex-caching og fjernelse af N+1-forespørgsler i kategoriseringsregler",
+        "Container-sikkerhedshærdning: uprivilegeret 'peng'-systembruger, automatiske mappetilladelser og validering af delte hemmeligheder på webhooks",
+        "Budgetforbedringer: bivirkningsfri budgetforslag med separat anvendelsesfunktion og automatisk rotation af backup-snapshots",
+        "Tilføjet Architecture Decision Records (ADR-0004 og ADR-0005) samt integreret automatiseret Vitest-testsuite"
+      ]
+    }
+  },
+  {
     "version": "v1.5.3",
     "date": "2026-08-25",
     "changes": {

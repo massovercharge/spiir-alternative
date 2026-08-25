@@ -1,5 +1,30 @@
 [
   {
+    "version": "1.6.0",
+    "da": {
+      "features": [
+        "Stor full-stack refaktorering af backend-tjenester, præcisionsberegning i øre/cent og modulær frontend-API-arkitektur.",
+        "Ydelsesoptimeringer med batching af databasesynkronisering, regex-caching og optimering af regler.",
+        "Container-sikkerhedshærdning med uprivilegeret bruger og delte webhook-hemmeligheder.",
+        "Bivirkningsfri budgetforslag og automatisk rotation af backup-snapshots."
+      ],
+      "fixes": [
+        "Løst runtime-fejl ved oprettelse af allokeringer og kategorier under CSV-import og overførselssøgning."
+      ]
+    },
+    "en": {
+      "features": [
+        "Major full-stack refactoring across backend services, minor-unit financial arithmetic, and modularized frontend API architecture.",
+        "Performance optimizations with batched sync commits, regex caching, and rule evaluation speedups.",
+        "Container security hardening with unprivileged system user and inbound webhook secret validation.",
+        "Side-effect-free budget suggestions with dedicated apply action and automatic snapshot backup rotation."
+      ],
+      "fixes": [
+        "Fixed runtime exceptions during posting allocation and category creation in CSV import and transfer detection."
+      ]
+    }
+  },
+  {
     "version": "0.3.0",
     "da": {
       "features": [
