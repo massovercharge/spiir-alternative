@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.schemas.requests import BudgetBillsUpsertRequest, BudgetUpsertRequest
 from app.services.budget_service import (
+    apply_budget_suggestions,
     generate_budget_suggestion,
     get_annual_summary,
     get_budget_bills,
@@ -33,8 +34,13 @@ def budgets_upsert(payload: BudgetUpsertRequest) -> dict[str, Any]:
 
 @router.post("/generate")
 def budgets_generate(months: int = 12, year: Optional[int] = None) -> list[dict[str, Any]]:
-    """Auto-generate budget suggestions based on historical spending."""
+    """Auto-generate budget suggestions based on historical spending without persisting."""
     return generate_budget_suggestion(months, year)
+
+@router.post("/apply-suggestions")
+def budgets_apply_suggestions(months: int = 12, year: Optional[int] = None) -> dict[str, Any]:
+    """Auto-generate and persist budget suggestions based on historical spending."""
+    return apply_budget_suggestions(months=months, target_year=year)
 
 @router.get("/bills/{category_id}/{year}")
 def budgets_get_bills(category_id: str, year: int) -> list[dict[str, Any]]:

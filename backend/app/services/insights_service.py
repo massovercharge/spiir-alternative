@@ -11,7 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
-from app.core.money import format_amount
+from app.core.money import format_amount, to_minor
 from app.models import Category, Posting, PostingAllocation, engine
 
 
@@ -287,29 +287,29 @@ def get_averages(year: int) -> dict[str, Any]:
             "expense_variable_total": "0.00",
             "savings_total": "0.00",
             "net_total": "0.00",
-            "months_counted": 0
+            "months_counted": 0,
         }
 
     months_counted = len(series)
 
-    total_income = sum(float(item["income"]) for item in series)
-    total_fixed = sum(float(item["expense_fixed"]) for item in series)
-    total_variable = sum(float(item["expense_variable"]) for item in series)
-    total_savings = sum(float(item.get("savings", 0)) for item in series)
-    total_net = sum(float(item["net"]) for item in series)
+    total_income_minor = sum(to_minor(str(item["income"])) for item in series)
+    total_fixed_minor = sum(to_minor(str(item["expense_fixed"])) for item in series)
+    total_variable_minor = sum(to_minor(str(item["expense_variable"])) for item in series)
+    total_savings_minor = sum(to_minor(str(item.get("savings", "0.00"))) for item in series)
+    total_net_minor = sum(to_minor(str(item["net"])) for item in series)
 
     return {
-        "income_avg": format_amount(int((total_income / months_counted) * 100)),
-        "expense_fixed_avg": format_amount(int((total_fixed / months_counted) * 100)),
-        "expense_variable_avg": format_amount(int((total_variable / months_counted) * 100)),
-        "savings_avg": format_amount(int((total_savings / months_counted) * 100)),
-        "net_avg": format_amount(int((total_net / months_counted) * 100)),
-        "income_total": format_amount(int(total_income * 100)),
-        "expense_fixed_total": format_amount(int(total_fixed * 100)),
-        "expense_variable_total": format_amount(int(total_variable * 100)),
-        "savings_total": format_amount(int(total_savings * 100)),
-        "net_total": format_amount(int(total_net * 100)),
-        "months_counted": months_counted
+        "income_avg": format_amount(round(total_income_minor / months_counted)),
+        "expense_fixed_avg": format_amount(round(total_fixed_minor / months_counted)),
+        "expense_variable_avg": format_amount(round(total_variable_minor / months_counted)),
+        "savings_avg": format_amount(round(total_savings_minor / months_counted)),
+        "net_avg": format_amount(round(total_net_minor / months_counted)),
+        "income_total": format_amount(total_income_minor),
+        "expense_fixed_total": format_amount(total_fixed_minor),
+        "expense_variable_total": format_amount(total_variable_minor),
+        "savings_total": format_amount(total_savings_minor),
+        "net_total": format_amount(total_net_minor),
+        "months_counted": months_counted,
     }
 
 

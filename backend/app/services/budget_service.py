@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
+import app.models as models
 from app.core.money import format_amount
 from app.models import (
     Budget,
@@ -18,8 +19,11 @@ from app.models import (
     Category,
     Posting,
     PostingAllocation,
-    engine,
 )
+
+
+def _get_engine():
+    return models.engine
 
 
 def _utcnow_iso() -> str:
@@ -40,7 +44,7 @@ def upsert_budget(
 ) -> dict[str, Any]:
     """Create or update a budget for a specific category and month."""
     now = _utcnow_iso()
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         # Auto-create category if missing
         cat = db.exec(select(Category).where(Category.id == category_id)).first()
         if not cat:
@@ -97,7 +101,7 @@ def upsert_budget(
 
 def list_budgets(year: int, month: int | None = None, category_id: str | None = None) -> list[dict[str, Any]]:
     """List budgets for a given year (and optionally month and category)."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         query = select(Budget).where(Budget.year == year)
         if month is not None:
             query = query.where(Budget.month == month)
@@ -127,7 +131,7 @@ def list_budgets(year: int, month: int | None = None, category_id: str | None = 
 
 def get_budget_bills(category_id: str, year: int) -> list[dict[str, Any]]:
     """Get all specific bills for a category and year."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         bills = db.exec(
             select(BudgetBill)
             .where(BudgetBill.category_id == category_id)
@@ -149,7 +153,7 @@ def get_budget_bills(category_id: str, year: int) -> list[dict[str, Any]]:
 
 def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Replace all bills for a category/year and recalculate monthly budget sums."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         # Auto-create category if missing
         cat = db.exec(select(Category).where(Category.id == category_id)).first()
         if not cat:
@@ -242,7 +246,7 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
     Looks at the last `months` of data (excluding current month).
     Classifies stable spending as 'bill' and variable as 'limit'.
     """
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         # Only look at the last 12 months of data so we don't bring back ancient categories
         now = datetime.now(UTC)
         now.year - (1 if now.month >= 1 else 2) # simplified 1 year back
@@ -273,7 +277,7 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
 
     suggestions = []
 
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         categories_dict = {c.id: c for c in db.exec(select(Category)).all()}
 
         if target_year is None:
@@ -312,18 +316,6 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
             budget_type = "bill" if (is_fixed or is_income) else "limit"
             suggested_amount = int(round(avg / 5000) * 5000)
 
-            suggestions.append({
-                "category_id": cat_id,
-                "suggested_amount_minor": suggested_amount,
-                "suggested_amount": format_amount(suggested_amount),
-                "budget_type": budget_type,
-                "confidence": max(0.0, 1.0 - cv),
-                "historical_average_minor": int(avg),
-                "historical_stddev_minor": int(stddev),
-                "is_fixed": is_fixed,
-                "is_income": is_income,
-            })
-
             target_months = list(range(1, 13))
             if is_fixed or is_income:
                 historical_month_ints = {int(m[-2:]) for m in historical_months_with_transactions}
@@ -356,26 +348,65 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
                     else:
                         target_months = list(historical_month_ints)
 
+            suggestions.append({
+                "category_id": cat_id,
+                "suggested_amount_minor": suggested_amount,
+                "suggested_amount": format_amount(suggested_amount),
+                "budget_type": budget_type,
+                "confidence": max(0.0, 1.0 - cv),
+                "historical_average_minor": int(avg),
+                "historical_stddev_minor": int(stddev),
+                "is_fixed": is_fixed,
+                "is_income": is_income,
+                "target_months": target_months,
+                "target_year": target_year,
+            })
+
+    return suggestions
+
+
+def apply_budget_suggestions(
+    suggestions: list[dict[str, Any]] | None = None,
+    months: int = 12,
+    target_year: int | None = None,
+) -> dict[str, Any]:
+    """Persist generated budget suggestions into the database."""
+    if target_year is None:
+        target_year = datetime.now(UTC).year
+
+    if suggestions is None:
+        suggestions = generate_budget_suggestion(months=months, target_year=target_year)
+
+    applied_count = 0
+    with Session(_get_engine()) as db:
+        for s in suggestions:
+            cat_id = s["category_id"]
+            amount_minor = s.get("suggested_amount_minor", 0)
+            budget_type = s.get("budget_type", "limit")
+            year = s.get("target_year", target_year)
+            target_months = s.get("target_months", list(range(1, 13)))
+
             for m in target_months:
                 existing = db.exec(
                     select(Budget)
                     .where(Budget.category_id == cat_id)
-                    .where(Budget.year == target_year)
+                    .where(Budget.year == year)
                     .where(Budget.month == m)
                 ).first()
                 if not existing:
                     db.add(
                         Budget(
                             category_id=cat_id,
-                            year=target_year,
+                            year=year,
                             month=m,
-                            amount_minor=suggested_amount,
+                            amount_minor=amount_minor,
                             budget_type=budget_type,
                         )
                     )
+                    applied_count += 1
         db.commit()
 
-    return suggestions
+    return {"applied_count": applied_count, "suggestions": suggestions}
 
 
 # ---------------------------------------------------------------------------
@@ -384,7 +415,7 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
 
 def get_annual_summary(year: int) -> dict[str, Any]:
     """Combine budgets with realized spending for a full-year matrix."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         # Fetch all budgets for the year
         budgets = db.exec(select(Budget).where(Budget.year == year)).all()
 
@@ -430,7 +461,7 @@ def get_annual_summary(year: int) -> dict[str, Any]:
     matrix = []
 
     # Fetch category metadata
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         category_objects = db.exec(select(Category)).all()
         cat_meta = {c.id: c for c in category_objects}
         main_meta = {}
