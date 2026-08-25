@@ -16,8 +16,8 @@ from pydantic import BaseModel, field_validator
 from sqlmodel import Session, select
 
 from app.core.config import get_data_dir
-from app.models import Account, BankConnection, Posting, PostingAllocation, SyncJob, engine
 from app.core.money import to_minor
+from app.models import Account, BankConnection, Posting, PostingAllocation, SyncJob, engine
 
 # ---------------------------------------------------------------------------
 # Enable Banking Configuration

@@ -8,27 +8,27 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+# Import Routers
+from app.api.routers import (
+    accounts,
+    budgets,
+    categories,
+    households,
+    inbound,
+    insights,
+    recurring,
+    rules,
+    sync,
+    transactions,
+)
 from app.core.auth import get_auth_dependency
 from app.models import create_db_and_tables
 from app.services.category_service import seed_categories
 from app.services.rules_service import seed_spiir_rules
-
-# Import Routers
-from app.api.routers import (
-    households,
-    accounts,
-    transactions,
-    categories,
-    insights,
-    budgets,
-    rules,
-    recurring,
-    sync,
-)
 
 # ---------------------------------------------------------------------------
 # Lifespan
@@ -40,19 +40,23 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     seed_categories()
     new_rules_count = seed_spiir_rules()
-    
+
     if new_rules_count > 0:
         from app.services.rules_service import apply_rules_to_uncategorized
         apply_rules_to_uncategorized()
-    
+
     # Start background workers
     import asyncio
+
+    from app.services.imap_worker import run_imap_poller_loop
     from app.worker import purge_deleted_households_worker
     task = asyncio.create_task(purge_deleted_households_worker())
-    
+    imap_task = asyncio.create_task(run_imap_poller_loop())
+
     yield
-    
+
     task.cancel()
+    imap_task.cancel()
 
 # ---------------------------------------------------------------------------
 # App
@@ -67,8 +71,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    from fastapi.responses import JSONResponse
     from fastapi import Request
+    from fastapi.responses import JSONResponse
 
     # All API routes require auth
     dependencies = [Depends(get_auth_dependency())]
@@ -96,6 +100,7 @@ def create_app() -> FastAPI:
     app.include_router(rules.router, dependencies=dependencies)
     app.include_router(recurring.router, dependencies=dependencies)
     app.include_router(sync.router, dependencies=dependencies)
+    app.include_router(inbound.router)
 
     # ----- Serve Frontend (Static) -----
 

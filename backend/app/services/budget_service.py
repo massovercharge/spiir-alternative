@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
+from app.core.money import format_amount
 from app.models import (
     Budget,
     BudgetBill,
@@ -19,7 +20,6 @@ from app.models import (
     PostingAllocation,
     engine,
 )
-from app.core.money import format_amount
 
 
 def _utcnow_iso() -> str:
@@ -328,12 +328,12 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
             target_months = list(range(1, 13))
             if is_fixed or is_income:
                 historical_month_ints = {int(m[-2:]) for m in historical_months_with_transactions}
-                
+
                 # For income, always project to all 12 months by default
                 if is_income:
                     target_months = list(range(1, 13))
                 elif historical_month_ints:
-                    # For fixed bills, if it appears frequently (e.g. >= 50% of the historical span), 
+                    # For fixed bills, if it appears frequently (e.g. >= 50% of the historical span),
                     # assume it's a monthly bill and project to all 12 months.
                     # Otherwise, just keep the specific months it appeared in (e.g. for quarterly/yearly).
                     if len(historical_month_ints) > 1:
@@ -444,16 +444,16 @@ def get_annual_summary(year: int) -> dict[str, Any]:
         months_data = []
         carryover = 0
         has_rollover = rollover_map.get(cat_id, False)
-        
+
         for m in range(1, 13):
             explicit_budgeted = budget_map.get(cat_id, {}).get(m, 0)
             actual = actual_map.get(cat_id, {}).get(m, 0)
-            
+
             effective_budgeted = explicit_budgeted
             if has_rollover:
                 effective_budgeted += carryover
                 carryover = effective_budgeted - actual
-                
+
             months_data.append({
                 "month": m,
                 "budgeted_minor": explicit_budgeted,

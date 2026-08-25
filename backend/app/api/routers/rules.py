@@ -1,17 +1,17 @@
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter, HTTPException
+
+from app.schemas.requests import RuleCreateRequest, RuleUpdateRequest
 from app.services.rules_service import (
     apply_rules_to_uncategorized,
     create_rule,
     delete_rule,
     list_rules,
-    update_rule,
     preprocess_description,
+    update_rule,
 )
 from app.services.transaction_service import apply_rule_retroactively
-from app.schemas.requests import RuleCreateRequest, RuleUpdateRequest
 
 router = APIRouter(prefix="/api/rules", tags=["rules"])
 

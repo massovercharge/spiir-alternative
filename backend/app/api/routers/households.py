@@ -1,23 +1,24 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends
 
 from app.core.auth import get_auth_dependency
+from app.schemas.requests import (
+    HouseholdCreateRequest,
+    HouseholdInviteRequest,
+    HouseholdMemberRoleUpdateRequest,
+    HouseholdUpdateRequest,
+)
 from app.services.household_service import (
     create_household,
+    delete_household,
     get_household_members,
     invite_member,
     list_households,
     remove_member,
-    update_household,
-    delete_household,
     restore_household,
+    update_household,
     update_member_role,
-)
-from app.schemas.requests import (
-    HouseholdCreateRequest,
-    HouseholdUpdateRequest,
-    HouseholdInviteRequest,
-    HouseholdMemberRoleUpdateRequest,
 )
 
 router = APIRouter(prefix="/api/households", tags=["households"])

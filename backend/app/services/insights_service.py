@@ -11,8 +11,8 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
-from app.models import Category, Posting, PostingAllocation, engine
 from app.core.money import format_amount
+from app.models import Category, Posting, PostingAllocation, engine
 
 
 def _utcnow_iso() -> str:
@@ -170,7 +170,7 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
         else:
             if total < 0:
                 final_totals[key] = abs(total)
-    
+
     totals = final_totals
 
     # Build flat arrays for Plotly or custom frontend lists
@@ -336,12 +336,12 @@ def get_category_trends() -> list[dict[str, Any]]:
     monthly_cat_totals: dict[str, dict[str, int]] = {}
     for alloc, posting in rows:
         cat_id = alloc.category_id or "diverse|ikke-kategoriseret"
-        
+
         # Determine category type
         cat = categories.get(cat_id)
         if not cat and "|" in cat_id:
             cat = categories.get(cat_id.split("|")[0])
-        
+
         is_income = cat.category_type == "Income" if cat else False
         if is_income:
             continue

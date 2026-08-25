@@ -8,7 +8,6 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.services.category_service import list_categories
 from app.models import (
     Account,
     Posting,
@@ -17,6 +16,7 @@ from app.models import (
     Tag,
     engine,
 )
+from app.services.category_service import list_categories
 
 
 def _slugify(text: str) -> str:

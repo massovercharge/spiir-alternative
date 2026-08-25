@@ -67,17 +67,17 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
             else:
                 # Update email/name on existing user record if provided and missing/changed
                 updated = False
-                
+
                 # Always check for pending invites for this email, even if the email hasn't changed.
                 # This fixes issues where pending invites were created with different casing.
                 if email:
                     pending_users = session.exec(
                         select(User).where(
-                            func.lower(User.email) == email, 
+                            func.lower(User.email) == email,
                             User.logto_id.startswith("pending:")
                         )
                     ).all()
-                    
+
                     for pending_user in pending_users:
                         # Transfer memberships from pending to real user
                         memberships = session.exec(
@@ -96,7 +96,7 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
                                 session.add(m)
                             else:
                                 session.delete(m)
-                        
+
                         # Remove the pending stub
                         session.delete(pending_user)
                         updated = True
@@ -104,11 +104,11 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
                 if email and (not user.email or user.email.lower() != email):
                     user.email = email
                     updated = True
-                
+
                 if name and user.name != name:
                     user.name = name
                     updated = True
-                
+
                 if updated:
                     session.add(user)
                     session.commit()

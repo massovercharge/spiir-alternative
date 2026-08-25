@@ -85,6 +85,18 @@ def create_db_and_tables() -> None:
             session.exec(text("ALTER TABLE postingallocation ADD COLUMN item_cluster_id VARCHAR;"))
             session.commit()
 
+        with contextlib.suppress(Exception):
+            session.exec(text("ALTER TABLE household ADD COLUMN inbound_email_token VARCHAR;"))
+            session.commit()
+
+        with contextlib.suppress(Exception):
+            from sqlmodel import select
+            households = session.exec(select(Household).where(Household.inbound_email_token == None)).all()  # noqa: E711
+            for hh in households:
+                hh.inbound_email_token = _generate_inbound_token()
+                session.add(hh)
+            session.commit()
+
         # PSD2 Posting fields
         for col_def in [
             "booking_date_time VARCHAR",
@@ -180,10 +192,15 @@ class PostingAllocationTagLink(SQLModel, table=True):
 # Models: Multi-Tenant Identity
 # ---------------------------------------------------------------------------
 
+def _generate_inbound_token() -> str:
+    return uuid.uuid4().hex[:12]
+
+
 class Household(SQLModel, table=True):
     """A Household groups multiple users and their financial data."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str
+    inbound_email_token: str = Field(default_factory=_generate_inbound_token, unique=True, index=True)
     created_at: str = Field(default_factory=_utcnow_iso)
     deleted_at: Optional[str] = Field(default=None)
 
@@ -301,7 +318,7 @@ class Account(SQLModel, table=True):
         currency: ISO 4217 currency code.
         source: Data source identifier (e.g. "enablebanking", "csv").
     """
-    uid: str = Field(primary_key=True)
+    uid: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     bank_connection_id: Optional[str] = Field(
         default=None, foreign_key="bankconnection.id", ondelete="SET NULL", index=True
@@ -321,6 +338,10 @@ class Account(SQLModel, table=True):
     # Relationships
     bank_connection: Optional[BankConnection] = Relationship(back_populates="accounts")
     postings: list["Posting"] = Relationship(back_populates="account")
+
+    @property
+    def id(self) -> str:
+        return self.uid
 
 
 # ---------------------------------------------------------------------------
@@ -665,6 +686,28 @@ class CategorizationRule(SQLModel, table=True):
     is_active: bool = Field(default=True)
     created_at: str = Field(default_factory=_utcnow_iso)
     updated_at: str = Field(default_factory=_utcnow_iso)
+
+
+# ---------------------------------------------------------------------------
+# Models: InboundEmail (Receipt Email Ingestion Log)
+# ---------------------------------------------------------------------------
+
+class InboundEmail(SQLModel, table=True):
+    """Log of incoming forwarded receipt emails for a household."""
+    id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    received_at: str = Field(default_factory=_utcnow_iso)
+    sender: str = Field(default="")
+    recipient: Optional[str] = Field(default=None)
+    subject: Optional[str] = Field(default=None)
+    status: str = Field(default="pending")  # "success", "failed", "pending", "no_link", "invalid_file"
+    download_url: Optional[str] = Field(default=None)
+    error_message: Optional[str] = Field(default=None)
+    raw_receipt_count: int = Field(default=0)
+    deduplicated_receipt_count: int = Field(default=0)
+    auto_linked_count: int = Field(default=0)
+    source_type: str = Field(default="webhook")  # "webhook", "imap", "simulation"
+    created_at: str = Field(default_factory=_utcnow_iso)
 
 
 # ---------------------------------------------------------------------------

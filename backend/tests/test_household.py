@@ -221,6 +221,8 @@ def test_update_transaction_category_creates_missing_allocation():
         hh = Household(name="Tx Category Test HH")
         db.add(hh)
         db.commit()
+        db.refresh(hh)
+        token = all_models.current_household_id.set(hh.id)
 
         bc = BankConnection(household_id=hh.id, bank_name="Test Bank", external_id="ext123")
         db.add(bc)
@@ -233,7 +235,7 @@ def test_update_transaction_category_creates_missing_allocation():
         posting = Posting(
             id="tx_test_alloc_1",
             household_id=hh.id,
-            account_id=acc.id,
+            account_uid=acc.uid,
             booking_date="2026-08-01",
             original_description="Netto",
             cleaned_description="Netto",

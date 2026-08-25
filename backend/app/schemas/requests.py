@@ -1,5 +1,7 @@
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal, Optional
+
 from pydantic import BaseModel, Field, field_validator
+
 
 # Households
 class HouseholdCreateRequest(BaseModel):
@@ -35,10 +37,10 @@ class TransactionPatch(BaseModel):
     is_extraordinary: Optional[bool] = None
     is_excluded: Optional[bool] = None
     custom_date: Optional[str] = None
-    tags: Optional[List[str]] = None
+    tags: Optional[list[str]] = None
 
 class TransactionsUpdateRequest(BaseModel):
-    transaction_ids: List[str]
+    transaction_ids: list[str]
     patch: TransactionPatch
 
 class TransactionCategoryUpdateRequest(BaseModel):
@@ -53,7 +55,7 @@ class TransactionSplitItem(BaseModel):
     is_extraordinary: Optional[bool] = False
 
 class TransactionSplitRequest(BaseModel):
-    splits: List[TransactionSplitItem] = Field(..., min_length=1)
+    splits: list[TransactionSplitItem] = Field(..., min_length=1)
 
 class TransactionLinkReceiptRequest(BaseModel):
     receipt_id: str
@@ -86,12 +88,12 @@ class BudgetUpsertRequest(BaseModel):
 class BudgetBillItem(BaseModel):
     name: str
     amount_minor: int
-    months: List[int]
+    months: list[int]
 
 class BudgetBillsUpsertRequest(BaseModel):
     category_id: str
     year: int
-    bills: List[BudgetBillItem] = []
+    bills: list[BudgetBillItem] = []
 
 # Sync & Bank
 class BankConnectRequest(BaseModel):
@@ -112,3 +114,11 @@ class RecurringCreateRequest(BaseModel):
     category_id: Optional[str] = None
     account_uid: Optional[str] = None
     match_pattern: str
+
+# Inbound Email
+class InboundEmailTestRequest(BaseModel):
+    raw_content: Optional[str] = None
+    url: Optional[str] = None
+    subject: Optional[str] = None
+    sender: Optional[str] = None
+

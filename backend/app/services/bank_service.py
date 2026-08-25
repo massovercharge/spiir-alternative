@@ -129,7 +129,7 @@ def complete_auth_session(code: str) -> dict[str, Any]:
                 db.add(new_acc)
 
         db.commit()
-        
+
         # Capture ID before session closes to avoid DetachedInstanceError
         conn_id = conn.id
 

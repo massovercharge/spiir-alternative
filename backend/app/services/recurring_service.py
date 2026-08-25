@@ -11,13 +11,13 @@ from typing import Any
 from dateutil.relativedelta import relativedelta
 from sqlmodel import Session, select
 
+from app.core.money import format_amount
 from app.models import (
     Posting,
     PostingAllocation,
     RecurringTransaction,
     engine,
 )
-from app.core.money import format_amount
 from app.services.rules_service import preprocess_description
 
 

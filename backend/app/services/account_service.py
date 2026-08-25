@@ -8,8 +8,8 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.models import Account, BankConnection, Posting, engine
 from app.core.money import format_amount
+from app.models import Account, BankConnection, Posting, engine
 
 
 def list_accounts_with_balances() -> list[dict[str, Any]]:

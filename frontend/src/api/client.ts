@@ -191,6 +191,72 @@ export async function uploadStoreboxFile(file: File) {
   return res.json();
 }
 
+export interface InboundEmailLog {
+  id: string;
+  household_id: string;
+  received_at: string;
+  sender: string;
+  recipient?: string | null;
+  subject?: string | null;
+  status: 'success' | 'failed' | 'pending' | 'no_link' | string;
+  download_url?: string | null;
+  error_message?: string | null;
+  raw_receipt_count: number;
+  deduplicated_receipt_count: number;
+  auto_linked_count: number;
+  source_type: string;
+}
+
+export interface InboundConfig {
+  household_id: string;
+  household_name: string;
+  inbound_token: string;
+  email_address: string;
+  domain: string;
+  prefix: string;
+  imap_enabled: boolean;
+}
+
+export async function fetchInboundConfig(householdId: string): Promise<InboundConfig> {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-config`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch inbound email config');
+  return res.json();
+}
+
+export async function regenerateInboundToken(householdId: string): Promise<InboundConfig> {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-config/regenerate-token`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to regenerate inbound token');
+  return res.json();
+}
+
+export async function fetchInboundEmails(householdId: string): Promise<InboundEmailLog[]> {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-emails`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch inbound emails');
+  return res.json();
+}
+
+export async function simulateInboundEmail(householdId: string, payload: { raw_content?: string; url?: string; subject?: string; sender?: string }) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-emails/test`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to simulate inbound email');
+  return res.json();
+}
+
+export async function retryInboundEmail(householdId: string, emailId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-emails/${emailId}/retry`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to retry inbound email');
+  return res.json();
+}
+
 export async function importStoreboxLink(url: string) {
   const res = await fetch(`${API_BASE}/api/storebox/import-link`, {
     method: 'POST',
@@ -850,5 +916,58 @@ export function useRestoreHousehold() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['households'] });
     }
+  });
+}
+
+export function useInboundConfig(householdId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['households', householdId, 'inbound-config'],
+    queryFn: () => fetchInboundConfig(householdId!),
+    enabled: !!householdId,
+  });
+}
+
+export function useInboundEmails(householdId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['households', householdId, 'inbound-emails'],
+    queryFn: () => fetchInboundEmails(householdId!),
+    enabled: !!householdId,
+    refetchInterval: 15000,
+  });
+}
+
+export function useRegenerateInboundToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (householdId: string) => regenerateInboundToken(householdId),
+    onSuccess: (_, householdId) => {
+      queryClient.invalidateQueries({ queryKey: ['households', householdId, 'inbound-config'] });
+    },
+  });
+}
+
+export function useSimulateInboundEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, payload }: { householdId: string; payload: { raw_content?: string; url?: string; subject?: string; sender?: string } }) =>
+      simulateInboundEmail(householdId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'inbound-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+    },
+  });
+}
+
+export function useRetryInboundEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, emailId }: { householdId: string; emailId: string }) =>
+      retryInboundEmail(householdId, emailId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'inbound-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+    },
   });
 }

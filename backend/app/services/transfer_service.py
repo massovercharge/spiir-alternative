@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
-from app.services.category_service import make_category_id
 from app.models import Account, Category, Posting, PostingAllocation, engine
+from app.services.category_service import make_category_id
 
 logger = logging.getLogger(__name__)
 

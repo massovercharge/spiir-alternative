@@ -1,21 +1,21 @@
-from typing import Any, Annotated, Optional
-from fastapi import APIRouter, Depends, Query, HTTPException
+from typing import Annotated, Any, Optional
 
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter, HTTPException, Query
+
+from app.schemas.requests import (
+    TransactionCategoryUpdateRequest,
+    TransactionLinkReceiptRequest,
+    TransactionSplitRequest,
+    TransactionsUpdateRequest,
+)
 from app.services.transaction_service import (
     get_transaction,
+    link_receipt_to_transaction,
+    list_tags,
     list_transactions,
     split_allocation,
-    update_transactions,
     update_transaction_category,
-    link_receipt_to_transaction,
-    list_tags
-)
-from app.schemas.requests import (
-    TransactionsUpdateRequest,
-    TransactionCategoryUpdateRequest,
-    TransactionSplitRequest,
-    TransactionLinkReceiptRequest
+    update_transactions,
 )
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])

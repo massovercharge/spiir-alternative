@@ -1,14 +1,14 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter, HTTPException
+
+from app.schemas.requests import RecurringCreateRequest
 from app.services.recurring_service import (
     create_recurring,
     delete_recurring,
     detect_recurring,
     list_recurring,
 )
-from app.schemas.requests import RecurringCreateRequest
 
 router = APIRouter(prefix="/api/recurring", tags=["recurring"])
 

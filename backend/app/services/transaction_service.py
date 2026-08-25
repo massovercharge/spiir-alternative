@@ -12,6 +12,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlmodel import Session, col, delete, select
 
+from app.core.money import format_amount
 from app.models import (
     Account,
     CategorizationRule,
@@ -23,7 +24,6 @@ from app.models import (
     Tag,
     engine,
 )
-from app.core.money import format_amount
 
 
 def _utcnow_iso() -> str:
@@ -539,7 +539,7 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
                 category_id = fallback_category_id
             elif item_name:
                 category_id = evaluate_text(item_name)
-            
+
             if not category_id:
                 category_id = fallback_category_id
 

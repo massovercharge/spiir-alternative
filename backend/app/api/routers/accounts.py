@@ -1,9 +1,13 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException
 
-from app.services.account_service import list_accounts_with_balances, update_account, get_account_balance_history
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter, HTTPException
+
 from app.schemas.requests import AccountUpdateRequest
+from app.services.account_service import (
+    get_account_balance_history,
+    list_accounts_with_balances,
+    update_account,
+)
 
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 

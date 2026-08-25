@@ -1,13 +1,13 @@
 from typing import Any, Optional
-from fastapi import APIRouter, Depends
 
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter
+
 from app.services.insights_service import (
+    category_drilldown,
+    get_averages,
     get_category_trends,
     income_expense_series,
     sunburst_data,
-    get_averages,
-    category_drilldown,
 )
 
 router = APIRouter(prefix="/api/insights", tags=["insights"])

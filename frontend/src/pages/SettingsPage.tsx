@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { SUPPORTED_BANKS } from '../api/constants';
-import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText } from 'lucide-react';
-import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole } from '../api/client';
+import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText, Copy, Check, Inbox, RotateCcw, Send, AlertCircle, Sparkles } from 'lucide-react';
+import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole, useInboundConfig, useInboundEmails, useSimulateInboundEmail, useRetryInboundEmail, useRegenerateInboundToken } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/Button';
@@ -83,6 +83,18 @@ export default function SettingsPage() {
   const uploadStoreboxMutation = useUploadStoreboxFile();
   const importStoreboxLinkMutation = useImportStoreboxLink();
   const [storeboxLink, setStoreboxLink] = React.useState('');
+
+  // Inbound Email hooks & state
+  const { data: inboundConfig, isLoading: isLoadingInboundConfig } = useInboundConfig(currentHousehold?.id);
+  const { data: inboundEmails, isLoading: isLoadingInboundEmails } = useInboundEmails(currentHousehold?.id);
+  const simulateInboundMutation = useSimulateInboundEmail();
+  const retryInboundMutation = useRetryInboundEmail();
+  const regenerateInboundTokenMutation = useRegenerateInboundToken();
+
+  const [copiedEmail, setCopiedEmail] = React.useState(false);
+  const [showSimulateBox, setShowSimulateBox] = React.useState(false);
+  const [simulateContent, setSimulateContent] = React.useState('');
+  const [retryingEmailId, setRetryingEmailId] = React.useState<string | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -733,49 +745,295 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
-        {/* Storebox Import Card */}
+        {/* Storebox & Receipt Email Ingestion Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShoppingBag className="text-[hsl(var(--brand-primary))]" size={24} />
-              Importér Storebox-data
+              {t('settings.storebox.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-sm text-muted leading-relaxed">
-              Importér dine digitale kvitteringer fra Storebox (Nexi). Du kan enten uploade den ZIP- eller JSON-fil, du har fået, eller indsætte det "DOWNLOAD DATA"-link du har modtaget i din e-mail.
+              {t('settings.storebox.description')}
             </p>
 
-            {storeboxImportResult ? (
-              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg flex items-start gap-3">
+            {storeboxImportResult && (
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl flex items-start gap-3">
                 <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
-                <div>
-                  <h4 className="font-semibold text-green-700 dark:text-green-400">Storebox import fuldført!</h4>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-green-700 dark:text-green-400">
+                    {t('settings.storebox.importSuccess')}
+                  </h4>
                   <ul className="text-sm text-green-600 dark:text-green-300 mt-1 space-y-1">
-                    <li>Læste {storeboxImportResult.raw_receipt_count} kvitteringer fra filen</li>
-                    <li>Importerede {storeboxImportResult.deduplicated_receipt_count} unikke kvitteringer</li>
-                    <li>Sprang {storeboxImportResult.duplicate_receipt_count} dubletter over</li>
-                    <li>Registrerede {storeboxImportResult.item_cluster_count} vare-produkter</li>
-                    <li>Fandt {storeboxImportResult.merchant_count} butikker</li>
+                    <li>{t('settings.storebox.rawReceiptsCount', { count: storeboxImportResult.raw_receipt_count })}</li>
+                    <li>{t('settings.storebox.deduplicatedCount', { count: storeboxImportResult.deduplicated_receipt_count })}</li>
+                    <li>{t('settings.storebox.duplicatesSkipped', { count: storeboxImportResult.duplicate_receipt_count })}</li>
+                    <li>{t('settings.storebox.itemClustersCount', { count: storeboxImportResult.item_cluster_count })}</li>
+                    <li>{t('settings.storebox.merchantsCount', { count: storeboxImportResult.merchant_count })}</li>
                     {storeboxImportResult.auto_linked > 0 && (
-                      <li>Autokoblede automatisk {storeboxImportResult.auto_linked} kvitteringer til dine bankposteringer!</li>
+                      <li className="font-medium">{t('settings.storebox.autoLinkedSuccess', { count: storeboxImportResult.auto_linked })}</li>
                     )}
                   </ul>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="mt-4 border-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-500/10"
+                    className="mt-3 border-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-500/10"
                     onClick={() => setStoreboxImportResult(null)}
                   >
-                    Importér flere
+                    {t('settings.storebox.importMore')}
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4 pt-2">
+            )}
 
+            {/* Option 1: Automatic Email Forwarding */}
+            <div className="p-4 rounded-xl border border-[hsl(var(--brand-primary))]/20 bg-[hsl(var(--brand-primary))]/5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Mail className="text-[hsl(var(--brand-primary))]" size={18} />
+                  <h4 className="font-medium text-sm text-[hsl(var(--text-color))]">
+                    {t('settings.storebox.forwardEmail')}
+                  </h4>
+                </div>
+                {inboundConfig?.imap_enabled && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">
+                    IMAP Poller Aktiv
+                  </span>
+                )}
+              </div>
+
+              <p className="text-xs text-muted leading-relaxed">
+                {t('settings.storebox.forwardEmailDesc')}
+              </p>
+
+              {/* Email Address Display & Copy */}
+              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <div className="flex-1 bg-[hsl(var(--card-bg))] border border-[hsl(var(--border-color))] px-3 py-2 rounded-lg font-mono text-sm select-all flex items-center justify-between">
+                  <span className="truncate">{inboundConfig?.email_address || 'Indlæser adresse...'}</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (inboundConfig?.email_address) {
+                      navigator.clipboard.writeText(inboundConfig.email_address);
+                      setCopiedEmail(true);
+                      toast.success(t('settings.storebox.addressCopied'));
+                      setTimeout(() => setCopiedEmail(false), 2500);
+                    }
+                  }}
+                  disabled={!inboundConfig?.email_address}
+                  className="flex items-center gap-2"
+                >
+                  {copiedEmail ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                  {copiedEmail ? t('settings.storebox.addressCopied') : t('settings.storebox.copyAddress')}
+                </Button>
+                {currentHousehold?.role === 'owner' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      if (currentHousehold?.id && confirm(t('settings.storebox.regenerateTokenConfirm'))) {
+                        regenerateInboundTokenMutation.mutate(currentHousehold.id, {
+                          onSuccess: () => toast.success('Ny e-mailadresse genereret'),
+                          onError: (err: any) => toast.error('Fejl: ' + err.message)
+                        });
+                      }
+                    }}
+                    disabled={regenerateInboundTokenMutation.isPending}
+                    className="text-xs text-muted hover:text-[hsl(var(--text-color))]"
+                  >
+                    <RotateCcw size={14} className={regenerateInboundTokenMutation.isPending ? 'animate-spin' : ''} />
+                  </Button>
+                )}
+              </div>
+
+              {/* Test / Simulation Accordion */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSimulateBox(!showSimulateBox)}
+                  className="text-xs font-medium text-[hsl(var(--brand-primary))] hover:underline flex items-center gap-1"
+                >
+                  <Sparkles size={14} />
+                  {showSimulateBox ? 'Skjul test-panel' : t('settings.storebox.simulateTitle')}
+                </button>
+
+                {showSimulateBox && (
+                  <div className="mt-3 p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--card-bg))] space-y-3">
+                    <p className="text-xs text-muted">
+                      {t('settings.storebox.simulateDesc')}
+                    </p>
+                    <textarea
+                      rows={3}
+                      value={simulateContent}
+                      onChange={(e) => setSimulateContent(e.target.value)}
+                      placeholder={t('settings.storebox.pasteContentPlaceholder')}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-[hsl(var(--border-color))] bg-transparent resize-y font-mono"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (currentHousehold?.id && simulateContent.trim()) {
+                            simulateInboundMutation.mutate({
+                              householdId: currentHousehold.id,
+                              payload: { raw_content: simulateContent.trim() }
+                            }, {
+                              onSuccess: (data) => {
+                                if (data.success) {
+                                  toast.success('Test gennemført! Kvitteringer blev importeret.');
+                                  setStoreboxImportResult(data);
+                                  setSimulateContent('');
+                                  setShowSimulateBox(false);
+                                } else {
+                                  toast.error('Test fejlede: ' + (data.error || 'Ukendt fejl'));
+                                }
+                              },
+                              onError: (err: any) => {
+                                toast.error('Fejl under test: ' + err.message);
+                              }
+                            });
+                          }
+                        }}
+                        disabled={!simulateContent.trim() || simulateInboundMutation.isPending}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        {simulateInboundMutation.isPending ? <RefreshCw className="animate-spin" size={14} /> : <Send size={14} />}
+                        {simulateInboundMutation.isPending ? t('settings.storebox.simulating') : t('settings.storebox.simulateButton')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Inbound Email History */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <Inbox size={16} className="text-[hsl(var(--brand-primary))]" />
+                  {t('settings.storebox.inboundHistory')}
+                </h4>
+                {inboundEmails && inboundEmails.length > 0 && (
+                  <span className="text-xs text-muted">
+                    {inboundEmails.length} modtaget
+                  </span>
+                )}
+              </div>
+
+              {isLoadingInboundEmails ? (
+                <div className="p-4 text-center text-xs text-muted">
+                  <RefreshCw className="animate-spin mx-auto mb-2" size={16} />
+                  Indlæser historik...
+                </div>
+              ) : !inboundEmails || inboundEmails.length === 0 ? (
+                <div className="p-4 text-center text-xs text-muted border border-dashed border-[hsl(var(--border-color))] rounded-xl">
+                  {t('settings.storebox.noEmailsYet')}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {inboundEmails.map((log) => {
+                    const isSuccess = log.status === 'success';
+                    const isFailed = log.status === 'failed';
+                    const isNoLink = log.status === 'no_link';
+
+                    let statusBadgeClass = 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+                    let statusLabel = t('settings.storebox.statusPending');
+
+                    if (isSuccess) {
+                      statusBadgeClass = 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20';
+                      statusLabel = t('settings.storebox.statusSuccess');
+                    } else if (isFailed) {
+                      statusBadgeClass = 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
+                      statusLabel = t('settings.storebox.statusFailed');
+                    } else if (isNoLink) {
+                      statusBadgeClass = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+                      statusLabel = t('settings.storebox.statusNoLink');
+                    }
+
+                    const formattedDate = new Date(log.received_at).toLocaleString(
+                      i18n.language === 'da' ? 'da-DK' : 'en-US',
+                      { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }
+                    );
+
+                    return (
+                      <div
+                        key={log.id}
+                        className="p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--card-bg))] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">{log.subject || '(Intet emne)'}</span>
+                            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadgeClass}`}>
+                              {statusLabel}
+                            </span>
+                          </div>
+                          <div className="text-muted text-[11px] flex items-center gap-2 truncate">
+                            <span>{log.sender}</span>
+                            <span>•</span>
+                            <span>{formattedDate}</span>
+                          </div>
+                          {log.error_message && (
+                            <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">
+                              {log.error_message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isSuccess && (
+                            <span className="text-muted text-[11px]">
+                              {t('settings.storebox.receiptsImported', { count: log.deduplicated_receipt_count })}
+                              {log.auto_linked_count > 0 && ` (${t('settings.storebox.autoLinkedCount', { count: log.auto_linked_count })})`}
+                            </span>
+                          )}
+
+                          {isFailed && log.download_url && currentHousehold?.id && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setRetryingEmailId(log.id);
+                                retryInboundMutation.mutate(
+                                  { householdId: currentHousehold.id, emailId: log.id },
+                                  {
+                                    onSuccess: (data) => {
+                                      if (data.success) {
+                                        toast.success(t('settings.storebox.retrySuccess'));
+                                      } else {
+                                        toast.error(t('settings.storebox.retryFailed') + (data.error || ''));
+                                      }
+                                      setRetryingEmailId(null);
+                                    },
+                                    onError: (err: any) => {
+                                      toast.error(t('settings.storebox.retryFailed') + err.message);
+                                      setRetryingEmailId(null);
+                                    }
+                                  }
+                                );
+                              }}
+                              disabled={retryingEmailId === log.id}
+                              className="text-[11px] h-7 px-2"
+                            >
+                              <RefreshCw size={12} className={retryingEmailId === log.id ? 'animate-spin mr-1' : 'mr-1'} />
+                              {t('settings.storebox.retry')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Manual Options: Link or File */}
+            <div className="space-y-4 pt-4 border-t border-[hsl(var(--border-color))]">
+              {/* Option 2: Paste download link directly */}
               <div>
-                <h4 className="text-sm font-medium mb-2">Mulighed 1: Indsæt download-link</h4>
+                <h4 className="text-sm font-medium mb-2">{t('settings.storebox.optionLink')}</h4>
                 <div className="flex gap-2">
                   <input 
                     type="url"
@@ -789,7 +1047,7 @@ export default function SettingsPage() {
                       if (storeboxLink) {
                         importStoreboxLinkMutation.mutate(storeboxLink, {
                           onSuccess: (data) => {
-                            toast.success('Storebox kvitteringer blev importeret!');
+                            toast.success(t('settings.storebox.importSuccess'));
                             setStoreboxImportResult(data);
                             setStoreboxLink('');
                           },
@@ -800,16 +1058,17 @@ export default function SettingsPage() {
                       }
                     }}
                     disabled={!storeboxLink || importStoreboxLinkMutation.isPending}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 shrink-0"
                   >
                     {importStoreboxLinkMutation.isPending ? <RefreshCw className="animate-spin" size={16} /> : <LinkIcon size={16} />}
-                    Hent fra link
+                    {t('settings.storebox.fetchFromLink')}
                   </Button>
                 </div>
               </div>
 
-              <div className="relative pt-4 border-t border-[hsl(var(--border-color))]">
-                <h4 className="text-sm font-medium mb-2">Mulighed 2: Upload ZIP eller JSON</h4>
+              {/* Option 3: Upload ZIP or JSON file */}
+              <div className="relative pt-2">
+                <h4 className="text-sm font-medium mb-2">{t('settings.storebox.optionUpload')}</h4>
                 <div className="relative">
                   <input 
                     type="file" 
@@ -819,7 +1078,7 @@ export default function SettingsPage() {
                       if (!file) return;
                       uploadStoreboxMutation.mutate(file, {
                         onSuccess: (data) => {
-                          toast.success('Storebox kvitteringer blev importeret!');
+                          toast.success(t('settings.storebox.importSuccess'));
                           setStoreboxImportResult(data);
                         },
                         onError: (err) => {
@@ -836,19 +1095,18 @@ export default function SettingsPage() {
                     {uploadStoreboxMutation.isPending ? (
                       <>
                         <RefreshCw className="animate-spin" size={18} />
-                        Importerer fil...
+                        {t('settings.storebox.uploading')}
                       </>
                     ) : (
                       <>
                         <Upload size={18} />
-                        Vælg Storebox export (ZIP/JSON)
+                        {t('settings.storebox.uploadFile')}
                       </>
                     )}
                   </button>
                 </div>
               </div>
             </div>
-            )}
           </CardContent>
         </Card>
       </motion.div>

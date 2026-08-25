@@ -1,7 +1,8 @@
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.auth import get_auth_dependency
+from fastapi import APIRouter
+
+from app.schemas.requests import BudgetBillsUpsertRequest, BudgetUpsertRequest
 from app.services.budget_service import (
     generate_budget_suggestion,
     get_annual_summary,
@@ -10,7 +11,6 @@ from app.services.budget_service import (
     upsert_budget,
     upsert_budget_bills,
 )
-from app.schemas.requests import BudgetUpsertRequest, BudgetBillsUpsertRequest
 
 router = APIRouter(prefix="/api/budgets", tags=["budgets"])
 

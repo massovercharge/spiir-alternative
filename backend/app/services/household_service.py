@@ -254,7 +254,7 @@ def restore_household(household_id: str, requesting_user_id: str) -> dict[str, A
             raise HTTPException(status_code=400, detail="Household is not deleted")
 
         deleted_time = datetime.datetime.fromisoformat(hh.deleted_at.replace("Z", "+00:00"))
-        if (datetime.datetime.now(datetime.timezone.utc) - deleted_time).total_seconds() > 7200:
+        if (datetime.datetime.now(datetime.UTC) - deleted_time).total_seconds() > 7200:
             raise HTTPException(status_code=400, detail="Cannot restore household after 2 hours")
 
         hh.deleted_at = None

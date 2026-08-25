@@ -1,18 +1,19 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.core.auth import get_auth_dependency
-from app.services.sync_service import get_sync_status, start_sync_job
+from app.schemas.requests import BankCallbackRequest, BankConnectRequest, StoreboxImportLinkRequest
 from app.services.bank_service import (
     complete_auth_session,
     delete_bank_connection,
     list_bank_connections,
     start_auth_session,
 )
-from app.services.storebox_service import process_storebox_link, process_storebox_file
-from app.services.transaction_service import auto_link_receipts
 from app.services.csv_service import import_spiir_csv
-from app.schemas.requests import BankConnectRequest, BankCallbackRequest, StoreboxImportLinkRequest
+from app.services.storebox_service import process_storebox_file, process_storebox_link
+from app.services.sync_service import get_sync_status, start_sync_job
+from app.services.transaction_service import auto_link_receipts
 
 router = APIRouter(prefix="/api", tags=["sync"])
 

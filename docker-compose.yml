@@ -26,6 +26,10 @@ services:
       - ENABLEBANKING_PRIVATE_KEY_PATH=${ENABLEBANKING_PRIVATE_KEY_PATH:-/data/enablebanking.pem}
       - ENABLEBANKING_REDIRECT_URL=${ENABLEBANKING_REDIRECT_URL:-https://peng.seame.click/dashboard}
 
+      # Inbound Email / Storebox
+      - INBOUND_EMAIL_DOMAIN=${INBOUND_EMAIL_DOMAIN:-seame.click}
+      - INBOUND_EMAIL_PREFIX=${INBOUND_EMAIL_PREFIX:-receipts}
+
   logto:
     image: svhd/logto:latest
     container_name: logto

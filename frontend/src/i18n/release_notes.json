@@ -1,5 +1,25 @@
 [
   {
+    "version": "v1.5.0",
+    "date": "2026-08-24",
+    "changes": {
+      "en": [
+        "Added automated Storebox (Nexi) email receipt forwarding with per-household inbound email addresses",
+        "Automatic background fetching, decompression, idempotent receipt ingestion, and transaction auto-linking",
+        "Added inbound email history log in Settings with status tracking, timestamps, counts, and retry action for failed downloads",
+        "Interactive test simulator to test email receipt parsing and link extraction directly in the UI",
+        "Support for both webhook ingestion and autonomous IMAP polling for self-hosters"
+      ],
+      "da": [
+        "Tilføjet automatisk videresendelse af Storebox (Nexi) kvitteringsmails med unikke e-mailadresser pr. husstand",
+        "Automatisk baggrundshentning af ZIP-eksport, udpakning, idempotent indlæsning og autokobling til bankposteringer",
+        "Tilføjet historik over indkomne e-mails under Indstillinger med statusvisning, tidsstempel, statistikker og genprøvningsfunktion",
+        "Interaktiv test-simulator til direkte test af e-mailudtræk og download-links i brugerfladen",
+        "Understøttelse af både direkte webhook-modtagelse og autonom IMAP-polling for self-hostere"
+      ]
+    }
+  },
+  {
     "version": "v1.4.0",
     "date": "2026-08-22",
     "changes": {

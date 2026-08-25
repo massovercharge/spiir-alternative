@@ -495,7 +495,7 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
     # 21. Vådservietter
     if "VÅDSERVIETTER" in token_set or "VÅDSERVIET" in token_set:
         return "semantic:VÅDSERVIETTER"
-        
+
     # 22. Smørbar
     if "SMØRBAR" in token_set or "VIOBLOCK" in token_set:
         if token_set & ECO_MARKERS:
@@ -2605,7 +2605,7 @@ def _description_matches_merchant(description: str | None, merchant_name: str, m
     normalized_description = re.sub(r"[^A-Z0-9]+", "", _normalize_name(description))
     normalized_merchant_name = re.sub(r"[^A-Z0-9]+", "", _normalize_name(merchant_name))
     normalized_merchant_key = re.sub(r"[^A-Z0-9]+", "", merchant_key.upper())
-    
+
     coop_brands = ("KVICKLY", "SUPERBRUGSEN", "DAGLIBRUGSEN", "365DISCOUNT", "IRMA", "FAKTA", "COOP")
     is_coop = any(normalized_merchant_name.startswith(b) for b in coop_brands) or any(normalized_merchant_key.startswith(b) for b in coop_brands)
     if is_coop and "COOP" in normalized_description:
