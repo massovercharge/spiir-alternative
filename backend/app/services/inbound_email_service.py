@@ -296,17 +296,24 @@ def process_inbound_email(
             # Extract download link
             download_url = provided_url or extract_storebox_link(text_body, html_body)
             if not download_url:
+                snippet = ""
+                if text_body:
+                    cleaned_snippet = " ".join(text_body.split())[:250]
+                    snippet = f": \"{cleaned_snippet}\""
+
                 with Session(engine) as db:
                     log_item = db.get(InboundEmail, log_id)
                     if log_item:
                         log_item.status = "no_link"
-                        log_item.error_message = "Ingen Storebox download-link eller kvitteringsfil fundet i e-mailen"
+                        log_item.error_message = (
+                            f"Ingen Storebox download-link fundet i e-mailen{snippet}"
+                        )
                         db.add(log_item)
                         db.commit()
                 return {
                     "success": False,
                     "status": "no_link",
-                    "error": "Ingen Storebox download-link eller kvitteringsfil fundet i e-mailen",
+                    "error": f"Ingen Storebox download-link fundet i e-mailen{snippet}",
                     "log_id": log_id,
                 }
 
