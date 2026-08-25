@@ -92,6 +92,7 @@ function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: an
 }
 
 function FixedExpenseRow({ category, isCurrentYear, currentMonth }: any) {
+  const { t, i18n } = useTranslation();
   const avgMonth = (Math.abs(category.total_budgeted_minor) / 100) / 12;
   const isIncome = category.category_type === 'Income';
   const monthStates = getMonthStates(category.months || [], currentMonth, isCurrentYear, isIncome);
@@ -100,7 +101,9 @@ function FixedExpenseRow({ category, isCurrentYear, currentMonth }: any) {
     <div className="flex justify-between items-center w-full">
       <div className="flex flex-col gap-1">
         <span className="font-medium capitalize text-sm">{category.label}</span>
-        <span className="text-xs text-muted">{Math.round(avgMonth).toLocaleString('da-DK')} kr. / md</span>
+        <span className="text-xs text-muted">
+          {Math.round(avgMonth).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')} {t('budgets.kr_per_month', 'kr. / md.')}
+        </span>
       </div>
       <div className="hidden sm:block">
         <MonthGrid states={monthStates} />
@@ -323,7 +326,7 @@ export default function BudgetsPage() {
         </Card>
       )}
 
-      {!isLoading && summary?.categories?.length > 0 && (
+      {!isLoading && (summary?.categories?.length ?? 0) > 0 && (
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-2 border-b border-[hsl(var(--border-color))] pb-[-2px] overflow-x-auto whitespace-nowrap scrollbar-none">
             <TabButton id="resultat" label={t('budgets.tab_result')} />

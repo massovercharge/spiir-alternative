@@ -194,30 +194,29 @@ export default function TransactionsPage() {
   };
 
   const generateFilterSummary = () => {
-    const isDa = i18n.language === 'da';
-    let text = isDa ? `Viser ${txCount}${txCount === 500 ? '+' : ''} poster` : `Showing ${txCount}${txCount === 500 ? '+' : ''} transactions`;
+    let text = t('transactions.showingCount', { count: `${txCount}${txCount === 500 ? '+' : ''}` });
     
     if (filterType !== 'Alle poster') {
-      text += isDa ? ` under '${filterType}'` : ` under '${filterType}'`;
+      text += ` ${t('transactions.underFilter', { filter: filterType })}`;
     }
     
     if (startDate && endDate) {
-      text += isDa ? ` fra ${startDate} til ${endDate}` : ` from ${startDate} to ${endDate}`;
+      text += ` ${t('transactions.dateRange', { start: startDate, end: endDate })}`;
     } else {
-      text += isDa ? ` fra hele perioden` : ` from all time`;
+      text += ` ${t('transactions.allTime')}`;
     }
 
     if (search) {
-      text += isDa ? ` der matcher '${search}'` : ` matching '${search}'`;
+      text += ` ${t('transactions.matchingSearch', { search })}`;
     }
 
     if (selectedTag) {
-      text += isDa ? ` med tagget '${selectedTag}'` : ` tagged with '${selectedTag}'`;
+      text += ` ${t('transactions.taggedWith', { tag: selectedTag })}`;
     }
 
     if (amountOp && amountVal !== undefined) {
-      const opText = amountOp === 'gt' ? 'større end' : amountOp === 'lt' ? 'mindre end' : 'lig med';
-      text += isDa ? ` med beløb ${opText} ${amountVal}` : ` with amount ${opText} ${amountVal}`;
+      const opText = amountOp === 'gt' ? '>' : amountOp === 'lt' ? '<' : '=';
+      text += ` ${t('transactions.withAmount', { op: opText, amount: amountVal })}`;
     }
 
     return text + ".";
@@ -264,19 +263,19 @@ export default function TransactionsPage() {
           className="bg-[hsla(var(--brand-primary),0.05)] border border-[hsla(var(--brand-primary),0.2)] rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-sm"
         >
           <div className="text-sm">
-            <span className="font-semibold">{txCount} poster</span> fra den valgte periode. 
-            Deraf <span 
+            <span className="font-semibold">{txCount}</span> {t('transactions.summaryFromPeriod', 'poster fra den valgte periode.')}{' '}
+            <span 
               onClick={() => { if (uncategorizedCount > 0) setFilterType('Ukategoriseret'); }}
               className={`font-semibold ${uncategorizedCount > 0 ? 'text-[hsl(var(--brand-danger))] cursor-pointer hover:underline' : 'text-success'}`}
             >
-              {uncategorizedCount} ikke kategoriserede
+              {uncategorizedCount} {t('transactions.notCategorized', 'ikke kategoriserede')}
             </span>.
           </div>
           <div className="text-sm md:text-right flex items-center md:items-end flex-col">
             <div>
-              I alt: <span className="font-bold text-lg">{totalAmount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}</span>
+              {t('transactions.total', 'I alt:')} <span className="font-bold text-lg">{totalAmount.toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US', { style: 'currency', currency: 'DKK' })}</span>
             </div>
-            <span className="text-muted text-xs">(Gennemsnit: {Math.round(avgAmount).toLocaleString('da-DK')} kr.)</span>
+            <span className="text-muted text-xs">({t('transactions.average', 'Gennemsnit:')} {Math.round(avgAmount).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')} kr.)</span>
           </div>
         </motion.div>
       )}
@@ -424,7 +423,7 @@ export default function TransactionsPage() {
                 <div className="bg-[hsl(var(--brand-primary))] text-white font-bold w-8 h-8 rounded-full flex items-center justify-center">
                   {selectedIds.size}
                 </div>
-                <span className="font-semibold text-sm">poster valgt</span>
+                <span className="font-semibold text-sm">{t('transactions.itemsSelected', 'poster valgt')}</span>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="flex-1 sm:w-48">
@@ -436,7 +435,7 @@ export default function TransactionsPage() {
                 <button 
                   onClick={() => setSelectedIds(new Set())}
                   className="p-2 text-muted hover:text-[hsl(var(--text-primary))] bg-[hsl(var(--bg-tertiary))] rounded-lg shrink-0"
-                  title="Annuller"
+                  title={t('transactions.cancel', 'Annuller')}
                 >
                   <X size={18} />
                 </button>
@@ -454,9 +453,13 @@ export default function TransactionsPage() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="bg-[hsl(var(--bg-primary))] rounded-2xl shadow-xl p-6 max-w-md w-full border border-[hsl(var(--border-color))]"
           >
-            <h3 className="text-xl font-bold mb-2">Husk denne fremover?</h3>
+            <h3 className="text-xl font-bold mb-2">{t('transactions.rememberRuleTitle', 'Husk denne fremover?')}</h3>
             <p className="text-muted text-sm mb-6">
-              Vil du automatisk kategorisere fremtidige og tidligere betalinger til <strong className="text-[hsl(var(--text-primary))]">"{rulePrompt.description}"</strong> som <strong className="text-[hsl(var(--brand-primary))] capitalize">{rulePrompt.categoryName.replace('-', ' ')}</strong>?
+              {t('transactions.rememberRuleBody', {
+                description: rulePrompt.description,
+                category: rulePrompt.categoryName.replace('-', ' '),
+                defaultValue: `Vil du automatisk kategorisere fremtidige og tidligere betalinger til "${rulePrompt.description}" som ${rulePrompt.categoryName.replace('-', ' ')}?`
+              })}
             </p>
             <div className="flex justify-end gap-3">
               <Button 
@@ -464,7 +467,7 @@ export default function TransactionsPage() {
                 onClick={() => setRulePrompt({ ...rulePrompt, isOpen: false })}
                 disabled={createRuleMutation.isPending}
               >
-                Nej tak
+                {t('transactions.noThanks', 'Nej tak')}
               </Button>
               <Button 
                 onClick={handleCreateRule}
