@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronDown, Check } from 'lucide-react';
+import { Search, ChevronDown, Check, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE, getHeaders } from '../../api/client';
 
@@ -122,6 +122,28 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Track visual viewport height on mobile to adapt dynamically above software keyboard
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+
+    const updateHeight = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+      }
+    };
+
+    updateHeight();
+    window.visualViewport?.addEventListener('resize', updateHeight);
+    window.visualViewport?.addEventListener('scroll', updateHeight);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+      window.visualViewport?.removeEventListener('scroll', updateHeight);
+    };
+  }, [isOpen, isMobile]);
+
   // Desktop screen-bounded positioning
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
 
@@ -195,40 +217,54 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
       {/* Popover */}
       {isOpen && typeof document !== 'undefined' && (
         isMobile ? createPortal(
-          <div ref={portalRef}>
+          <div ref={portalRef} className="fixed inset-0 z-[100] flex flex-col">
             <div 
-              className="fixed inset-0 z-[100] bg-black/60" 
+              className="fixed inset-0 bg-black/60 z-[100]" 
               onClick={() => setIsOpen(false)} 
             />
-            <div className="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[101] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
-              
-              {/* Mobile Header */}
-              <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl shrink-0">
+            <div 
+              style={{
+                height: viewportHeight ? `${viewportHeight}px` : '100dvh',
+                maxHeight: viewportHeight ? `${viewportHeight}px` : '100dvh',
+              }}
+              className="relative w-full bg-[hsl(var(--bg-secondary))] z-[101] overflow-hidden flex flex-col animate-in fade-in duration-150"
+            >
+              {/* Mobile Header with notch safe area */}
+              <div className="pt-safe px-4 py-3 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] shrink-0">
                 <h3 className="font-semibold text-base">{t('categories.selectCategory', 'Vælg kategori')}</h3>
                 <button 
                   type="button"
                   onClick={() => setIsOpen(false)} 
-                  className="text-muted hover:text-[hsl(var(--text-primary))] font-medium"
+                  className="text-sm text-muted hover:text-[hsl(var(--text-primary))] font-medium py-1 px-2"
                 >
                   {t('common.close', 'Luk')}
                 </button>
               </div>
 
-              {/* Search */}
+              {/* Search input with 16px text-base to prevent iOS browser auto-zoom */}
               <div className="p-3 border-b border-[hsl(var(--border-color))] flex items-center gap-2 bg-[hsl(var(--bg-primary))] shrink-0">
-                <Search size={16} className="text-muted shrink-0" />
+                <Search size={18} className="text-muted shrink-0" />
                 <input 
                   type="text"
                   placeholder={t('app.search', { defaultValue: 'Søg' }) + "..."}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-transparent outline-none text-sm"
+                  className="w-full bg-transparent outline-none text-base"
                   autoFocus
                 />
+                {search && (
+                  <button 
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="p-1 text-muted hover:text-[hsl(var(--text-primary))] shrink-0"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
               </div>
 
-              {/* List */}
-              <div ref={listRef} className="overflow-y-auto flex-1 p-2 space-y-4">
+              {/* List starts immediately below search box and scrolls within available viewport height */}
+              <div ref={listRef} className="overflow-y-auto flex-1 min-h-0 p-3 space-y-4">
                 {isLoading && <p className="text-center text-sm text-muted p-4">{t('common.loading', 'Henter...')}</p>}
                 
                 {!isLoading && Object.keys(groupedCategories).length === 0 && (
@@ -248,11 +284,11 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                           activeOnChange(sub.id);
                           setIsOpen(false);
                         }}
-                        className="w-full text-left flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-[hsl(var(--brand-primary))] hover:text-white group transition-colors"
+                        className="w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[hsl(var(--brand-primary))] hover:text-white group transition-colors"
                       >
                         <span className="text-sm capitalize truncate">{sub.name.replace('-', ' ')}</span>
                         {activeValue === sub.id && (
-                          <Check size={14} className="text-[hsl(var(--brand-primary))] group-hover:text-white" />
+                          <Check size={16} className="text-[hsl(var(--brand-primary))] group-hover:text-white shrink-0 ml-2" />
                         )}
                       </button>
                     ))}
@@ -279,6 +315,15 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                 className="w-full bg-transparent outline-none text-sm"
                 autoFocus
               />
+              {search && (
+                <button 
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="p-1 text-muted hover:text-[hsl(var(--text-primary))] shrink-0"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
 
             {/* List */}

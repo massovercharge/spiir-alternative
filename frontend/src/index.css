@@ -160,4 +160,8 @@
   .text-danger { color: hsl(var(--brand-danger)); }
   .bg-success { background-color: hsla(var(--brand-success), 0.1); }
   .bg-danger { background-color: hsla(var(--brand-danger), 0.1); }
+
+  /* Safe Area Insets */
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
