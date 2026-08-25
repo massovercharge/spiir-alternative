@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { SUPPORTED_BANKS } from '../api/constants';
-import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText, Copy, Check, Inbox, RotateCcw, Send, AlertCircle, Sparkles } from 'lucide-react';
+import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText, Copy, Check, Inbox, RotateCcw, Send, AlertCircle, Sparkles, ExternalLink } from 'lucide-react';
 import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole, useInboundConfig, useInboundEmails, useSimulateInboundEmail, useRetryInboundEmail, useRegenerateInboundToken } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -976,9 +976,24 @@ export default function SettingsPage() {
                             <span>{formattedDate}</span>
                           </div>
                           {log.error_message && (
-                            <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">
-                              {log.error_message}
-                            </p>
+                            <div className="text-[11px] text-muted dark:text-zinc-400 mt-1 break-all">
+                              {log.error_message.split(/(https?:\/\/[^\s<>]+)/g).map((part, i) =>
+                                part.startsWith('http') ? (
+                                  <a
+                                    key={i}
+                                    href={part}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[hsl(var(--brand-primary))] underline font-medium hover:opacity-80 inline-flex items-center gap-0.5 mx-1"
+                                  >
+                                    {part}
+                                    <ExternalLink size={10} />
+                                  </a>
+                                ) : (
+                                  <span key={i} className={isFailed ? "text-red-500 dark:text-red-400" : ""}>{part}</span>
+                                )
+                              )}
+                            </div>
                           )}
                         </div>
 
