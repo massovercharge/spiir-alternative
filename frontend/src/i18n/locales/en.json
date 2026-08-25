@@ -221,8 +221,13 @@
     "title": "Release Notes",
     "description": "See what's new in Peng"
   },
+  "categories": {
+    "selectCategory": "Select category",
+    "noCategoriesFound": "No categories found"
+  },
   "common": {
     "loading": "Loading...",
+    "close": "Close",
     "error": "An error occurred",
     "save": "Save",
     "cancel": "Cancel",

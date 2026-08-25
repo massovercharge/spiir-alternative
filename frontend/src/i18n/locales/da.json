@@ -221,8 +221,13 @@
     "title": "Udgivelsesnoter",
     "description": "Se hvad der er nyt i Peng"
   },
+  "categories": {
+    "selectCategory": "Vælg kategori",
+    "noCategoriesFound": "Ingen kategorier fundet"
+  },
   "common": {
     "loading": "Indlæser...",
+    "close": "Luk",
     "error": "Der opstod en fejl",
     "save": "Gem",
     "cancel": "Annuller",

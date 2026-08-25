@@ -78,22 +78,32 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
   }, [filteredCategories]);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      if (
+        (wrapperRef.current && wrapperRef.current.contains(target)) ||
+        (portalRef.current && portalRef.current.contains(target))
+      ) {
+        return;
       }
+      setIsOpen(false);
     }
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen]);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
   
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -137,11 +147,12 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
       {/* Trigger */}
       <button
         ref={buttonRef}
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full bg-[hsla(var(--border-color),0.3)] hover:bg-[hsla(var(--border-color),0.6)] transition-colors border border-[hsla(var(--border-color),0.5)] max-w-full shrink-0"
       >
         <span className="truncate max-w-[150px] sm:max-w-[200px] capitalize">
-          {selectedCategory ? selectedCategory.name.replace('-', ' ') : (placeholder || t('transactions.uncategorized'))}
+          {selectedCategory ? selectedCategory.name.replace('-', ' ') : (placeholder || t('transactions.uncategorized', 'Ukategoriseret'))}
         </span>
         <ChevronDown size={14} className="opacity-50 shrink-0" />
       </button>
@@ -149,18 +160,22 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
       {/* Popover */}
       {isOpen && typeof document !== 'undefined' && (
         isMobile ? createPortal(
-          <>
-            <div className="fixed inset-0 z-[100] bg-black/60" onClick={() => setIsOpen(false)} />
-            <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
+          <div ref={portalRef}>
+            <div 
+              className="fixed inset-0 z-[100] bg-black/60" 
+              onClick={() => setIsOpen(false)} 
+            />
+            <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[101] overflow-hidden flex flex-col animate-slide-in-up pb-safe">
               
               {/* Mobile Header */}
               <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl shrink-0">
-                <h3 className="font-semibold text-base">Vælg kategori</h3>
+                <h3 className="font-semibold text-base">{t('categories.selectCategory', 'Vælg kategori')}</h3>
                 <button 
+                  type="button"
                   onClick={() => setIsOpen(false)} 
                   className="text-muted hover:text-[hsl(var(--text-primary))] font-medium"
                 >
-                  Luk
+                  {t('common.close', 'Luk')}
                 </button>
               </div>
 
@@ -169,7 +184,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                 <Search size={16} className="text-muted shrink-0" />
                 <input 
                   type="text"
-                  placeholder={t('app.search') + "..."}
+                  placeholder={t('app.search', { defaultValue: 'Søg' }) + "..."}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="w-full bg-transparent outline-none text-sm"
@@ -179,10 +194,10 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
 
               {/* List */}
               <div className="overflow-y-auto flex-1 p-2 space-y-4">
-                {isLoading && <p className="text-center text-sm text-muted p-4">Henter...</p>}
+                {isLoading && <p className="text-center text-sm text-muted p-4">{t('common.loading', 'Henter...')}</p>}
                 
                 {!isLoading && Object.keys(groupedCategories).length === 0 && (
-                  <p className="text-center text-sm text-muted p-4">Ingen kategorier fundet</p>
+                  <p className="text-center text-sm text-muted p-4">{t('categories.noCategoriesFound', 'Ingen kategorier fundet')}</p>
                 )}
 
                 {Object.entries(groupedCategories).map(([mainCatName, subs]) => (
@@ -193,6 +208,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                     {subs.map(sub => (
                       <button
                         key={sub.id}
+                        type="button"
                         onClick={() => {
                           activeOnChange(sub.id);
                           setIsOpen(false);
@@ -200,7 +216,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                         className="w-full text-left flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-[hsl(var(--brand-primary))] hover:text-white group transition-colors"
                       >
                         <span className="text-sm capitalize truncate">{sub.name.replace('-', ' ')}</span>
-                        {selectedCategoryId === sub.id && (
+                        {activeValue === sub.id && (
                           <Check size={14} className="text-[hsl(var(--brand-primary))] group-hover:text-white" />
                         )}
                       </button>
@@ -209,7 +225,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                 ))}
               </div>
             </div>
-          </>,
+          </div>,
           document.body
         ) : (
           <div 
@@ -232,10 +248,10 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
 
             {/* List */}
             <div className="overflow-y-auto flex-1 p-2 space-y-4">
-              {isLoading && <p className="text-center text-sm text-muted p-4">Henter...</p>}
+              {isLoading && <p className="text-center text-sm text-muted p-4">{t('common.loading', 'Henter...')}</p>}
               
               {!isLoading && Object.keys(groupedCategories).length === 0 && (
-                <p className="text-center text-sm text-muted p-4">Ingen kategorier fundet</p>
+                <p className="text-center text-sm text-muted p-4">{t('categories.noCategoriesFound', 'Ingen kategorier fundet')}</p>
               )}
 
               {Object.entries(groupedCategories).map(([mainCatName, subs]) => (
@@ -246,6 +262,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                   {subs.map(sub => (
                     <button
                       key={sub.id}
+                      type="button"
                       onClick={() => {
                         activeOnChange(sub.id);
                         setIsOpen(false);
@@ -253,7 +270,7 @@ export default function CategoryPicker({ selectedCategoryId, onSelect, value, on
                       className="w-full text-left flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-[hsl(var(--brand-primary))] hover:text-white group transition-colors"
                     >
                       <span className="text-sm capitalize truncate">{sub.name.replace('-', ' ')}</span>
-                      {selectedCategoryId === sub.id && (
+                      {activeValue === sub.id && (
                         <Check size={14} className="text-[hsl(var(--brand-primary))] group-hover:text-white" />
                       )}
                     </button>

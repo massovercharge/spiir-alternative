@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.5.3",
+    "date": "2026-08-25",
+    "changes": {
+      "en": [
+        "Fixed category selection on mobile devices (Android & iOS) where category picker closed without applying the chosen category",
+        "Improved touch and tap responsiveness in mobile category selector sheets and popovers"
+      ],
+      "da": [
+        "Rettet fejl ved valg af kategori på mobile enheder (Android & iOS), hvor kategorivælgeren lukkede uden at gemme den valgte kategori",
+        "Forbedret touch- og tryk-respons i kategorivælgerens mobil-visning"
+      ]
+    }
+  },
+  {
     "version": "v1.5.2",
     "date": "2026-08-25",
     "changes": {
