@@ -16,7 +16,7 @@ SQLModel.metadata.create_all(test_engine)
 app.models.engine = test_engine
 app.models.all_models.engine = test_engine
 
-from app.models import current_household_id
+from app.models import current_household_id  # noqa: E402
 
 # A stable household_id used across all test fixtures.
 # This avoids NOT NULL constraint failures on models that require household_id.

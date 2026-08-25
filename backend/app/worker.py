@@ -16,7 +16,7 @@ async def purge_deleted_households_worker():
 
                 # We need to find households where deleted_at is not None and is older than cutoff
                 households = db.exec(
-                    select(Household).where(Household.deleted_at != None)
+                    select(Household).where(Household.deleted_at.is_not(None))
                 ).all()
 
                 for hh in households:

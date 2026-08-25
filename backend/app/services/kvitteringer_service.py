@@ -1150,8 +1150,6 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
             line_rows: list[dict[str, Any]] = []
             occurrences: list[dict[str, Any]] = []
             discounts: list[dict[str, Any]] = []
-            last_non_discount_occurrence_id: str | None = None
-            previous_was_discount = False
 
             for line_index, raw_line in enumerate(receipt_lines):
                 name_raw = str(raw_line.get("name") or raw_line.get("description") or "").strip()
@@ -1224,8 +1222,6 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     "category_key": raw_line.get("category"),
                 }
                 occurrences.append(occurrence)
-                last_non_discount_occurrence_id = occurrence["occurrence_id"]
-                previous_was_discount = False
 
                 cluster_state = cluster_stats.setdefault(
                     cluster_id,

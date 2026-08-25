@@ -223,7 +223,7 @@ def test_update_transaction_category_creates_missing_allocation():
         db.add(hh)
         db.commit()
         db.refresh(hh)
-        token = all_models.current_household_id.set(hh.id)
+        all_models.current_household_id.set(hh.id)
 
         bc = BankConnection(household_id=hh.id, bank_name="Test Bank", external_id="ext123")
         db.add(bc)

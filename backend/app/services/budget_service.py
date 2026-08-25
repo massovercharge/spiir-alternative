@@ -271,7 +271,6 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
         # For simplicity, we just take the raw amount.
         monthly_totals[cat_id][month_key] = monthly_totals[cat_id].get(month_key, 0) + alloc.amount_minor
 
-    current_month_key = _utcnow_iso()[:7]
     suggestions = []
 
     with Session(engine) as db:

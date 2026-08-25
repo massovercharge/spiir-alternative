@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     """Initialize the database, seed categories, and seed Spiir rules on startup."""
     create_db_and_tables()
     seed_categories()
-    new_rules_count = seed_spiir_rules()
+    seed_spiir_rules()
 
     try:
         from app.services.rules_service import apply_rules_to_uncategorized

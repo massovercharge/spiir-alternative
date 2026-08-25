@@ -6,6 +6,7 @@ and API responses return amounts as strings (e.g. ``"100.50"``).
 """
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
@@ -668,10 +669,8 @@ def get_suggested_receipts_for_transaction(posting_id: str) -> list[dict[str, An
 
         p_date = None
         if posting.booking_date:
-            try:
+            with contextlib.suppress(Exception):
                 p_date = date.fromisoformat(posting.booking_date[:10])
-            except Exception:
-                pass
 
         target_amount_minor = abs(posting.amount_minor)
         return find_suggested_receipts(

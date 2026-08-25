@@ -6,7 +6,7 @@ try:
 
     # Insert from budget_bill (which implies Fixed)
     cur.execute("""
-        SELECT DISTINCT b.category_id, b.amount_minor 
+        SELECT DISTINCT b.category_id, b.amount_minor
         FROM budgetbill b
         LEFT JOIN category c ON b.category_id = c.id
         WHERE c.id IS NULL
@@ -27,7 +27,7 @@ try:
 
     # Insert from budget (which implies Variable)
     cur.execute("""
-        SELECT DISTINCT b.category_id, b.amount_minor 
+        SELECT DISTINCT b.category_id, b.amount_minor
         FROM budget b
         LEFT JOIN category c ON b.category_id = c.id
         WHERE c.id IS NULL
