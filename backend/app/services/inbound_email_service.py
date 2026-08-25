@@ -110,7 +110,9 @@ def extract_storebox_link(text_body: str = "", html_body: str = "") -> str | Non
             best_by_url[url] = score
 
     sorted_candidates = sorted(best_by_url.items(), key=lambda x: x[1], reverse=True)
-    return sorted_candidates[0][0]
+    if sorted_candidates and sorted_candidates[0][1] >= 20:
+        return sorted_candidates[0][0]
+    return None
 
 
 def resolve_household_by_token_or_recipient(
@@ -297,23 +299,30 @@ def process_inbound_email(
             download_url = provided_url or extract_storebox_link(text_body, html_body)
             if not download_url:
                 snippet = ""
+                found_links: list[str] = []
+                for m in URL_PATTERN.finditer(f"{text_body}\n{html_body}"):
+                    u = html.unescape(m.group(0).strip().rstrip(".,;:!?)'\""))
+                    if u.startswith("http") and u not in found_links:
+                        found_links.append(u)
+
                 if text_body:
                     cleaned_snippet = " ".join(text_body.split())[:250]
-                    snippet = f": \"{cleaned_snippet}\""
+                    snippet = f" Indhold: \"{cleaned_snippet}\""
+
+                links_str = f" Links: {', '.join(found_links)}" if found_links else ""
+                err_msg = f"Ingen Storebox download-link fundet.{links_str}{snippet}"
 
                 with Session(engine) as db:
                     log_item = db.get(InboundEmail, log_id)
                     if log_item:
                         log_item.status = "no_link"
-                        log_item.error_message = (
-                            f"Ingen Storebox download-link fundet i e-mailen{snippet}"
-                        )
+                        log_item.error_message = err_msg[:500]
                         db.add(log_item)
                         db.commit()
                 return {
                     "success": False,
                     "status": "no_link",
-                    "error": f"Ingen Storebox download-link fundet i e-mailen{snippet}",
+                    "error": err_msg,
                     "log_id": log_id,
                 }
 
