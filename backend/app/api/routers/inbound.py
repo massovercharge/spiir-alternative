@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.core.auth import get_auth_dependency
 from app.schemas.requests import InboundEmailTestRequest
 from app.services.inbound_email_service import (
+    clear_inbound_emails,
+    delete_inbound_email,
     get_inbound_config_for_household,
     list_inbound_emails,
     process_inbound_email,
@@ -45,9 +47,10 @@ async def inbound_email_webhook_with_token(token: str, request: Request) -> dict
     """Public webhook endpoint with household token explicitly in the URL path."""
     from sqlmodel import Session, select
 
-    from app.models import Household, engine
+    import app.models as models
+    from app.models import Household
 
-    with Session(engine) as db:
+    with Session(models.engine) as db:
         hh = db.exec(select(Household).where(Household.inbound_email_token == token.lower())).first()
         if not hh:
             raise HTTPException(status_code=404, detail="Invalid household token")
@@ -132,3 +135,29 @@ def household_inbound_email_retry(
         return retry_inbound_email(email_id, household_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete("/api/households/{household_id}/inbound-emails/{email_id}")
+def household_inbound_email_delete(
+    household_id: str,
+    email_id: str,
+    auth: dict[str, Any] = Depends(get_auth_dependency()),
+) -> dict[str, Any]:
+    """Delete an inbound email history record."""
+    try:
+        return delete_inbound_email(email_id, household_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.delete("/api/households/{household_id}/inbound-emails")
+def household_inbound_emails_clear(
+    household_id: str,
+    auth: dict[str, Any] = Depends(get_auth_dependency()),
+) -> dict[str, Any]:
+    """Clear all inbound email history for a household."""
+    try:
+        return clear_inbound_emails(household_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+

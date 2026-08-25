@@ -1,5 +1,23 @@
 [
   {
+    "version": "v1.5.1",
+    "date": "2026-08-24",
+    "changes": {
+      "en": [
+        "Added log management for inbound emails: delete single log entries and clear entire history",
+        "Dedicated purple 'Confirmation' status badge for email forwarding verification messages",
+        "Clean link button to open verification and confirmation URLs with a single click",
+        "Smart action visibility to only show retry on failed downloads"
+      ],
+      "da": [
+        "Tilføjet sletning af individuelle log-poster og mulighed for at rydde hele e-mailhistorikken",
+        "Dedikeret lilla 'Bekræftelse' statusmærke for bekræftelsesmails fra fx Proton Mail og Gmail",
+        "Rent link-design med en knap til nemt at åbne bekræftelseslinks med ét klik",
+        "Skjult genprøv-knap på informations- og bekræftelsesmails"
+      ]
+    }
+  },
+  {
     "version": "v1.5.0",
     "date": "2026-08-24",
     "changes": {

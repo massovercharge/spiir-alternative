@@ -235,3 +235,15 @@ def test_inbound_api_endpoints(test_client):
     history = res_hist.json()
     assert len(history) >= 1
     assert history[0]["status"] == "success"
+    log_id = history[0]["id"]
+
+    # 4. Delete Single Inbound Email
+    res_del = test_client.delete(f"/api/households/{hh_id}/inbound-emails/{log_id}")
+    assert res_del.status_code == 200
+    assert res_del.json()["success"] is True
+
+    # 5. Clear All Inbound Emails
+    res_clear = test_client.delete(f"/api/households/{hh_id}/inbound-emails")
+    assert res_clear.status_code == 200
+    assert res_clear.json()["success"] is True
+

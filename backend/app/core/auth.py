@@ -22,7 +22,8 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWKClient
 from sqlmodel import Session, select
 
-from app.models import Household, HouseholdMember, User, current_household_id, engine
+import app.models as models
+from app.models import Household, HouseholdMember, User, current_household_id
 
 AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 
@@ -35,7 +36,7 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
     from sqlmodel import func
     email = email.lower().strip() if email else ""
     try:
-        with Session(engine) as session:
+        with Session(models.engine) as session:
             # 1. Sync User
             user = session.exec(select(User).where(User.logto_id == logto_id)).first()
             if not user and email:

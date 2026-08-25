@@ -6,7 +6,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { SUPPORTED_BANKS } from '../api/constants';
 import { Moon, Sun, Monitor, Languages, Building2, Plus, RefreshCw, Trash2, Upload, CheckCircle, ListFilter, Link as LinkIcon, ShoppingBag, FileText, Copy, Check, Inbox, RotateCcw, Send, AlertCircle, Sparkles, ExternalLink } from 'lucide-react';
-import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole, useInboundConfig, useInboundEmails, useSimulateInboundEmail, useRetryInboundEmail, useRegenerateInboundToken } from '../api/client';
+import { useBankConnections, useConnectBank, useDeleteBankConnection, useStartSync, useSyncStatus, useUploadSpiirExport, useRules, useDeleteRule, useHouseholdMembers, useInviteHouseholdMember, useCreateHousehold, useUpdateHousehold, useUploadStoreboxFile, useImportStoreboxLink, useRemoveHouseholdMember, useDeleteHousehold, useRestoreHousehold, useUpdateHouseholdMemberRole, useInboundConfig, useInboundEmails, useSimulateInboundEmail, useRetryInboundEmail, useRegenerateInboundToken, useDeleteInboundEmail, useClearInboundEmails } from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/Button';
@@ -90,6 +90,8 @@ export default function SettingsPage() {
   const simulateInboundMutation = useSimulateInboundEmail();
   const retryInboundMutation = useRetryInboundEmail();
   const regenerateInboundTokenMutation = useRegenerateInboundToken();
+  const deleteInboundEmailMutation = useDeleteInboundEmail();
+  const clearInboundEmailsMutation = useClearInboundEmails();
 
   const [copiedEmail, setCopiedEmail] = React.useState(false);
   const [showSimulateBox, setShowSimulateBox] = React.useState(false);
@@ -917,9 +919,28 @@ export default function SettingsPage() {
                   {t('settings.storebox.inboundHistory')}
                 </h4>
                 {inboundEmails && inboundEmails.length > 0 && (
-                  <span className="text-xs text-muted">
-                    {inboundEmails.length} modtaget
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted">
+                      {inboundEmails.length} modtaget
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (currentHousehold?.id && confirm(t('settings.storebox.clearHistoryConfirm'))) {
+                          clearInboundEmailsMutation.mutate(currentHousehold.id, {
+                            onSuccess: () => toast.success(t('settings.storebox.clearHistory')),
+                            onError: (err: any) => toast.error(err.message),
+                          });
+                        }
+                      }}
+                      disabled={clearInboundEmailsMutation.isPending}
+                      className="text-xs text-muted hover:text-red-500 h-6 px-2 py-0"
+                    >
+                      <Trash2 size={12} className="mr-1" />
+                      {t('settings.storebox.clearHistory')}
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -938,6 +959,7 @@ export default function SettingsPage() {
                     const isSuccess = log.status === 'success';
                     const isFailed = log.status === 'failed';
                     const isNoLink = log.status === 'no_link';
+                    const isInfo = log.status === 'info';
 
                     let statusBadgeClass = 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
                     let statusLabel = t('settings.storebox.statusPending');
@@ -948,6 +970,9 @@ export default function SettingsPage() {
                     } else if (isFailed) {
                       statusBadgeClass = 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
                       statusLabel = t('settings.storebox.statusFailed');
+                    } else if (isInfo) {
+                      statusBadgeClass = 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+                      statusLabel = t('settings.storebox.statusInfo');
                     } else if (isNoLink) {
                       statusBadgeClass = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
                       statusLabel = t('settings.storebox.statusNoLink');
@@ -958,12 +983,26 @@ export default function SettingsPage() {
                       { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }
                     );
 
+                    // Extract link if any in error_message
+                    const urlMatch = log.error_message ? log.error_message.match(/(https?:\/\/[^\s<>]+)/) : null;
+                    const extractedUrl = urlMatch ? urlMatch[1].replace(/[.,;:!?)\]'"]+$/, '') : null;
+                    const textBeforeUrl = log.error_message && extractedUrl 
+                      ? log.error_message.replace(urlMatch![0], '').replace(/\bLinks?:\s*$/i, '').trim()
+                      : log.error_message;
+
+                    const isConfirmationEmail = isInfo || Boolean(
+                      log.subject?.toLowerCase().includes('confirm') ||
+                      log.sender?.toLowerCase().includes('proton') ||
+                      extractedUrl?.includes('forwarding') ||
+                      extractedUrl?.includes('verify')
+                    );
+
                     return (
                       <div
                         key={log.id}
                         className="p-3 rounded-lg border border-[hsl(var(--border-color))] bg-[hsl(var(--card-bg))] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                       >
-                        <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium truncate">{log.subject || '(Intet emne)'}</span>
                             <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadgeClass}`}>
@@ -975,33 +1014,30 @@ export default function SettingsPage() {
                             <span>•</span>
                             <span>{formattedDate}</span>
                           </div>
-                          {log.error_message && (
-                            <div className="text-[11px] text-muted dark:text-zinc-400 mt-1 break-all">
-                              {log.error_message.split(/(https?:\/\/[^\s<>]+)/g).map((part, i) => {
-                                if (part.startsWith('http')) {
-                                  const cleanUrl = part.replace(/[.,;:!?)\]'"]+$/, '');
-                                  const trailing = part.slice(cleanUrl.length);
-                                  return (
-                                    <span key={i}>
-                                      <a
-                                        href={cleanUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[hsl(var(--brand-primary))] underline font-medium hover:opacity-80 inline-flex items-center gap-0.5 mx-1"
-                                      >
-                                        {cleanUrl}
-                                        <ExternalLink size={10} />
-                                      </a>
-                                      {trailing}
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <span key={i} className={isFailed ? "text-red-500 dark:text-red-400" : ""}>{part}</span>
-                                );
-                              })}
+
+                          {/* Clean Link / Message Display */}
+                          {extractedUrl ? (
+                            <div className="pt-1 flex flex-wrap items-center gap-2">
+                              {textBeforeUrl && (
+                                <span className={isFailed ? "text-red-500 dark:text-red-400 text-[11px]" : "text-muted dark:text-zinc-400 text-[11px]"}>
+                                  {textBeforeUrl}
+                                </span>
+                              )}
+                              <a
+                                href={extractedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[hsl(var(--brand-primary))/10] text-[hsl(var(--brand-primary))] border border-[hsl(var(--brand-primary))/20] font-medium hover:bg-[hsl(var(--brand-primary))/20] transition-colors text-[11px]"
+                              >
+                                <ExternalLink size={11} />
+                                {isConfirmationEmail ? t('settings.storebox.openConfirmationLink') : (extractedUrl.length > 35 ? extractedUrl.slice(0, 30) + '...' : extractedUrl)}
+                              </a>
                             </div>
-                          )}
+                          ) : log.error_message ? (
+                            <p className={`text-[11px] mt-0.5 ${isFailed ? "text-red-500 dark:text-red-400" : "text-muted dark:text-zinc-400"}`}>
+                              {log.error_message}
+                            </p>
+                          ) : null}
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
@@ -1042,6 +1078,27 @@ export default function SettingsPage() {
                               <RefreshCw size={12} className={retryingEmailId === log.id ? 'animate-spin mr-1' : 'mr-1'} />
                               {t('settings.storebox.retry')}
                             </Button>
+                          )}
+
+                          {/* Delete single log button */}
+                          {currentHousehold?.id && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                deleteInboundEmailMutation.mutate(
+                                  { householdId: currentHousehold.id, emailId: log.id },
+                                  {
+                                    onSuccess: () => toast.success(t('settings.storebox.deleteLog')),
+                                    onError: (err: any) => toast.error(err.message)
+                                  }
+                                );
+                              }}
+                              disabled={deleteInboundEmailMutation.isPending}
+                              className="p-1 rounded text-muted hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                              title={t('settings.storebox.deleteLog')}
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           )}
                         </div>
                       </div>

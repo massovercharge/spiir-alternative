@@ -257,6 +257,24 @@ export async function retryInboundEmail(householdId: string, emailId: string) {
   return res.json();
 }
 
+export async function deleteInboundEmail(householdId: string, emailId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-emails/${emailId}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete inbound email log');
+  return res.json();
+}
+
+export async function clearInboundEmails(householdId: string) {
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/inbound-emails`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to clear inbound emails');
+  return res.json();
+}
+
 export async function importStoreboxLink(url: string) {
   const res = await fetch(`${API_BASE}/api/storebox/import-link`, {
     method: 'POST',
@@ -971,3 +989,25 @@ export function useRetryInboundEmail() {
     },
   });
 }
+
+export function useDeleteInboundEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ householdId, emailId }: { householdId: string; emailId: string }) =>
+      deleteInboundEmail(householdId, emailId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'inbound-emails'] });
+    },
+  });
+}
+
+export function useClearInboundEmails() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (householdId: string) => clearInboundEmails(householdId),
+    onSuccess: (_, householdId) => {
+      queryClient.invalidateQueries({ queryKey: ['households', householdId, 'inbound-emails'] });
+    },
+  });
+}
+
