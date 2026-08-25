@@ -26,6 +26,8 @@ from app.models import (
 )
 from app.models.all_models import Household, current_household_id
 
+engine = models.engine
+
 
 def _get_engine():
     return globals().get("engine") or models.engine

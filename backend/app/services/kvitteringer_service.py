@@ -591,8 +591,47 @@ def _count_non_null_fields(value: Any) -> int:
     return 1
 
 
+def _extract_receipt_merchant_info(raw_receipt: dict[str, Any]) -> tuple[str, str | None]:
+    merchant = raw_receipt.get("merchant")
+    if isinstance(merchant, dict):
+        name = merchant.get("name") or merchant.get("displayName") or merchant.get("storeName")
+        m_id = merchant.get("merchantId") or merchant.get("storeId")
+        if name:
+            return str(name).strip(), str(m_id) if m_id is not None else None
+    name = raw_receipt.get("storeName") or raw_receipt.get("merchantName") or (merchant if isinstance(merchant, str) else None)
+    return str(name or "Ukendt butik").strip(), None
+
+
+def _extract_receipt_total_minor(raw_receipt: dict[str, Any]) -> int:
+    price = raw_receipt.get("price")
+    if isinstance(price, dict):
+        return _to_minor(price.get("amount"))
+    elif price is not None:
+        return _to_minor(price)
+    total_price = raw_receipt.get("totalPrice")
+    if isinstance(total_price, dict):
+        return _to_minor(total_price.get("amount"))
+    elif total_price is not None:
+        return _to_minor(total_price)
+    return _to_minor(raw_receipt.get("total") or 0)
+
+
+def _extract_receipt_currency(raw_receipt: dict[str, Any]) -> str:
+    price = raw_receipt.get("price")
+    if isinstance(price, dict) and price.get("currency"):
+        return str(price.get("currency"))
+    return str(raw_receipt.get("currency") or "DKK")
+
+
+def _extract_receipt_lines(raw_receipt: dict[str, Any]) -> list[dict[str, Any]]:
+    lines = raw_receipt.get("receiptLines") or raw_receipt.get("lines") or raw_receipt.get("items")
+    if isinstance(lines, list):
+        return lines
+    return []
+
+
 def _parse_purchase_timestamp(raw_receipt: dict[str, Any]) -> tuple[str, str, str | None, int | None]:
-    purchase_date_str = raw_receipt.get("purchaseDate")
+    purchase_date_str = raw_receipt.get("purchaseDate") or raw_receipt.get("purchaseDateTimeString")
     if not purchase_date_str:
         raise ValueError("Receipt is missing purchaseDate")
     parsed = datetime.fromisoformat(purchase_date_str)
@@ -670,14 +709,14 @@ def _best_candidate(candidates: list[ReceiptCandidate]) -> ReceiptCandidate:
         candidates,
         key=lambda candidate: (
             _count_non_null_fields(candidate.raw_receipt),
-            len(candidate.raw_receipt.get("lines") or []),
+            len(_extract_receipt_lines(candidate.raw_receipt)),
             candidate.source_mtime,
         ),
     )
 
 
 def _semantic_receipt_identity_key(raw_receipt: dict[str, Any]) -> tuple[str, str, int, str] | None:
-    merchant_name_raw = str(raw_receipt.get("storeName") or "").strip()
+    merchant_name_raw, _ = _extract_receipt_merchant_info(raw_receipt)
     merchant_key = _slugify(merchant_name_raw)
     if merchant_key == "unknown":
         return None
@@ -685,8 +724,8 @@ def _semantic_receipt_identity_key(raw_receipt: dict[str, Any]) -> tuple[str, st
         purchase_timestamp, _, _, _ = _parse_purchase_timestamp(raw_receipt)
     except (TypeError, ValueError):
         return None
-    receipt_total_minor = _to_minor(raw_receipt.get("totalPrice") or 0)
-    currency = str(raw_receipt.get("currency") or "DKK").upper()
+    receipt_total_minor = _extract_receipt_total_minor(raw_receipt)
+    currency = _extract_receipt_currency(raw_receipt).upper()
     return merchant_key, purchase_timestamp, receipt_total_minor, currency
 
 
@@ -995,7 +1034,7 @@ def _deduplicated_receipts(source_dir: Path) -> tuple[dict[str, ReceiptCandidate
         if not isinstance(payload, list):
             raise ValueError(f"Expected receipt array in {path.name}")
         for raw_receipt in payload:
-            receipt_id = str(raw_receipt.get("receiptId") or "").strip()
+            receipt_id = str(raw_receipt.get("receiptId") or raw_receipt.get("id") or "").strip()
             if not receipt_id:
                 continue
             raw_receipt_count += 1
@@ -1061,8 +1100,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
 
         for receipt_id, candidate in sorted(selected_receipts.items(), key=lambda item: item[1].receipt_id):
             raw_receipt = candidate.raw_receipt
-            merchant_name_raw = str(raw_receipt.get("storeName") or "Ukendt butik").strip()
-            merchant_id_raw = None
+            merchant_name_raw, merchant_id_raw = _extract_receipt_merchant_info(raw_receipt)
             merchant_key = _slugify(merchant_name_raw)
             display_name = merchant_name_raw or merchant_key
             normalized_merchant_name = _normalize_name(display_name)
@@ -1089,8 +1127,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
             }
 
             purchase_timestamp, purchase_date, purchase_datetime_raw, purchase_date_epoch_raw = _parse_purchase_timestamp(raw_receipt)
-            receipt_total_minor = _to_minor(raw_receipt.get("totalPrice") or 0)
-            currency = str(raw_receipt.get("currency") or "DKK")
+            receipt_total_minor = _extract_receipt_total_minor(raw_receipt)
+            currency = _extract_receipt_currency(raw_receipt)
+            receipt_lines = _extract_receipt_lines(raw_receipt)
             raw_receipt_id = connection.execute(
                 "INSERT INTO raw_receipt(receipt_id, import_run_id, source_file, source_type, raw_hash, purchase_datetime_raw, purchase_date_epoch_raw, merchant_id_raw, merchant_name_raw, total_amount_raw, line_count_raw) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
@@ -1103,8 +1142,8 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     purchase_date_epoch_raw,
                     merchant_id_raw,
                     merchant_name_raw,
-                    raw_receipt.get("totalPrice") or 0,
-                    len(raw_receipt.get("lines") or []),
+                    receipt_total_minor / 100.0,
+                    len(receipt_lines),
                 ),
             ).lastrowid
 
@@ -1114,15 +1153,29 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
             last_non_discount_occurrence_id: str | None = None
             previous_was_discount = False
 
-            receipt_lines = raw_receipt.get("lines") or []
             for line_index, raw_line in enumerate(receipt_lines):
-                name_raw = str(raw_line.get("name") or "").strip()
+                name_raw = str(raw_line.get("name") or raw_line.get("description") or "").strip()
                 normalized_name = _normalize_name(name_raw)
-                product_number = None
-                total_price_minor = _to_minor(raw_line.get("price") or 0)
-                item_price_minor = _to_minor(raw_line.get("price") or 0)
+                product_number = str(raw_line.get("productNumber") or raw_line.get("ean") or raw_line.get("sku") or "").strip() or None
+
+                tot_p = raw_line.get("totalPrice")
+                if isinstance(tot_p, dict):
+                    total_price_minor = _to_minor(tot_p.get("amount"))
+                elif tot_p is not None:
+                    total_price_minor = _to_minor(tot_p)
+                else:
+                    total_price_minor = _to_minor(raw_line.get("price") or 0)
+
+                itm_p = raw_line.get("itemPrice")
+                if isinstance(itm_p, dict):
+                    item_price_minor = _to_minor(itm_p.get("amount"))
+                elif itm_p is not None:
+                    item_price_minor = _to_minor(itm_p)
+                else:
+                    item_price_minor = _to_minor(raw_line.get("unitPrice") or raw_line.get("price") or total_price_minor)
+
                 is_discount_line = DISCOUNT_PREFIX in normalized_name
-                count_raw = None
+                count_raw = raw_line.get("count") if raw_line.get("count") is not None else raw_line.get("quantity")
                 is_negative_non_discount_line = (not is_discount_line) and (
                     (count_raw is not None and float(count_raw) < 0)
                     or total_price_minor < 0
