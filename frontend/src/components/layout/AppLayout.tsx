@@ -133,21 +133,24 @@ export default function AppLayout() {
       <div className="flex h-screen w-full overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))]">
-        <div className="p-4 px-6 flex items-center justify-between border-b border-[hsl(var(--border-color))]">
-          <div className="flex items-center gap-2 min-w-0">
-            <h1 className="text-2xl font-bold text-[hsl(var(--brand-primary))] shrink-0">{t('app.title')}</h1>
-            <HouseholdSwitcher compact />
+          <div className="p-4 border-b border-[hsl(var(--border-color))] space-y-3">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-[hsl(var(--brand-primary))] shrink-0">{t('app.title')}</h1>
+              <div className="flex items-center gap-1 shrink-0">
+                <NotificationDrawer compact />
+                <button 
+                  onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                  className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors shrink-0"
+                  title={isDark ? "Skift til lyst tema" : "Skift til mørkt tema"}
+                >
+                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <HouseholdSwitcher />
+            </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <NotificationDrawer compact />
-            <button 
-              onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors shrink-0"
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          </div>
-        </div>
         
         <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
