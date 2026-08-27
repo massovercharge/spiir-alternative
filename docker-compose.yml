@@ -30,6 +30,17 @@ services:
       - INBOUND_EMAIL_DOMAIN=${INBOUND_EMAIL_DOMAIN:-seame.click}
       - INBOUND_EMAIL_PREFIX=${INBOUND_EMAIL_PREFIX:-receipts}
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.peng.rule=Host(`peng.seame.click`)"
+      - "traefik.http.routers.peng.entrypoints=websecure"
+      - "traefik.http.routers.peng.tls.certresolver=letsencrypt"
+      - "traefik.http.services.peng.loadbalancer.server.port=8080"
+    networks:
+      - default
+      - traefik-public
+
   logto:
     image: svhd/logto:latest
     container_name: logto
@@ -45,6 +56,7 @@ services:
       - ADMIN_ENDPOINT=https://admin.seame.click/
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
       # Logto Core (Offentlig)
       - "traefik.http.routers.logto.rule=Host(`auth.seame.click`)"
       - "traefik.http.routers.logto.entrypoints=websecure"
@@ -58,6 +70,9 @@ services:
       - "traefik.http.routers.logto-admin.tls.certresolver=letsencrypt"
       - "traefik.http.routers.logto-admin.middlewares=local-only"
       - "traefik.http.services.logto-admin.loadbalancer.server.port=3002"
+    networks:
+      - default
+      - traefik-public
     restart: unless-stopped
 
   logto-db:
@@ -69,7 +84,14 @@ services:
       - POSTGRES_DB=logto
     volumes:
       - logto-data-v3:/var/lib/postgresql/data
+    networks:
+      - default
     restart: unless-stopped
 
 volumes:
   logto-data-v3:
+
+networks:
+  default:
+  traefik-public:
+    external: true

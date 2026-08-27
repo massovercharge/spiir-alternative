@@ -90,6 +90,10 @@ def create_db_and_tables() -> None:
             session.commit()
 
         with contextlib.suppress(Exception):
+            session.exec(text("ALTER TABLE household ADD COLUMN deleted_at VARCHAR;"))
+            session.commit()
+
+        with contextlib.suppress(Exception):
             from sqlmodel import select
             households = session.exec(select(Household).where(Household.inbound_email_token == None)).all()  # noqa: E711
             for hh in households:
