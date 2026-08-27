@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, Plus, Trash2, Search, Sparkles, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, AlertTriangle, Plus, Trash2, Search, Sparkles, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
@@ -264,6 +264,31 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
 
         <div className="p-6 flex-1 space-y-6">
           
+          {/* Duplicate warning banner */}
+          {transaction.has_duplicate_warning && (
+            <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-[hsl(var(--text-primary))] space-y-2">
+              <div className="flex items-center gap-2 text-amber-500 font-semibold text-xs uppercase tracking-wider">
+                <AlertTriangle size={15} />
+                <span>{t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}</span>
+              </div>
+              <p className="text-xs text-muted leading-relaxed">
+                {t('duplicates.bannerDesc', {
+                  count: transaction.duplicate_count || 2,
+                  defaultValue: `Der findes ${transaction.duplicate_count || 2} posteringer til samme modtager på samme beløb på denne dato.`
+                })}
+              </p>
+              {onFindSimilar && (
+                <button
+                  onClick={() => onFindSimilar(getSearchTerm(transaction.description))}
+                  className="text-xs font-semibold text-amber-500 hover:underline flex items-center gap-1 pt-0.5"
+                >
+                  <Search size={12} />
+                  {t('duplicates.viewMatching', 'Vis matchende postering')}
+                </button>
+              )}
+            </div>
+          )}
+
           {isSplitMode ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-4">
@@ -323,7 +348,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
             </div>
           ) : (
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('categories')}</label>
+              <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('common.category', 'Kategori')}</label>
               <CategoryPicker 
                 selectedCategoryId={splits[0]?.category_id || undefined}
                 onSelect={(id) => updateSplit(0, 'category_id', id)}
@@ -334,7 +359,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('Dato')}</label>
+              <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('common.date', 'Dato')}</label>
               <div className="flex flex-col gap-2">
                 <input 
                   type="date" 
@@ -349,7 +374,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
             </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('Note')}</label>
+                <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('common.note', 'Note')}</label>
                 <textarea 
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -359,7 +384,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('Tags')}</label>
+                <label className="text-sm font-semibold text-muted uppercase tracking-wider">{t('common.tags', 'Tags')}</label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {tags.map(tag => (
                     <span key={tag} className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-medium">

@@ -240,10 +240,38 @@
     "description": "See what's new in Peng"
   },
   "categories": {
+    "title": "Category",
     "selectCategory": "Select category",
     "noCategoriesFound": "No categories found"
   },
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{{count}} unread",
+    "markAllAsRead": "Mark all as read",
+    "markAsRead": "Mark as read",
+    "empty": "No new notifications",
+    "emptyDesc": "Everything looks good in your finances!",
+    "viewTransactions": "View transactions",
+    "createRule": "Create rule",
+    "renewConsent": "Renew consent",
+    "all": "All",
+    "warnings": "Warnings",
+    "suggestions": "Suggestions",
+    "info": "Info",
+    "potentialDuplicates": "Potential duplicates"
+  },
+  "duplicates": {
+    "warningBadge": "Potential duplicate",
+    "bannerTitle": "Potential duplicate payment detected",
+    "bannerDesc": "There are {{count}} transactions to the same recipient with the same amount on this date.",
+    "viewMatching": "View matching transaction",
+    "filterLabel": "Potential duplicates"
+  },
   "common": {
+    "category": "Category",
+    "date": "Date",
+    "note": "Note",
+    "tags": "Tags",
     "loading": "Loading...",
     "close": "Close",
     "error": "An error occurred",

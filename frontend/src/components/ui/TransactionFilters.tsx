@@ -130,7 +130,7 @@ export function TransactionFilters({
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const types = ['Alle poster', 'Regninger', 'Forbrug', 'Ukategoriseret', 'Ekstraordinær'];
+  const types = ['Alle poster', 'Regninger', 'Forbrug', 'Ukategoriseret', 'Ekstraordinær', 'Mulige dubletter'];
 
   // Calculate current year and quick links
   const currentYear = new Date().getFullYear();

@@ -63,6 +63,28 @@ def list_transactions(
     with Session(_get_engine()) as db:
         eff_date = func.coalesce(Posting.custom_date, Posting.booking_date)
 
+        # Pre-compute duplicate map for the household
+        all_postings_for_dups = db.exec(
+            select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.amount_minor, Posting.original_description)
+            .where(col(Posting.amount_minor) != 0)
+        ).all()
+
+        dup_groups: dict[tuple[str, int, str], list[str]] = {}
+        for p_id, b_date, c_date, amt, desc in all_postings_for_dups:
+            e_date = c_date or b_date or ""
+            cdesc = (desc or "").strip().lower()
+            if e_date and cdesc:
+                dup_groups.setdefault((e_date, amt, cdesc), []).append(p_id)
+
+        dup_info_map: dict[str, tuple[int, list[str]]] = {}
+        dup_posting_ids: set[str] = set()
+        for group in dup_groups.values():
+            if len(group) >= 2:
+                for p_id in group:
+                    dup_posting_ids.add(p_id)
+                    siblings = [other_id for other_id in group if other_id != p_id]
+                    dup_info_map[p_id] = (len(group), siblings)
+
         query = select(Posting).distinct().order_by(
             eff_date.desc(),
             col(Posting.id).desc(),
@@ -75,6 +97,9 @@ def list_transactions(
             query = query.where(eff_date >= start_date)
         if end_date:
             query = query.where(eff_date <= end_date)
+
+        if filter_type and filter_type.lower() in ("dubletter", "mulige-dubletter", "dublet", "mulige dubletter"):
+            query = query.where(col(Posting.id).in_(dup_posting_ids))
 
         if amount_op and amount_value is not None:
             amount_minor = to_minor(str(amount_value))
@@ -166,7 +191,13 @@ def list_transactions(
         "transaction_count": total_count,
         "offset": offset,
         "transactions": [
-            _serialize_posting(p, accounts.get(p.account_uid), allocation_map.get(p.id, []), tags_map)
+            _serialize_posting(
+                p,
+                accounts.get(p.account_uid),
+                allocation_map.get(p.id, []),
+                tags_map,
+                duplicate_info=dup_info_map.get(p.id),
+            )
             for p in postings
         ],
     }
@@ -196,7 +227,23 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
             for alloc_id, tag_name in links:
                 tags_map.setdefault(alloc_id, []).append(tag_name)
 
-    return _serialize_posting(posting, account, list(allocs), tags_map)
+        # Check for duplicate siblings on same effective date and amount and description
+        eff_date = posting.custom_date or posting.booking_date
+        cdesc = (posting.original_description or "").strip().lower()
+        siblings = []
+        if eff_date and cdesc and posting.amount_minor != 0:
+            siblings_query = (
+                select(Posting.id)
+                .where(Posting.id != transaction_id)
+                .where(func.coalesce(Posting.custom_date, Posting.booking_date) == eff_date)
+                .where(Posting.amount_minor == posting.amount_minor)
+                .where(func.lower(func.trim(Posting.original_description)) == cdesc)
+            )
+            siblings = list(db.exec(siblings_query).all())
+
+        dup_info = (len(siblings) + 1, siblings) if siblings else (0, [])
+
+    return _serialize_posting(posting, account, list(allocs), tags_map, duplicate_info=dup_info)
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +411,7 @@ def _serialize_posting(
     account: Account | None,
     allocations: list[PostingAllocation],
     tags_map: dict[str, list[str]] | None = None,
+    duplicate_info: tuple[int, list[str]] | None = None,
 ) -> dict[str, Any]:
     """Serialize a Posting + its allocations to the API JSON shape.
 
@@ -371,6 +419,8 @@ def _serialize_posting(
     """
     # Get the primary allocation (first one, or None)
     primary = allocations[0] if allocations else None
+    dup_count, dup_siblings = duplicate_info if duplicate_info else (0, [])
+    has_dup = dup_count >= 2
 
     return {
         "id": posting.id,
@@ -395,6 +445,9 @@ def _serialize_posting(
         "is_extraordinary": primary.is_extraordinary if primary else False,
         "is_excluded": posting.is_excluded,
         "source": account.source if account else "unknown",
+        "has_duplicate_warning": has_dup,
+        "duplicate_count": dup_count,
+        "duplicate_sibling_ids": dup_siblings,
         "created_at": posting.created_at,
         "updated_at": (primary.updated_at if primary else posting.created_at),
         "allocations": [

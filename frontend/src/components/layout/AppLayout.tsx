@@ -18,6 +18,7 @@ const ReleaseNotesPage = lazy(() => import('../../pages/ReleaseNotesPage'));
 
 import { HouseholdProvider } from '../../context/HouseholdContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
+import NotificationDrawer from '../ui/NotificationDrawer';
 
 export default function AppLayout() {
   const { t } = useTranslation();
@@ -137,12 +138,15 @@ export default function AppLayout() {
             <h1 className="text-2xl font-bold text-[hsl(var(--brand-primary))] shrink-0">{t('app.title')}</h1>
             <HouseholdSwitcher compact />
           </div>
-          <button 
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] transition-colors shrink-0"
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <NotificationDrawer compact />
+            <button 
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+              className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors shrink-0"
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </div>
         
         <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
@@ -184,9 +188,10 @@ export default function AppLayout() {
             <HouseholdSwitcher compact />
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            <NotificationDrawer compact />
             <button 
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+              className="p-2 rounded-full hover:bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors"
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>

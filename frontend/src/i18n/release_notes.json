@@ -1,5 +1,25 @@
 [
   {
+    "version": "v1.7.0",
+    "date": "2026-08-27",
+    "changes": {
+      "en": [
+        "Added Household Notification Center with proactive slide-over drawer and unread badge indicator",
+        "Automated duplicate payment detection with visual warning badges and detail sidebar alerts",
+        "Proactive alerts for expiring PSD2 bank consent, newly matched digital receipts, and smart 1-click rule suggestions",
+        "Added 'Potential duplicates' quick filter in transaction filters",
+        "Fixed i18n translation key error in transaction details sidebar"
+      ],
+      "da": [
+        "Tilføjet Husstands-Notifikationscenter med slide-over skuffe og ulæst-indikator",
+        "Automatisk detektering af mulige dobbeltbetalinger med advarsels-badge og detaljerede sidebars-advarsler",
+        "Proaktive notifikationer om udløb af banksamtykke (PSD2), nye matchede digitale kvitteringer og 1-klik forslag til automatiske regler",
+        "Tilføjet 'Mulige dubletter' hurtigfiltrering i transaktionsfiltrene",
+        "Rettet i18n oversættelsesfejl i transaktions-sidebaren"
+      ]
+    }
+  },
+  {
     "version": "v1.6.0",
     "date": "2026-08-25",
     "changes": {

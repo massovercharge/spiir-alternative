@@ -240,10 +240,38 @@
     "description": "Se hvad der er nyt i Peng"
   },
   "categories": {
+    "title": "Kategori",
     "selectCategory": "Vælg kategori",
     "noCategoriesFound": "Ingen kategorier fundet"
   },
+  "notifications": {
+    "title": "Notifikationer",
+    "unreadCount": "{{count}} ulæste",
+    "markAllAsRead": "Marker alle som læst",
+    "markAsRead": "Marker som læst",
+    "empty": "Ingen nye notifikationer",
+    "emptyDesc": "Alt ser godt ud i din økonomi!",
+    "viewTransactions": "Gå til posteringer",
+    "createRule": "Opret regel",
+    "renewConsent": "Forny samtykke",
+    "all": "Alle",
+    "warnings": "Advarsler",
+    "suggestions": "Forslag",
+    "info": "Info",
+    "potentialDuplicates": "Mulige dubletter"
+  },
+  "duplicates": {
+    "warningBadge": "Mulig dublet",
+    "bannerTitle": "Mulig dobbeltbetaling detekteret",
+    "bannerDesc": "Der findes {{count}} posteringer til samme modtager på samme beløb på denne dato.",
+    "viewMatching": "Vis matchende postering",
+    "filterLabel": "Mulige dubletter"
+  },
   "common": {
+    "category": "Kategori",
+    "date": "Dato",
+    "note": "Note",
+    "tags": "Tags",
     "loading": "Indlæser...",
     "close": "Luk",
     "error": "Der opstod en fejl",

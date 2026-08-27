@@ -24,3 +24,4 @@ export * from './domains/insights';
 export * from './domains/households';
 export * from './domains/rules';
 export * from './domains/inbound';
+export * from './domains/notifications';

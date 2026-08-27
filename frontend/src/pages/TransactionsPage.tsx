@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { MoreHorizontal, CheckSquare, Square, Trash2, X } from 'lucide-react';
+import { MoreHorizontal, CheckSquare, Square, Trash2, X, AlertTriangle } from 'lucide-react';
 import { useTransactions, useUpdateTransactionCategory, useCreateCustomRule, useTags, useUpdateTransactions as useBulkUpdate } from '../api/client';
 import { Skeleton } from '../components/ui/Skeleton';
 import CategoryPicker from '../components/ui/CategoryPicker';
@@ -32,10 +32,10 @@ export default function TransactionsPage() {
   const location = useLocation();
   const navState = location.state as any;
   
-  const [filterType, setFilterType] = useState('Alle poster');
+  const [filterType, setFilterType] = useState(navState?.filterType || 'Alle poster');
   const [startDate, setStartDate] = useState(navState?.startDate || '');
   const [endDate, setEndDate] = useState(navState?.endDate || '');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(navState?.search || '');
   const [selectedTag, setSelectedTag] = useState('');
   const [amountOp, setAmountOp] = useState<string>('');
   const [amountVal, setAmountVal] = useState<number | undefined>(undefined);
@@ -262,14 +262,25 @@ export default function TransactionsPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-[hsla(var(--brand-primary),0.05)] border border-[hsla(var(--brand-primary),0.2)] rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-sm"
         >
-          <div className="text-sm">
-            <span className="font-semibold">{txCount}</span> {t('transactions.summaryFromPeriod', 'poster fra den valgte periode.')}{' '}
-            <span 
-              onClick={() => { if (uncategorizedCount > 0) setFilterType('Ukategoriseret'); }}
-              className={`font-semibold ${uncategorizedCount > 0 ? 'text-[hsl(var(--brand-danger))] cursor-pointer hover:underline' : 'text-success'}`}
-            >
-              {uncategorizedCount} {t('transactions.notCategorized', 'ikke kategoriserede')}
-            </span>.
+          <div className="text-sm space-y-1">
+            <div>
+              <span className="font-semibold">{txCount}</span> {t('transactions.summaryFromPeriod', 'poster fra den valgte periode.')}{' '}
+              <span 
+                onClick={() => { if (uncategorizedCount > 0) setFilterType('Ukategoriseret'); }}
+                className={`font-semibold ${uncategorizedCount > 0 ? 'text-[hsl(var(--brand-danger))] cursor-pointer hover:underline' : 'text-success'}`}
+              >
+                {uncategorizedCount} {t('transactions.notCategorized', 'ikke kategoriserede')}
+              </span>.
+            </div>
+            {transactions.some((t: any) => t.has_duplicate_warning) && (
+              <div 
+                onClick={() => setFilterType('Mulige dubletter')}
+                className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline flex items-center gap-1.5 pt-0.5"
+              >
+                <AlertTriangle size={13} />
+                <span>{t('duplicates.bannerTitle', 'Mulige dobbeltbetalinger fundet')} — {t('duplicates.filterLabel', 'klik for at filtrere')}</span>
+              </div>
+            )}
           </div>
           <div className="text-sm md:text-right flex items-center md:items-end flex-col">
             <div>
@@ -372,7 +383,18 @@ export default function TransactionsPage() {
                               </div>
                               
                               <div className="flex-1 min-w-0 flex flex-col justify-center items-start" onClick={(e) => e.stopPropagation()}>
-                                <p className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words mb-1 max-w-full cursor-pointer" onClick={() => setSelectedTransaction(tx)}>{description}</p>
+                                <div className="flex items-center gap-2 max-w-full flex-wrap mb-1">
+                                  <p className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words cursor-pointer" onClick={() => setSelectedTransaction(tx)}>{description}</p>
+                                  {tx.has_duplicate_warning && (
+                                    <span
+                                      title={t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}
+                                      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0"
+                                    >
+                                      <AlertTriangle size={11} />
+                                      {t('duplicates.warningBadge', 'Mulig dublet')}
+                                    </span>
+                                  )}
+                                </div>
                                 <CategoryPicker 
                                   selectedCategoryId={tx.allocations?.[0]?.category_id} 
                                   onSelect={(newCatId) => handleCategoryChange(tx, newCatId)}
