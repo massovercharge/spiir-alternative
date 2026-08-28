@@ -1,5 +1,35 @@
 [
   {
+    "version": "v1.7.6",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Automatically strip quantity and multiplier prefixes (e.g. '2 x ', '3 stk. ', '2 pk. ') from receipt item names",
+        "Unified spending overview in category sunburst and charts so items purchased in varying quantities aggregate into a single product entry",
+        "Cleaned item labels in transaction split details and automated database migration on startup for historical receipts"
+      ],
+      "da": [
+        "Fjerner automatisk mængde- og multiplikatorpræfikser (f.eks. '2 x ', '3 stk. ', '2 pk. ') fra kvitteringsvarenavne",
+        "Samler forbrugsoverblikket i diagrammer og solstrålegrafer, så varer købt i varierende antal samles under ét fælles varenavn",
+        "Rensede varenavne i transaktions-splitoversigten samt automatisk databasemigrering ved opstart af historiske kvitteringer"
+      ]
+    }
+  },
+  {
+    "version": "v1.7.5",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Made Duplicate Review banner persistent across all transaction views and filters as long as any duplicate candidate exists in the household",
+        "Added group count indicator and direct 'Show in list' link to easily locate remaining duplicate transactions regardless of active date period"
+      ],
+      "da": [
+        "Gjorde 'Undersøg & Løs' dublet-banneret permanent synligt på transaktionssiden, så længe der findes uafklarede dubletter i husstanden",
+        "Tilføjet tæller for antal dublet-grupper og direkte 'Vis i listen' genvej til hurtigt at finde resterende dubletter uanset aktiv dato-periode"
+      ]
+    }
+  },
+  {
     "version": "v1.7.4",
     "date": "2026-08-28",
     "changes": {

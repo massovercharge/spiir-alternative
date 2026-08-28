@@ -291,7 +291,11 @@
     "dismissAllTooltip": "Hide warnings for all separate transactions on the same account",
     "dismissSuccess": "Marked as separate transactions",
     "dismissAllSuccess": "{{count}} transactions marked as separate",
-    "dismissError": "Could not dismiss duplicates"
+    "dismissError": "Could not dismiss duplicates",
+    "groupSingle": "group",
+    "groupPlural": "groups",
+    "persistentBannerDesc": "There are unresolved transactions with matching date and amount.",
+    "showInList": "Show in list"
   },
   "common": {
     "category": "Category",

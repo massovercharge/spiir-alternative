@@ -17,7 +17,7 @@ import {
   Inbox,
   Filter,
 } from 'lucide-react';
-import { useNotifications, useCreateCustomRule, useResolveDuplicates, AppNotification } from '../../api/client';
+import { useNotifications, useCreateCustomRule, useResolveDuplicates, useDuplicatePreview, AppNotification } from '../../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import DuplicateReviewModal from '../transactions/DuplicateReviewModal';
@@ -48,9 +48,11 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
   const [ruleCreationSuccess, setRuleCreationSuccess] = useState<Record<string, boolean>>({});
 
   const { data, isLoading } = useNotifications();
+  const { data: duplicatePreviewData } = useDuplicatePreview();
   const createRuleMutation = useCreateCustomRule();
 
   const notifications = data?.notifications || [];
+  const hasDuplicates = (duplicatePreviewData?.total_groups || 0) > 0 || notifications.some((n) => n.type === 'duplicate_payment');
 
   // Persist readIds to localStorage
   useEffect(() => {
@@ -259,7 +261,7 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
               )}
 
               {/* Quick Action Banner for Duplicates */}
-              {notifications.some((n) => n.type === 'duplicate_payment') && (
+              {hasDuplicates && (
                 <div className="p-3 mx-4 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <AlertTriangle size={18} className="text-amber-500 shrink-0" />

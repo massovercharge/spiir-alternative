@@ -152,6 +152,46 @@ def create_db_and_tables() -> None:
                 )
         except Exception:
             pass
+
+        with contextlib.suppress(Exception):
+            from sqlmodel import select
+
+            from app.core.item_utils import clean_item_name
+
+            allocs = session.exec(select(PostingAllocation).where(PostingAllocation.item_name != None)).all()  # noqa: E711
+            for alloc in allocs:
+                if alloc.item_name:
+                    cleaned = clean_item_name(alloc.item_name)
+                    if cleaned != alloc.item_name:
+                        alloc.item_name = cleaned
+                        session.add(alloc)
+
+        with contextlib.suppress(Exception):
+            import sqlite3
+
+            from app.core.config import get_kvitteringer_db_path
+            from app.core.item_utils import clean_item_name
+
+            kv_path = get_kvitteringer_db_path()
+            if kv_path.exists():
+                conn = sqlite3.connect(str(kv_path))
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                rows = cur.execute("SELECT occurrence_id, display_name FROM item_occurrence").fetchall()
+                for r in rows:
+                    if r["display_name"]:
+                        c = clean_item_name(r["display_name"])
+                        if c != r["display_name"]:
+                            cur.execute("UPDATE item_occurrence SET display_name = ? WHERE occurrence_id = ?", (c, r["occurrence_id"]))
+                rows_cl = cur.execute("SELECT cluster_id, preferred_display_name FROM item_cluster").fetchall()
+                for r in rows_cl:
+                    if r["preferred_display_name"]:
+                        c = clean_item_name(r["preferred_display_name"])
+                        if c != r["preferred_display_name"]:
+                            cur.execute("UPDATE item_cluster SET preferred_display_name = ? WHERE cluster_id = ?", (c, r["cluster_id"]))
+                conn.commit()
+                conn.close()
+
         session.commit()
 
 

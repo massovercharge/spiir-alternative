@@ -4,7 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { MoreHorizontal, CheckSquare, Square, Trash2, X, AlertTriangle, CheckCheck } from 'lucide-react';
-import { useTransactions, useUpdateTransactionCategory, useCreateCustomRule, useTags, useUpdateTransactions as useBulkUpdate, useResolveDuplicates } from '../api/client';
+import {
+  useTransactions,
+  useUpdateTransactionCategory,
+  useCreateCustomRule,
+  useTags,
+  useUpdateTransactions as useBulkUpdate,
+  useResolveDuplicates,
+  useDuplicatePreview,
+} from '../api/client';
 import { toast } from 'sonner';
 import { Skeleton } from '../components/ui/Skeleton';
 import CategoryPicker from '../components/ui/CategoryPicker';
@@ -46,6 +54,8 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isDuplicateReviewOpen, setIsDuplicateReviewOpen] = useState(false);
   const resolveDuplicatesMutation = useResolveDuplicates();
+  const { data: duplicatePreviewData } = useDuplicatePreview();
+  const duplicateGroupsCount = duplicatePreviewData?.total_groups || 0;
   
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -259,6 +269,53 @@ export default function TransactionsPage() {
         />
       </motion.div>
 
+      {/* Persistent Duplicate Notification Banner (always visible if unresolved duplicates exist anywhere in the household) */}
+      {(duplicateGroupsCount > 0 || transactions.some((t: any) => t.has_duplicate_warning)) && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+              <AlertTriangle size={17} />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-[hsl(var(--text-primary))] flex items-center gap-1.5">
+                <span>{t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}</span>
+                {duplicateGroupsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                    {duplicateGroupsCount} {duplicateGroupsCount === 1 ? t('duplicates.groupSingle', 'gruppe') : t('duplicates.groupPlural', 'grupper')}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted mt-0.5">
+                {t('duplicates.persistentBannerDesc', 'Der er uafklarede posteringer med samme dato og beløb.')}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => {
+                setFilterType('Mulige dubletter');
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline transition-colors"
+            >
+              {t('duplicates.showInList', 'Vis i listen')}
+            </button>
+            <button
+              onClick={() => setIsDuplicateReviewOpen(true)}
+              className="px-3 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <AlertTriangle size={13} />
+              <span>{t('duplicates.reviewButton', 'Undersøg & Løs')}</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Summary Box */}
       {!isLoading && txCount > 0 && (
         <motion.div 
@@ -276,24 +333,6 @@ export default function TransactionsPage() {
                 {uncategorizedCount} {t('transactions.notCategorized', 'ikke kategoriserede')}
               </span>.
             </div>
-            {transactions.some((t: any) => t.has_duplicate_warning) && (
-              <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                <div 
-                  onClick={() => setIsDuplicateReviewOpen(true)}
-                  className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline flex items-center gap-1.5"
-                >
-                  <AlertTriangle size={13} />
-                  <span>{t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}</span>
-                </div>
-                <button
-                  onClick={() => setIsDuplicateReviewOpen(true)}
-                  className="px-2.5 py-0.5 text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center gap-1 transition-colors shadow-xs"
-                >
-                  <AlertTriangle size={11} />
-                  <span>{t('duplicates.reviewButton', 'Undersøg & Løs')}</span>
-                </button>
-              </div>
-            )}
           </div>
           <div className="text-sm md:text-right flex items-center md:items-end flex-col">
             <div>

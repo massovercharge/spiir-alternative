@@ -15,6 +15,7 @@ from sqlalchemy import func
 from sqlmodel import Session, col, delete, select
 
 import app.models as models
+from app.core.item_utils import clean_item_name
 from app.core.money import format_amount, to_minor
 from app.models import (
     Account,
@@ -420,13 +421,15 @@ def split_allocation(posting_id: str, splits: list[dict[str, Any]]) -> dict[str,
         # Create new splits
         new_allocs = []
         for s in splits:
+            raw_item_name = s.get("item_name")
+            cleaned_item_name = clean_item_name(raw_item_name) if raw_item_name else None
             alloc = PostingAllocation(
                 posting_id=posting_id,
                 household_id=posting.household_id,
                 category_id=s.get("category_id"),
                 amount_minor=int(s.get("amount_minor", 0)),
                 note=s.get("note"),
-                item_name=s.get("item_name"),
+                item_name=cleaned_item_name,
                 item_cluster_id=s.get("item_cluster_id"),
                 is_extraordinary=bool(s.get("is_extraordinary", False)),
                 created_at=now,
@@ -636,7 +639,8 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             amt = occ.get("net_total_minor", 0) * multiplier
             sum_items += amt
 
-            item_name = occ.get("display_name")
+            raw_item_name = occ.get("display_name")
+            item_name = clean_item_name(raw_item_name) if raw_item_name else None
             # Try item-specific categorization first, but force Dagligvarer if transaction is Dagligvarer
             category_id = None
             if fallback_category_id and fallback_category_id == "husholdning|dagligvarer":

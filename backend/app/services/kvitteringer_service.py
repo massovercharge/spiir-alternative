@@ -19,6 +19,7 @@ from app.core.config import (
     get_kvitteringer_db_path,
     get_storebox_source_dir,
 )
+from app.core.item_utils import clean_item_name, extract_quantity_and_clean_name
 from app.core.storage import create_backup, ensure_runtime_dirs
 
 SCHEMA_VERSION = "2026-04-12"
@@ -347,7 +348,8 @@ def _slugify(value: str | None) -> str:
 def _normalize_name(value: str | None) -> str:
     if value is None:
         return ""
-    normalized = unicodedata.normalize("NFKC", value).strip()
+    cleaned = clean_item_name(value)
+    normalized = unicodedata.normalize("NFKC", cleaned).strip()
     normalized = re.sub(r"[‐‑‒–—―_/]+", " ", normalized)
     normalized = re.sub(r"\s+", " ", normalized)
     return normalized.upper()
@@ -1153,7 +1155,8 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
 
             for line_index, raw_line in enumerate(receipt_lines):
                 name_raw = str(raw_line.get("name") or raw_line.get("description") or "").strip()
-                normalized_name = _normalize_name(name_raw)
+                extracted_qty, cleaned_name = extract_quantity_and_clean_name(name_raw)
+                normalized_name = _normalize_name(cleaned_name)
                 product_number = str(raw_line.get("productNumber") or raw_line.get("ean") or raw_line.get("sku") or "").strip() or None
 
                 tot_p = raw_line.get("totalPrice")
@@ -1174,6 +1177,8 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
 
                 is_discount_line = DISCOUNT_PREFIX in normalized_name
                 count_raw = raw_line.get("count") if raw_line.get("count") is not None else raw_line.get("quantity")
+                if count_raw is None and extracted_qty is not None:
+                    count_raw = extracted_qty
                 is_negative_non_discount_line = (not is_discount_line) and (
                     (count_raw is not None and float(count_raw) < 0)
                     or total_price_minor < 0
@@ -1194,7 +1199,6 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     }
                 )
 
-
                 quantity = _coerce_quantity(count_raw, total_price_minor, is_discount_line)
                 variant_signature = _variant_signature(normalized_name)
                 cluster_key, collapse_strategy, confidence = _cluster_key(product_number, normalized_name, variant_signature)
@@ -1207,7 +1211,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     "purchase_date": purchase_date,
                     "source_line_index": line_index,
                     "product_number": product_number,
-                    "display_name": name_raw,
+                    "display_name": cleaned_name,
                     "normalized_name": normalized_name,
                     "variant_signature": variant_signature,
                     "item_key": _item_key(merchant_key, product_number, normalized_name, variant_signature),
@@ -1236,16 +1240,16 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                         "display_name_counts": {},
                     },
                 )
-                cluster_state["display_name_counts"][name_raw] = cluster_state["display_name_counts"].get(name_raw, 0) + 1
+                cluster_state["display_name_counts"][cleaned_name] = cluster_state["display_name_counts"].get(cleaned_name, 0) + 1
 
-                alias_key = hashlib.sha1(f"{cluster_id}|{product_number}|{name_raw}|{normalized_name}|{variant_signature}".encode()).hexdigest()[:16]
+                alias_key = hashlib.sha1(f"{cluster_id}|{product_number}|{cleaned_name}|{normalized_name}|{variant_signature}".encode()).hexdigest()[:16]
                 alias_state = alias_stats.setdefault(
                     alias_key,
                     {
                         "alias_key": alias_key,
                         "cluster_id": cluster_id,
                         "product_number": product_number,
-                        "raw_name": name_raw,
+                        "raw_name": cleaned_name,
                         "normalized_name": normalized_name,
                         "variant_signature": variant_signature,
                         "first_seen_receipt_id": receipt_id,

@@ -291,7 +291,11 @@
     "dismissAllTooltip": "Skjul advarsler for alle separate posteringer på samme konto",
     "dismissSuccess": "Markeret som separate posteringer",
     "dismissAllSuccess": "{{count}} posteringer markeret som separate",
-    "dismissError": "Kunne ikke afvise dubletter"
+    "dismissError": "Kunne ikke afvise dubletter",
+    "groupSingle": "gruppe",
+    "groupPlural": "grupper",
+    "persistentBannerDesc": "Der er uafklarede posteringer med samme dato og beløb.",
+    "showInList": "Vis i listen"
   },
   "common": {
     "category": "Kategori",

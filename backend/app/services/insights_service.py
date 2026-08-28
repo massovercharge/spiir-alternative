@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
+from app.core.item_utils import clean_item_name
 from app.core.money import format_amount, to_minor
 from app.models import Category, Posting, PostingAllocation, engine
 
@@ -154,7 +155,8 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
                 if filter_type:
                     if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
                         continue
-                item_name = alloc.item_name
+                raw_item_name = alloc.item_name
+                item_name = clean_item_name(raw_item_name) if raw_item_name else None
                 # If item_name has a category, we might want to capitalize it nicely or just use it
                 key = (cat_id, item_name)
                 totals[key] = totals.get(key, 0) + alloc.amount_minor
