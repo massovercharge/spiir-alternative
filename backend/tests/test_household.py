@@ -250,13 +250,13 @@ def test_update_transaction_category_creates_missing_allocation():
         assert alloc is None
 
         # Update category
-        success = update_transaction_category(posting.id, "dagligvarer|supermarked")
+        success = update_transaction_category(posting.id, "husholdning|dagligvarer")
         assert success is True
 
         # Verify allocation was automatically created with correct household_id and category
         alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)).first()
         assert alloc is not None
-        assert alloc.category_id == "dagligvarer|supermarked"
+        assert alloc.category_id == "husholdning|dagligvarer"
         assert alloc.amount_minor == -15000
         assert alloc.household_id == hh.id
 

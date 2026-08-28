@@ -49,4 +49,4 @@ def account_merge(target_uid: str, source_uid: str) -> dict[str, Any]:
         try:
             return merge_accounts(session, hh_id, source_account_uid=source_uid, target_account_uid=target_uid)
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e)) from e

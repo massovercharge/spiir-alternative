@@ -1,19 +1,18 @@
 import datetime as dt
+
 from sqlmodel import Session
 
 from app.models import (
     Account,
     BankConnection,
     Category,
-    Household,
     Posting,
     PostingAllocation,
+    all_models,
 )
-from app.models.all_models import engine
 from app.services.notification_service import (
     detect_duplicate_payments,
     detect_expiring_consents,
-    detect_recent_linked_receipts,
     detect_rule_suggestions,
     get_household_notifications,
 )
@@ -22,9 +21,7 @@ from tests.conftest import TEST_HOUSEHOLD_ID
 
 
 def test_detect_duplicate_payments():
-    with Session(engine) as session:
-        hh = Household(id=TEST_HOUSEHOLD_ID, name="Test Household")
-        session.add(hh)
+    with Session(all_models.engine) as session:
         acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
         session.add(acc)
 
@@ -64,9 +61,7 @@ def test_detect_duplicate_payments():
 
 
 def test_transaction_list_and_detail_duplicate_metadata():
-    with Session(engine) as session:
-        hh = Household(id=TEST_HOUSEHOLD_ID, name="Test Household")
-        session.add(hh)
+    with Session(all_models.engine) as session:
         acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
         session.add(acc)
 
@@ -122,10 +117,7 @@ def test_transaction_list_and_detail_duplicate_metadata():
 
 
 def test_detect_expiring_consents():
-    with Session(engine) as session:
-        hh = Household(id=TEST_HOUSEHOLD_ID, name="Test Household")
-        session.add(hh)
-
+    with Session(all_models.engine) as session:
         # Expiring in 4 days
         exp_date = (dt.datetime.now(dt.UTC) + dt.timedelta(days=4)).isoformat()
         conn = BankConnection(
@@ -145,9 +137,7 @@ def test_detect_expiring_consents():
 
 
 def test_detect_rule_suggestions():
-    with Session(engine) as session:
-        hh = Household(id=TEST_HOUSEHOLD_ID, name="Test Household")
-        session.add(hh)
+    with Session(all_models.engine) as session:
         acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
         session.add(acc)
         cat = Category(id="fornøjelser|musik-lyd", main_name="Fornøjelser", sub_name="Musik & Lyd")
@@ -179,9 +169,7 @@ def test_detect_rule_suggestions():
 
 
 def test_get_household_notifications_aggregation():
-    with Session(engine) as session:
-        hh = Household(id=TEST_HOUSEHOLD_ID, name="Test Household")
-        session.add(hh)
+    with Session(all_models.engine) as session:
         acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
         session.add(acc)
 

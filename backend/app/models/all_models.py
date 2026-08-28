@@ -15,6 +15,8 @@ Key concepts:
   used as training data for future ML-based auto-categorization.
 """
 import contextvars
+import os
+import sys
 import uuid
 from datetime import UTC, datetime
 from typing import Optional
@@ -22,6 +24,7 @@ from typing import Optional
 from sqlalchemy import bindparam, event
 from sqlalchemy.orm import Mapper, with_loader_criteria
 from sqlalchemy.orm import Session as SASession
+from sqlalchemy.pool import StaticPool
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
 
 from app.core.config import get_data_dir
@@ -33,9 +36,18 @@ current_household_id: contextvars.ContextVar[str] = contextvars.ContextVar("curr
 # Engine
 # ---------------------------------------------------------------------------
 
-sqlite_file_name = get_data_dir() / "peng.sqlite"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-engine = create_engine(sqlite_url, echo=False)
+if "pytest" in sys.modules or os.environ.get("TESTING") == "1":
+    sqlite_url = "sqlite:///:memory:"
+    engine = create_engine(
+        sqlite_url,
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False},
+        echo=False,
+    )
+else:
+    sqlite_file_name = get_data_dir() / "peng.sqlite"
+    sqlite_url = f"sqlite:///{sqlite_file_name}"
+    engine = create_engine(sqlite_url, echo=False)
 
 
 def _utcnow_iso() -> str:

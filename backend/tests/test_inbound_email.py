@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.main import create_app
-from app.models import Household, HouseholdMember, User, engine
+from app.models import Household, HouseholdMember, User, all_models
 from app.services.inbound_email_service import (
     extract_storebox_link,
     list_inbound_emails,
@@ -72,7 +72,7 @@ def test_extract_storebox_link():
 
 
 def test_resolve_household():
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         hh = Household(name="Familien Hansen", inbound_email_token="testtoken123")
         db.add(hh)
         db.commit()
@@ -94,7 +94,7 @@ def test_resolve_household():
 
 
 def test_process_inbound_email_success():
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         hh = Household(name="Test Husstand", inbound_email_token="token_success_123")
         db.add(hh)
         db.commit()
@@ -123,7 +123,7 @@ def test_process_inbound_email_success():
     assert res["deduplicated_receipt_count"] >= 1
 
     # Check history log in database
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         logs = list_inbound_emails(hh_id)
         assert len(logs) == 1
         assert logs[0]["status"] == "success"
@@ -132,7 +132,7 @@ def test_process_inbound_email_success():
 
 
 def test_process_inbound_email_no_link():
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         hh = Household(name="Test Husstand No Link", inbound_email_token="token_nolink_123")
         db.add(hh)
         db.commit()
@@ -150,7 +150,7 @@ def test_process_inbound_email_no_link():
     assert res["success"] is False
     assert res["status"] == "no_link"
 
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         logs = list_inbound_emails(hh_id)
         assert len(logs) == 1
         assert logs[0]["status"] == "no_link"
@@ -158,7 +158,7 @@ def test_process_inbound_email_no_link():
 
 
 def test_process_inbound_email_download_failure():
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         hh = Household(name="Test Husstand Failed Download", inbound_email_token="token_failed_123")
         db.add(hh)
         db.commit()
@@ -178,7 +178,7 @@ def test_process_inbound_email_download_failure():
     assert res["success"] is False
     assert res["status"] == "failed"
 
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         logs = list_inbound_emails(hh_id)
         assert len(logs) == 1
         assert logs[0]["status"] == "failed"
@@ -186,7 +186,7 @@ def test_process_inbound_email_download_failure():
 
 
 def test_inbound_api_endpoints(test_client):
-    with Session(engine) as db:
+    with Session(all_models.engine) as db:
         user = User(logto_id="test_user_inbound", email="test@peng.dk", name="Tester")
         db.add(user)
         db.commit()
@@ -274,7 +274,7 @@ def test_suggested_receipts_endpoint(test_client):
     import app.models as models
     from app.models.all_models import Account, Household, Posting
 
-    with Session(models.engine) as db:
+    with Session(models.all_models.engine) as db:
         hh = db.exec(select(Household)).first()
         if not hh:
             hh = Household(name="Test HH")

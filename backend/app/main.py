@@ -20,11 +20,11 @@ from app.api.routers import (
     households,
     inbound,
     insights,
+    notifications,
     recurring,
     rules,
     sync,
     transactions,
-    notifications,
 )
 from app.core.auth import get_auth_dependency
 from app.models import create_db_and_tables

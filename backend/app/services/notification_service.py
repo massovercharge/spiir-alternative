@@ -5,7 +5,7 @@ import datetime as dt
 import hashlib
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import func
 from sqlmodel import Session, col, select
@@ -13,7 +13,6 @@ from sqlmodel import Session, col, select
 import app.models as models
 from app.core.money import format_amount
 from app.models import (
-    Account,
     BankConnection,
     CategorizationRule,
     Category,
@@ -24,11 +23,9 @@ from app.models.all_models import Household, current_household_id
 
 logger = logging.getLogger("peng.notification_service")
 
-engine = models.engine
-
 
 def _get_engine():
-    return globals().get("engine") or models.engine or models.all_models.engine
+    return models.all_models.engine
 
 
 def _clean_description_for_grouping(desc: str) -> str:
@@ -76,7 +73,7 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
         rep = group[0]
         desc_display = rep.original_description or clean_desc
         formatted_amount = format_amount(abs(amount_minor))
-        group_hash = hashlib.md5(f"{eff_date}:{amount_minor}:{clean_desc}".encode("utf-8")).hexdigest()[:10]
+        group_hash = hashlib.md5(f"{eff_date}:{amount_minor}:{clean_desc}".encode()).hexdigest()[:10]
 
         notifications.append({
             "id": f"dup:{eff_date}:{group_hash}",
@@ -124,7 +121,7 @@ def detect_expiring_consents(db: Session, household_id: str) -> list[dict[str, A
             exp_dt = dt.datetime.fromisoformat(exp_str)
             if exp_dt.tzinfo is None:
                 exp_dt = exp_dt.replace(tzinfo=dt.UTC)
-            
+
             delta = exp_dt - now_utc
             days_left = delta.days
 

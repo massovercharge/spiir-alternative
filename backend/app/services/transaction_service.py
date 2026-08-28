@@ -30,11 +30,11 @@ from app.models.all_models import Household, current_household_id
 
 logger = logging.getLogger("peng.transaction_service")
 
-engine = models.engine
+engine = None
 
 
 def _get_engine():
-    return globals().get("engine") or models.engine
+    return engine or models.all_models.engine
 
 
 def _utcnow_iso() -> str:

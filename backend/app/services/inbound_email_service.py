@@ -32,6 +32,10 @@ from app.services.storebox_service import process_storebox_file, process_storebo
 from app.services.transaction_service import auto_link_receipts
 
 
+def _get_engine():
+    return models.all_models.engine
+
+
 def _utcnow_iso() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
@@ -46,7 +50,7 @@ A_TAG_PATTERN = re.compile(
 )
 
 # Token extraction pattern (e.g. receipts+abc123def456@... or abc123def456@...)
-TOKEN_PATTERN = re.compile(r"(?:[a-zA-Z0-9._%+-]+\+)?([a-f0-9]{8,32})@", re.IGNORECASE)
+TOKEN_PATTERN = re.compile(r"(?:[a-zA-Z0-9._%+-]+\+)?([a-zA-Z0-9]{6,32})@", re.IGNORECASE)
 
 
 def extract_storebox_link(text_body: str = "", html_body: str = "") -> str | None:
@@ -121,7 +125,7 @@ def resolve_household_by_token_or_recipient(
     body_text: str = "",
 ) -> Household | None:
     """Resolve which household an inbound email belongs to."""
-    with Session(models.engine) as db:
+    with Session(_get_engine()) as db:
         # Check recipient addresses for tokens
         for recipient in recipients:
             match = TOKEN_PATTERN.search(recipient)
@@ -256,7 +260,7 @@ def process_inbound_email(
 
     # Resolve target household
     target_household: Household | None = None
-    with Session(models.engine) as db:
+    with Session(_get_engine()) as db:
         if household_id:
             target_household = db.get(Household, household_id)
         if not target_household:
@@ -271,7 +275,7 @@ def process_inbound_email(
     # Process receipt data and update log
     current_token = current_household_id.set(target_household_id)
     try:
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             # Create log record
             email_log = InboundEmail(
                 household_id=target_household_id,
@@ -322,7 +326,7 @@ def process_inbound_email(
                 is_confirmation = bool(primary_link or any(k in f"{subject} {text_body}".lower() for k in ("confirm", "forwarding", "bekræft", "verification", "verify")))
                 status_val = "info" if is_confirmation else "no_link"
 
-                with Session(models.engine) as db:
+                with Session(_get_engine()) as db:
                     log_item = db.get(InboundEmail, log_id)
                     if log_item:
                         log_item.status = status_val
@@ -343,7 +347,7 @@ def process_inbound_email(
         result["auto_linked"] = auto_linked
 
         # Update log to success
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             log_item = db.get(InboundEmail, log_id)
             if log_item:
                 log_item.status = "success"
@@ -368,7 +372,7 @@ def process_inbound_email(
 
     except Exception as exc:
         err_msg = str(exc)
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             log_item = db.get(InboundEmail, log_id)
             if log_item:
                 log_item.status = "failed"
@@ -392,7 +396,7 @@ def list_inbound_emails(household_id: str, limit: int = 50) -> list[dict[str, An
     """List historical inbound Storebox emails for a household."""
     token = current_household_id.set(household_id)
     try:
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             logs = db.exec(
                 select(InboundEmail)
                 .where(InboundEmail.household_id == household_id)
@@ -424,7 +428,7 @@ def list_inbound_emails(household_id: str, limit: int = 50) -> list[dict[str, An
 
 def retry_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
     """Retry downloading and parsing receipts for a previously logged email."""
-    with Session(models.engine) as db:
+    with Session(_get_engine()) as db:
         log_item = db.get(InboundEmail, email_id)
         if not log_item or log_item.household_id != household_id:
             raise ValueError("Inbound email log record not found")
@@ -439,7 +443,7 @@ def retry_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
         result = process_storebox_link(url)
         auto_linked = auto_link_receipts()
 
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             log_item = db.get(InboundEmail, email_id)
             if log_item:
                 log_item.status = "success"
@@ -459,7 +463,7 @@ def retry_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
         }
     except Exception as exc:
         err_msg = str(exc)
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             log_item = db.get(InboundEmail, email_id)
             if log_item:
                 log_item.status = "failed"
@@ -478,7 +482,7 @@ def retry_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
 
 def get_inbound_config_for_household(household_id: str) -> dict[str, Any]:
     """Return inbound email configuration, unique address, and IMAP status for a household."""
-    with Session(models.engine) as db:
+    with Session(_get_engine()) as db:
         hh = db.get(Household, household_id)
         if not hh:
             raise ValueError("Household not found")
@@ -499,7 +503,7 @@ def get_inbound_config_for_household(household_id: str) -> dict[str, Any]:
 
 def regenerate_inbound_token(household_id: str, requesting_user_id: str) -> dict[str, Any]:
     """Regenerate a new inbound email token for the household (requires owner role)."""
-    with Session(models.engine) as db:
+    with Session(_get_engine()) as db:
         membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
@@ -527,7 +531,7 @@ def delete_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
     """Delete a single inbound email log item."""
     token = current_household_id.set(household_id)
     try:
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             item = db.exec(select(InboundEmail).where(InboundEmail.id == email_id)).first()
             if not item:
                 raise ValueError("Log-post blev ikke fundet")
@@ -542,7 +546,7 @@ def clear_inbound_emails(household_id: str) -> dict[str, Any]:
     """Clear all inbound email logs for a household."""
     token = current_household_id.set(household_id)
     try:
-        with Session(models.engine) as db:
+        with Session(_get_engine()) as db:
             items = db.exec(select(InboundEmail).where(InboundEmail.household_id == household_id)).all()
             count = len(items)
             for item in items:

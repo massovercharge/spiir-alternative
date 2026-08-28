@@ -6,7 +6,14 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.models import Category, PostingAllocation, engine
+import app.models as models
+from app.models import Category, PostingAllocation
+
+engine = None
+
+
+def _get_engine():
+    return engine or models.all_models.engine
 
 # ---------------------------------------------------------------------------
 # Default Taxonomy
@@ -93,7 +100,7 @@ def make_category_id(main_name: str, sub_name: str) -> str:
 def seed_categories() -> int:
     """Insert default taxonomy into the Category table. Idempotent."""
     count = 0
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         for main_name, subs in DEFAULT_TAXONOMY.items():
             cat_type = "Income" if main_name in INCOME_MAIN_CATEGORIES else "Expense"
             for sub_name in subs:
@@ -117,7 +124,7 @@ def seed_categories() -> int:
 
 def list_categories() -> list[dict[str, Any]]:
     """Return the full taxonomy grouped by main category."""
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         categories = db.exec(
             select(Category).order_by(Category.main_name, Category.sub_name)
         ).all()
@@ -140,7 +147,7 @@ def get_taxonomy_response() -> dict[str, Any]:
 
     # Count actual usage per category from transactions
     usage_counts: dict[str, int] = {}
-    with Session(engine) as db:
+    with Session(_get_engine()) as db:
         rows = db.exec(
             select(PostingAllocation.category_id)
             .where(PostingAllocation.category_id.is_not(None))  # type: ignore[union-attr]

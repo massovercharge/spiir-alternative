@@ -66,10 +66,33 @@ def descriptions_match(desc1: Optional[str], desc2: Optional[str]) -> bool:
         return True
 
     # Prefix overlap (e.g. nettopk vs nettopr)
-    if len(c1) >= 4 and len(c2) >= 4 and c1[:5] == c2[:5]:
+    return bool(len(c1) >= 4 and len(c2) >= 4 and c1[:5] == c2[:5])
+
+
+def are_accounts_duplicate_pair(
+    session: Session,
+    acc_uid1: str,
+    acc_uid2: str,
+    allow_same_account: bool = False,
+) -> bool:
+    """Check if two accounts represent the same physical account (e.g. CSV archive + Bank sync)."""
+    if acc_uid1 == acc_uid2:
+        return allow_same_account
+    acc1 = session.get(Account, acc_uid1)
+    acc2 = session.get(Account, acc_uid2)
+    if not acc1 or not acc2:
+        return False
+
+    is_csv_bank_pair = (acc1.source == "csv" and acc2.source == "enablebanking") or (
+        acc1.source == "enablebanking" and acc2.source == "csv"
+    )
+    name1 = acc1.name.replace("(Spiir)", "").replace("(CSV)", "").strip().lower()
+    name2 = acc2.name.replace("(Spiir)", "").replace("(CSV)", "").strip().lower()
+
+    if name1 == name2:
         return True
 
-    return False
+    return bool(is_csv_bank_pair and (name1 in name2 or name2 in name1))
 
 
 def find_duplicate_candidate_in_db(
@@ -77,6 +100,7 @@ def find_duplicate_candidate_in_db(
     household_id: str,
     target_posting: Posting,
     exclude_account_uid: Optional[str] = None,
+    allow_same_account: bool = False,
 ) -> Optional[Posting]:
     """Find an existing duplicate posting in the household matching date, amount, and description."""
     eff_date = target_posting.custom_date or target_posting.booking_date
@@ -98,6 +122,13 @@ def find_duplicate_candidate_in_db(
     for cand in candidates:
         cand_date = cand.custom_date or cand.booking_date
         if cand_date == eff_date:
+            if not are_accounts_duplicate_pair(
+                session,
+                target_posting.account_uid,
+                cand.account_uid,
+                allow_same_account=allow_same_account,
+            ):
+                continue
             if descriptions_match(target_posting.original_description, cand.original_description):
                 return cand
 
@@ -368,7 +399,7 @@ def merge_accounts(
         key = (p.custom_date or p.booking_date, p.amount_minor, clean_description_for_matching(p.original_description))
         if key in seen_pairs:
             # Duplicate found
-            cand = find_duplicate_candidate_in_db(session, household_id, p)
+            cand = find_duplicate_candidate_in_db(session, household_id, p, allow_same_account=True)
             if cand and cand.id != p.id:
                 consolidate_posting_pair(session, kept_posting_id=cand.id, removed_posting_id=p.id)
                 reconciled_duplicates += 1
@@ -406,7 +437,7 @@ def resolve_all_household_duplicates(
         key = (d["date"], d["amount_minor"])
         groups.setdefault(key, []).append(d)
 
-    for (date_str, amt), tx_list in groups.items():
+    for (_date_str, _amt), tx_list in groups.items():
         if len(tx_list) >= 2:
             # Prefer keeping the live bank post (eb:...) if present
             bank_item = next((tx for tx in tx_list if tx["id"].startswith("eb:")), tx_list[0])
