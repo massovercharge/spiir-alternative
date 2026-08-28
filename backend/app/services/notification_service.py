@@ -38,12 +38,22 @@ def _clean_description_for_grouping(desc: str) -> str:
     return text
 
 
+STATUTORY_SPLIT_KEYWORDS = (
+    "børne- og ungeydelse",
+    "børneydelse",
+    "børnepenge",
+    "børnecheck",
+    "børnetilskud",
+    "ungeydelse",
+)
+
+
 # ---------------------------------------------------------------------------
 # Detectors
 # ---------------------------------------------------------------------------
 
 def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, Any]]:
-    """Find transactions on the same date with the same amount and recipient."""
+    """Find outgoing expense transactions on the same date with the same amount and recipient."""
     notifications: list[dict[str, Any]] = []
 
     # Get effective date for all postings in the household
@@ -51,7 +61,7 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
     query = (
         select(Posting)
         .where(Posting.household_id == household_id)
-        .where(col(Posting.amount_minor) != 0)
+        .where(col(Posting.amount_minor) < 0)  # Duplicate payment warnings only apply to expenses
         .order_by(eff_date_col.desc())
     )
     postings = db.exec(query).all()
@@ -62,6 +72,10 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
         eff_date = p.custom_date or p.booking_date or ""
         clean_desc = _clean_description_for_grouping(p.original_description)
         if not eff_date or not clean_desc:
+            continue
+        # Exclude statutory benefits (e.g. Børne- og Ungeydelse split between parents)
+        lower_desc = (p.original_description or "").lower()
+        if any(kw in lower_desc for kw in STATUTORY_SPLIT_KEYWORDS):
             continue
         key = (eff_date, p.amount_minor, clean_desc)
         groups.setdefault(key, []).append(p)

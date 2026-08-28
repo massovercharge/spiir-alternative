@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.3",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Refined duplicate payment detection to exclusively target outgoing expenses (amount < 0), eliminating false positives on incoming income",
+        "Added automatic recognition and exemption for Danish statutory split benefits (e.g. Børne- og Ungeydelse distributed across both parents)",
+        "Updated transaction listing duplicate warning flags to exclude legitimate shared household income deposits"
+      ],
+      "da": [
+        "Præciseret detektering af mulige dobbeltbetalinger til udelukkende at omfatte udgifter (beløb < 0), så indtægter ikke fejlagtigt markeres",
+        "Tilføjet automatisk genkendelse og undtagelse af lovbestemte delte ydelser (f.eks. Børne- og Ungeydelse udbetalt til begge forældre)",
+        "Opdateret advarselsflag på transaktionsoversigten så legitime fælles indtægter aldrig advares som dubletter"
+      ]
+    }
+  },
+  {
     "version": "v1.7.2",
     "date": "2026-08-28",
     "changes": {

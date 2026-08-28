@@ -181,3 +181,39 @@ def test_get_household_notifications_aggregation():
     all_notifs = get_household_notifications(TEST_HOUSEHOLD_ID)
     assert len(all_notifs) >= 1
     assert any(n["type"] == "duplicate_payment" for n in all_notifs)
+
+
+def test_statutory_benefits_and_income_not_flagged_as_duplicates():
+    with Session(all_models.engine) as session:
+        acc1 = Account(uid="acc_parent1", household_id=TEST_HOUSEHOLD_ID, name="Parent 1 NemKonto", currency="DKK")
+        acc2 = Account(uid="acc_parent2", household_id=TEST_HOUSEHOLD_ID, name="Parent 2 NemKonto", currency="DKK")
+        session.add_all([acc1, acc2])
+
+        # Positive income: Børne- og Ungeydelse received by both parents on Jan 20th
+        p1 = Posting(
+            id="by1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_parent1",
+            booking_date="2026-01-20",
+            amount_minor=237400,
+            original_description="Udbetaling Danmark Børne- og ungeydelse",
+        )
+        p2 = Posting(
+            id="by2",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_parent2",
+            booking_date="2026-01-20",
+            amount_minor=237400,
+            original_description="Udbetaling Danmark Børne- og ungeydelse",
+        )
+        session.add_all([p1, p2])
+        session.commit()
+
+        notifs = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs) == 0
+
+        # Also verify list_transactions does not set has_duplicate_warning
+        tx_list = list_transactions(limit=10)
+        for tx in tx_list["transactions"]:
+            assert tx.get("has_duplicate_warning") is False
+

@@ -440,10 +440,15 @@ def get_duplicate_groups_preview(
     }
 
     groups: dict[tuple[str, int, str], list[Posting]] = {}
+    statutory_keywords = ("børne- og ungeydelse", "børneydelse", "børnepenge", "børnecheck", "børnetilskud", "ungeydelse")
     for p in postings:
         eff_date = p.custom_date or p.booking_date or ""
         clean_desc = clean_description_for_matching(p.original_description)
         if not eff_date or not clean_desc:
+            continue
+        # Exclude known statutory child allowance / split benefits across parents
+        lower_desc = (p.original_description or "").lower()
+        if any(kw in lower_desc for kw in statutory_keywords):
             continue
         key = (eff_date, p.amount_minor, clean_desc)
         groups.setdefault(key, []).append(p)

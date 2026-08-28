@@ -45,6 +45,16 @@ def _utcnow_iso() -> str:
 # Read
 # ---------------------------------------------------------------------------
 
+STATUTORY_SPLIT_KEYWORDS = (
+    "børne- og ungeydelse",
+    "børneydelse",
+    "børnepenge",
+    "børnecheck",
+    "børnetilskud",
+    "ungeydelse",
+)
+
+
 def list_transactions(
     *,
     limit: int | None = None,
@@ -63,10 +73,10 @@ def list_transactions(
     with Session(_get_engine()) as db:
         eff_date = func.coalesce(Posting.custom_date, Posting.booking_date)
 
-        # Pre-compute duplicate map for the household
+        # Pre-compute duplicate map for outgoing expenses in the household
         all_postings_for_dups = db.exec(
             select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.amount_minor, Posting.original_description)
-            .where(col(Posting.amount_minor) != 0)
+            .where(col(Posting.amount_minor) < 0)
         ).all()
 
         dup_groups: dict[tuple[str, int, str], list[str]] = {}
@@ -74,6 +84,8 @@ def list_transactions(
             e_date = c_date or b_date or ""
             cdesc = (desc or "").strip().lower()
             if e_date and cdesc:
+                if any(kw in cdesc for kw in STATUTORY_SPLIT_KEYWORDS):
+                    continue
                 dup_groups.setdefault((e_date, amt, cdesc), []).append(p_id)
 
         dup_info_map: dict[str, tuple[int, list[str]]] = {}
@@ -227,11 +239,12 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
             for alloc_id, tag_name in links:
                 tags_map.setdefault(alloc_id, []).append(tag_name)
 
-        # Check for duplicate siblings on same effective date and amount and description
+        # Check for duplicate siblings on same effective date and amount and description for expenses
         eff_date = posting.custom_date or posting.booking_date
         cdesc = (posting.original_description or "").strip().lower()
         siblings = []
-        if eff_date and cdesc and posting.amount_minor != 0:
+        is_statutory = any(kw in cdesc for kw in STATUTORY_SPLIT_KEYWORDS)
+        if eff_date and cdesc and posting.amount_minor < 0 and not is_statutory:
             siblings_query = (
                 select(Posting.id)
                 .where(Posting.id != transaction_id)
