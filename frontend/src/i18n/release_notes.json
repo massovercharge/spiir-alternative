@@ -1,5 +1,25 @@
 [
   {
+    "version": "v1.7.2",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Added interactive Duplicate Review Modal with clear educational guidance explaining the difference between same-account separate purchases and cross-account archive duplicates",
+        "Replaced direct 1-click execution button with a safe 'Review & Resolve' workflow in the Transactions banner and Notification Drawer",
+        "Added candidate group breakdown showing involved accounts, notes, categories, and merge eligibility",
+        "Safeguarded backend reconciliation service so same-account purchases are strictly preserved and never merged",
+        "Fixed GitHub Actions CI test suite engine isolation and foreign key fixture seeding"
+      ],
+      "da": [
+        "Tilføjet interaktiv 'Gennemgå dubletter' dialogboks med pædagogisk forklaring af forskellen på reelle separate køb på samme konto og arkiv-overlap",
+        "Erstattet direkte 1-klik knap med en tryg 'Undersøg & Løs' dialog i både transaktions-banneret og notifikationsskuffen",
+        "Tilføjet detaljeret visning af fundne kandidatgrupper med involverede konti, noter, kategorier og fletbarhedsstatus",
+        "Sikret afstemningsservicen så køb på samme konto altid bevares og aldrig flettes sammen",
+        "Løst GitHub Actions CI testsuite med in-memory engine isolering og automatisk foreign key fixtures"
+      ]
+    }
+  },
+  {
     "version": "v1.7.1",
     "date": "2026-08-28",
     "changes": {
