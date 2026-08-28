@@ -95,3 +95,42 @@ export function useResolveDuplicates() {
     },
   });
 }
+
+export function useDismissDuplicate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { transaction_ids: string[] }) => {
+      const res = await fetch(`${API_BASE}/api/notifications/dismiss-duplicate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to dismiss duplicate');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['duplicate-preview'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}
+
+export function useDismissAllDuplicates() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API_BASE}/api/notifications/dismiss-all-duplicates`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to dismiss all duplicates');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['duplicate-preview'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}

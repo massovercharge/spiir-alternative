@@ -21,6 +21,7 @@ from app.models import (
     CategorizationRule,
     Category,
     CategoryOverrideLog,
+    DismissedDuplicate,
     Posting,
     PostingAllocation,
     PostingAllocationTagLink,
@@ -88,14 +89,29 @@ def list_transactions(
                     continue
                 dup_groups.setdefault((e_date, amt, cdesc), []).append(p_id)
 
+        dismissed = db.exec(select(DismissedDuplicate)).all()
+        dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
+
+        import itertools
         dup_info_map: dict[str, tuple[int, list[str]]] = {}
         dup_posting_ids: set[str] = set()
         for group in dup_groups.values():
             if len(group) >= 2:
+                # Check if all pairs in group are dismissed
+                all_dismissed = True
+                for p1, p2 in itertools.combinations(group, 2):
+                    if (min(p1, p2), max(p1, p2)) not in dismissed_pairs:
+                        all_dismissed = False
+                        break
+                if all_dismissed:
+                    continue
+
                 for p_id in group:
-                    dup_posting_ids.add(p_id)
-                    siblings = [other_id for other_id in group if other_id != p_id]
-                    dup_info_map[p_id] = (len(group), siblings)
+                    # Only include siblings that are not dismissed with this p_id
+                    siblings = [other_id for other_id in group if other_id != p_id and (min(p_id, other_id), max(p_id, other_id)) not in dismissed_pairs]
+                    if siblings:
+                        dup_posting_ids.add(p_id)
+                        dup_info_map[p_id] = (len(siblings) + 1, siblings)
 
         query = select(Posting).distinct().order_by(
             eff_date.desc(),
@@ -252,7 +268,18 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
                 .where(Posting.amount_minor == posting.amount_minor)
                 .where(func.lower(func.trim(Posting.original_description)) == cdesc)
             )
-            siblings = list(db.exec(siblings_query).all())
+            raw_siblings = list(db.exec(siblings_query).all())
+            # Exclude siblings that are dismissed with this transaction
+            dismissed = db.exec(
+                select(DismissedDuplicate).where(
+                    (DismissedDuplicate.posting_id_1 == transaction_id) | (DismissedDuplicate.posting_id_2 == transaction_id)
+                )
+            ).all()
+            dismissed_with_this = {
+                d.posting_id_2 if d.posting_id_1 == transaction_id else d.posting_id_1
+                for d in dismissed
+            }
+            siblings = [s for s in raw_siblings if s not in dismissed_with_this]
 
         dup_info = (len(siblings) + 1, siblings) if siblings else (0, [])
 

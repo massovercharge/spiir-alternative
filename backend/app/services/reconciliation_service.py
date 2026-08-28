@@ -12,6 +12,7 @@ from sqlmodel import Session, col, select
 from app.core.money import format_amount
 from app.models import (
     Account,
+    DismissedDuplicate,
     Document,
     Posting,
     PostingAllocation,
@@ -421,11 +422,62 @@ def merge_accounts(
     }
 
 
+def get_dismissed_duplicate_pairs(session: Session, household_id: str) -> set[tuple[str, str]]:
+    """Return set of normalized (id1, id2) pairs that have been marked as not duplicate."""
+    dismissed = session.exec(
+        select(DismissedDuplicate).where(DismissedDuplicate.household_id == household_id)
+    ).all()
+    pairs = set()
+    for d in dismissed:
+        p1, p2 = min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)
+        pairs.add((p1, p2))
+    return pairs
+
+
+def dismiss_duplicate_pair(
+    session: Session,
+    household_id: str,
+    posting_ids: list[str],
+) -> int:
+    """Mark a set of postings as NOT being duplicates of each other."""
+    if len(posting_ids) < 2:
+        return 0
+    existing = get_dismissed_duplicate_pairs(session, household_id)
+    added_count = 0
+    import itertools
+    for p1, p2 in itertools.combinations(posting_ids, 2):
+        pair = (min(p1, p2), max(p1, p2))
+        if pair not in existing:
+            session.add(DismissedDuplicate(
+                household_id=household_id,
+                posting_id_1=pair[0],
+                posting_id_2=pair[1],
+            ))
+            existing.add(pair)
+            added_count += 1
+    session.commit()
+    return added_count
+
+
+def dismiss_all_same_account_duplicates(
+    session: Session,
+    household_id: str,
+) -> int:
+    """Find all same-account duplicate groups and dismiss them in bulk."""
+    groups = get_duplicate_groups_preview(session, household_id)
+    total_dismissed = 0
+    for g in groups:
+        if not g["can_auto_merge"]:
+            pids = [p["id"] for p in g["postings"]]
+            total_dismissed += dismiss_duplicate_pair(session, household_id, pids)
+    return total_dismissed
+
+
 def get_duplicate_groups_preview(
     session: Session,
     household_id: str,
 ) -> list[dict[str, Any]]:
-    """Returns grouped duplicate postings for the household with details on whether they are cross-account archive duplicates or same-account transactions."""
+    """Return structured preview of all potential duplicate groups for user review."""
     eff_date_col = func.coalesce(Posting.custom_date, Posting.booking_date)
     query = (
         select(Posting)
@@ -438,6 +490,7 @@ def get_duplicate_groups_preview(
         a.uid: a
         for a in session.exec(select(Account).where(Account.household_id == household_id)).all()
     }
+    dismissed_pairs = get_dismissed_duplicate_pairs(session, household_id)
 
     groups: dict[tuple[str, int, str], list[Posting]] = {}
     statutory_keywords = ("børne- og ungeydelse", "børneydelse", "børnepenge", "børnecheck", "børnetilskud", "ungeydelse")
@@ -454,8 +507,18 @@ def get_duplicate_groups_preview(
         groups.setdefault(key, []).append(p)
 
     preview_groups = []
+    import itertools
     for (eff_date, amount_minor, clean_desc), plist in groups.items():
         if len(plist) < 2:
+            continue
+
+        # Skip group if all pairs in plist are already dismissed as not duplicate
+        all_dismissed = True
+        for p1, p2 in itertools.combinations(plist, 2):
+            if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
+                all_dismissed = False
+                break
+        if all_dismissed:
             continue
 
         # Check if this pair is a cross-account archive duplicate pair that can safely be merged

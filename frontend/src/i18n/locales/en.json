@@ -283,7 +283,15 @@
     "archiveOverlap": "Archive overlap (can be merged)",
     "sameAccountSeparate": "Same account (2 separate purchases)",
     "viewInTransactions": "View in transaction list",
-    "mergeArchivePairs": "Merge archive duplicates ({{count}})"
+    "mergeArchivePairs": "Merge archive duplicates ({{count}})",
+    "markAsNotDuplicate": "Not a duplicate",
+    "dismissThis": "Not a duplicate (dismiss)",
+    "dismissTooltip": "Mark these transactions as separate purchases (hide warning)",
+    "dismissAllSameAccount": "Dismiss all as not-duplicates ({{count}})",
+    "dismissAllTooltip": "Hide warnings for all separate transactions on the same account",
+    "dismissSuccess": "Marked as separate transactions",
+    "dismissAllSuccess": "{{count}} transactions marked as separate",
+    "dismissError": "Could not dismiss duplicates"
   },
   "common": {
     "category": "Category",

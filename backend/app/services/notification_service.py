@@ -16,6 +16,7 @@ from app.models import (
     BankConnection,
     CategorizationRule,
     Category,
+    DismissedDuplicate,
     Posting,
     PostingAllocation,
 )
@@ -80,8 +81,21 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
         key = (eff_date, p.amount_minor, clean_desc)
         groups.setdefault(key, []).append(p)
 
+    dismissed = db.exec(select(DismissedDuplicate).where(DismissedDuplicate.household_id == household_id)).all()
+    dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
+
+    import itertools
     for (eff_date, amount_minor, clean_desc), group in groups.items():
         if len(group) < 2:
+            continue
+
+        # Skip group if all pairs in group are dismissed
+        all_dismissed = True
+        for p1, p2 in itertools.combinations(group, 2):
+            if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
+                all_dismissed = False
+                break
+        if all_dismissed:
             continue
 
         rep = group[0]

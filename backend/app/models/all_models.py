@@ -727,9 +727,25 @@ class InboundEmail(SQLModel, table=True):
 
 
 # ---------------------------------------------------------------------------
+# Models: DismissedDuplicate (Explicit User Not-Duplicate Approvals)
+# ---------------------------------------------------------------------------
+
+class DismissedDuplicate(SQLModel, table=True):
+    """Stores pairs of postings that the user has explicitly dismissed as NOT being duplicates."""
+    __tablename__ = "dismissed_duplicate"
+
+    id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
+    household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
+    posting_id_1: str = Field(index=True)
+    posting_id_2: str = Field(index=True)
+    created_at: str = Field(default_factory=_utcnow_iso)
+
+
+# ---------------------------------------------------------------------------
 # Legacy alias (for migration compatibility)
 # ---------------------------------------------------------------------------
 
 # The V2 code used `Transaction` — this alias allows old service code
 # to keep working during the gradual migration. Remove after Phase 1 is complete.
 Transaction = Posting
+

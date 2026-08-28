@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, AlertTriangle, Plus, Trash2, Search, Sparkles, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Calendar, Edit3, Tag as TagIcon, SplitSquareHorizontal, Check, AlertCircle, AlertTriangle, Plus, Trash2, Search, Sparkles, Receipt, ChevronDown, ChevronUp, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { Button } from './Button';
 import CategoryPicker from './CategoryPicker';
-import { useUpdateTransactions, useSplitTransaction, useLinkReceiptToTransaction, useSuggestedReceipts } from '../../api/client';
+import { useUpdateTransactions, useSplitTransaction, useLinkReceiptToTransaction, useSuggestedReceipts, useDismissDuplicate } from '../../api/client';
+import { toast } from 'sonner';
 
 interface TransactionDetailsSidebarProps {
   transaction: any;
@@ -36,6 +37,7 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   const updateMutation = useUpdateTransactions();
   const splitMutation = useSplitTransaction();
   const linkMutation = useLinkReceiptToTransaction();
+  const dismissDuplicateMutation = useDismissDuplicate();
   const { data: suggestions, isLoading: isLoadingSuggestions } = useSuggestedReceipts(transaction?.id, isLinkingReceipt);
 
   useEffect(() => {
@@ -277,15 +279,33 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
                   defaultValue: `Der findes ${transaction.duplicate_count || 2} posteringer til samme modtager på samme beløb på denne dato.`
                 })}
               </p>
-              {onFindSimilar && (
+              <div className="flex items-center justify-between gap-2 pt-0.5 flex-wrap">
+                {onFindSimilar && (
+                  <button
+                    onClick={() => onFindSimilar(getSearchTerm(transaction.description))}
+                    className="text-xs font-semibold text-amber-500 hover:underline flex items-center gap-1"
+                  >
+                    <Search size={12} />
+                    <span>{t('duplicates.viewMatching', 'Vis matchende postering')}</span>
+                  </button>
+                )}
                 <button
-                  onClick={() => onFindSimilar(getSearchTerm(transaction.description))}
-                  className="text-xs font-semibold text-amber-500 hover:underline flex items-center gap-1 pt-0.5"
+                  onClick={() => {
+                    const ids = [transaction.id, ...(transaction.duplicate_sibling_ids || [])];
+                    dismissDuplicateMutation.mutate({ transaction_ids: ids }, {
+                      onSuccess: () => {
+                        toast.success(t('duplicates.dismissSuccess', 'Advarsel skjult for denne postering'));
+                        onClose();
+                      }
+                    });
+                  }}
+                  disabled={dismissDuplicateMutation.isPending}
+                  className="text-xs font-semibold text-muted hover:text-[hsl(var(--text-primary))] flex items-center gap-1 transition-colors hover:underline"
                 >
-                  <Search size={12} />
-                  {t('duplicates.viewMatching', 'Vis matchende postering')}
+                  <EyeOff size={12} />
+                  <span>{t('duplicates.dismissThis', 'Ikke en dublet (skjul)')}</span>
                 </button>
-              )}
+              </div>
             </div>
           )}
 

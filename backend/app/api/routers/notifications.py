@@ -1,15 +1,23 @@
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 from sqlmodel import Session
 
 import app.models as models
 from app.models import current_household_id
 from app.services.notification_service import get_household_notifications
 from app.services.reconciliation_service import (
+    dismiss_all_same_account_duplicates,
+    dismiss_duplicate_pair,
     get_duplicate_groups_preview,
     resolve_all_household_duplicates,
 )
+
+
+class DismissDuplicateRequest(BaseModel):
+    transaction_ids: list[str]
+
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -54,3 +62,27 @@ def resolve_duplicates() -> dict[str, Any]:
     with Session(models.all_models.engine) as session:
         result = resolve_all_household_duplicates(session, hh_id)
     return result
+
+
+@router.post("/dismiss-duplicate")
+def dismiss_duplicate(body: DismissDuplicateRequest) -> dict[str, Any]:
+    """Dismiss a group of transactions as NOT being duplicates."""
+    hh_id = _get_active_household_id()
+    with Session(models.all_models.engine) as session:
+        dismissed_count = dismiss_duplicate_pair(session, hh_id, body.transaction_ids)
+    return {
+        "status": "success",
+        "dismissed_count": dismissed_count,
+    }
+
+
+@router.post("/dismiss-all-duplicates")
+def dismiss_all_duplicates() -> dict[str, Any]:
+    """Dismiss all current non-mergeable same-account duplicate groups in bulk."""
+    hh_id = _get_active_household_id()
+    with Session(models.all_models.engine) as session:
+        dismissed_count = dismiss_all_same_account_duplicates(session, hh_id)
+    return {
+        "status": "success",
+        "dismissed_count": dismissed_count,
+    }

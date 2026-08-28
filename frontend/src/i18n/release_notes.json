@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.4",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Added 'Not a duplicate' dismissal actions in the Duplicate Review Modal and Transaction Details Sidebar",
+        "Added bulk dismissal option to dismiss all legitimate same-account transactions at once",
+        "Persisted dismissed duplicate pairs in database (DismissedDuplicate) to permanently hide warnings across sessions"
+      ],
+      "da": [
+        "Tilføjet 'Ikke en dublet' afvisningsknap i gennemgangsmodalen og på transaktionsdetalje-sidebaren",
+        "Tilføjet 'Afvis alle som ikke-dubletter' funktion til nem afvisning af alle reelle transaktioner på samme konto",
+        "Gemmer afviste dublet-par permanent i databasen (DismissedDuplicate), så advarsler ikke vises igen"
+      ]
+    }
+  },
+  {
     "version": "v1.7.3",
     "date": "2026-08-28",
     "changes": {

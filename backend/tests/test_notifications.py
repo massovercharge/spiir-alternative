@@ -16,6 +16,11 @@ from app.services.notification_service import (
     detect_rule_suggestions,
     get_household_notifications,
 )
+from app.services.reconciliation_service import (
+    dismiss_all_same_account_duplicates,
+    dismiss_duplicate_pair,
+    get_duplicate_groups_preview,
+)
 from app.services.transaction_service import get_transaction, list_transactions
 from tests.conftest import TEST_HOUSEHOLD_ID
 
@@ -216,4 +221,65 @@ def test_statutory_benefits_and_income_not_flagged_as_duplicates():
         tx_list = list_transactions(limit=10)
         for tx in tx_list["transactions"]:
             assert tx.get("has_duplicate_warning") is False
+
+
+def test_dismiss_duplicate_pair_and_all_same_account():
+    with Session(all_models.engine) as session:
+        acc = Account(uid="acc_same", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
+        session.add(acc)
+
+        p1 = Posting(
+            id="dp1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_same",
+            booking_date="2026-03-01",
+            amount_minor=-4500,
+            original_description="Kaffebaren",
+        )
+        p2 = Posting(
+            id="dp2",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_same",
+            booking_date="2026-03-01",
+            amount_minor=-4500,
+            original_description="Kaffebaren",
+        )
+        session.add_all([p1, p2])
+        session.commit()
+
+        # Before dismissing, it appears in preview and notifications
+        groups = get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)
+        assert len(groups) == 1
+        assert groups[0]["can_auto_merge"] is False
+
+        notifs = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs) == 1
+
+        tx_detail = get_transaction("dp1")
+        assert tx_detail["has_duplicate_warning"] is True
+
+        # Now dismiss the duplicate pair
+        dismiss_count = dismiss_duplicate_pair(session, TEST_HOUSEHOLD_ID, ["dp1", "dp2"])
+        assert dismiss_count == 1
+
+        # Now verify it no longer appears in preview, notifications, or transaction warning
+        groups_after = get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)
+        assert len(groups_after) == 0
+
+        notifs_after = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs_after) == 0
+
+        tx_detail_after = get_transaction("dp1")
+        assert tx_detail_after["has_duplicate_warning"] is False
+
+        # Add another pair and test dismiss_all_same_account_duplicates
+        p3 = Posting(id="dp3", household_id=TEST_HOUSEHOLD_ID, account_uid="acc_same", booking_date="2026-03-02", amount_minor=-2000, original_description="Netto")
+        p4 = Posting(id="dp4", household_id=TEST_HOUSEHOLD_ID, account_uid="acc_same", booking_date="2026-03-02", amount_minor=-2000, original_description="Netto")
+        session.add_all([p3, p4])
+        session.commit()
+
+        bulk_dismissed = dismiss_all_same_account_duplicates(session, TEST_HOUSEHOLD_ID)
+        assert bulk_dismissed >= 1
+        assert len(get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)) == 0
+
 

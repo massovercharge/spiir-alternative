@@ -12,10 +12,14 @@ import {
   ExternalLink,
   Receipt,
   FileText,
+  EyeOff,
+  Check,
 } from 'lucide-react';
 import {
   useDuplicatePreview,
   useResolveDuplicates,
+  useDismissDuplicate,
+  useDismissAllDuplicates,
   DuplicateGroupPreview,
   DuplicatePostingItem,
 } from '../../api/client';
@@ -35,12 +39,15 @@ export default function DuplicateReviewModal({
   const { t, i18n } = useTranslation();
   const { data, isLoading, refetch } = useDuplicatePreview(isOpen);
   const resolveDuplicatesMutation = useResolveDuplicates();
+  const dismissDuplicateMutation = useDismissDuplicate();
+  const dismissAllMutation = useDismissAllDuplicates();
 
   if (!isOpen) return null;
 
   const groups = data?.groups || [];
   const mergeableCount = data?.mergeable_groups_count || 0;
   const totalGroups = data?.total_groups || 0;
+  const sameAccountCount = totalGroups - mergeableCount;
 
   const handleResolve = () => {
     resolveDuplicatesMutation.mutate(undefined, {
@@ -54,6 +61,38 @@ export default function DuplicateReviewModal({
       },
       onError: () => {
         toast.error(t('duplicates.resolveError', 'Kunne ikke løse dubletter automatisk'));
+      },
+    });
+  };
+
+  const handleDismissGroup = (group: DuplicateGroupPreview) => {
+    const ids = group.postings.map((p) => p.id);
+    dismissDuplicateMutation.mutate(
+      { transaction_ids: ids },
+      {
+        onSuccess: () => {
+          toast.success(t('duplicates.dismissSuccess', 'Markeret som separate posteringer'));
+          refetch();
+        },
+        onError: () => {
+          toast.error(t('duplicates.dismissError', 'Kunne ikke afvise dublet'));
+        },
+      }
+    );
+  };
+
+  const handleDismissAllSameAccount = () => {
+    dismissAllMutation.mutate(undefined, {
+      onSuccess: (res: any) => {
+        toast.success(
+          t('duplicates.dismissAllSuccess', '{{count}} posteringer markeret som separate', {
+            count: res?.dismissed_count || 0,
+          })
+        );
+        refetch();
+      },
+      onError: () => {
+        toast.error(t('duplicates.dismissError', 'Kunne ikke afvise dubletter'));
       },
     });
   };
@@ -164,17 +203,29 @@ export default function DuplicateReviewModal({
                         </div>
                       </div>
 
-                      {group.can_auto_merge ? (
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <Layers size={11} />
-                          {t('duplicates.archiveOverlap', 'Arkiv-overlap (kan flettes)')}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1">
-                          <Info size={11} />
-                          {t('duplicates.sameAccountSeparate', 'Samme konto (2 separate køb)')}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {group.can_auto_merge ? (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <Layers size={11} />
+                            {t('duplicates.archiveOverlap', 'Arkiv-overlap (kan flettes)')}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                            <Info size={11} />
+                            {t('duplicates.sameAccountSeparate', 'Samme konto (2 separate køb)')}
+                          </span>
+                        )}
+
+                        <button
+                          onClick={() => handleDismissGroup(group)}
+                          disabled={dismissDuplicateMutation.isPending}
+                          className="px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted hover:text-[hsl(var(--text-primary))] bg-[hsl(var(--bg-tertiary))] hover:bg-[hsl(var(--border-color))] border border-[hsl(var(--border-color))] flex items-center gap-1 transition-colors disabled:opacity-50"
+                          title={t('duplicates.dismissTooltip', 'Marker disse posteringer som separate køb (skjul advarsel)')}
+                        >
+                          <EyeOff size={11} />
+                          <span>{t('duplicates.markAsNotDuplicate', 'Ikke en dublet')}</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Postings inside this group */}
@@ -211,16 +262,30 @@ export default function DuplicateReviewModal({
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex items-center justify-between gap-3 flex-wrap">
-            <button
-              onClick={() => {
-                onClose();
-                if (onFilterTransactions) onFilterTransactions();
-              }}
-              className="px-3 py-2 text-xs font-semibold text-muted hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--bg-tertiary))] rounded-lg transition-colors flex items-center gap-1.5"
-            >
-              <ExternalLink size={14} />
-              <span>{t('duplicates.viewInTransactions', 'Vis i transaktionslisten')}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  onClose();
+                  if (onFilterTransactions) onFilterTransactions();
+                }}
+                className="px-3 py-2 text-xs font-semibold text-muted hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--bg-tertiary))] rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <ExternalLink size={14} />
+                <span>{t('duplicates.viewInTransactions', 'Vis i transaktionslisten')}</span>
+              </button>
+
+              {sameAccountCount > 0 && (
+                <button
+                  onClick={handleDismissAllSameAccount}
+                  disabled={dismissAllMutation.isPending}
+                  className="px-3 py-2 text-xs font-semibold text-muted hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--bg-tertiary))] rounded-lg transition-colors flex items-center gap-1.5 border border-dashed border-[hsl(var(--border-color))]"
+                  title={t('duplicates.dismissAllTooltip', 'Skjul advarsler for alle separate posteringer på samme konto')}
+                >
+                  <EyeOff size={13} />
+                  <span>{t('duplicates.dismissAllSameAccount', 'Afvis alle som ikke-dubletter ({{count}})', { count: sameAccountCount })}</span>
+                </button>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               <button

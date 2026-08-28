@@ -283,7 +283,15 @@
     "archiveOverlap": "Arkiv-overlap (kan flettes)",
     "sameAccountSeparate": "Samme konto (2 separate køb)",
     "viewInTransactions": "Vis i transaktionslisten",
-    "mergeArchivePairs": "Flet arkiv-dupletter ({{count}})"
+    "mergeArchivePairs": "Flet arkiv-dupletter ({{count}})",
+    "markAsNotDuplicate": "Ikke en dublet",
+    "dismissThis": "Ikke en dublet (skjul)",
+    "dismissTooltip": "Marker disse posteringer som separate køb (skjul advarsel)",
+    "dismissAllSameAccount": "Afvis alle som ikke-dubletter ({{count}})",
+    "dismissAllTooltip": "Skjul advarsler for alle separate posteringer på samme konto",
+    "dismissSuccess": "Markeret som separate posteringer",
+    "dismissAllSuccess": "{{count}} posteringer markeret som separate",
+    "dismissError": "Kunne ikke afvise dubletter"
   },
   "common": {
     "category": "Kategori",
