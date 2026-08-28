@@ -166,6 +166,15 @@ export function useSyncStatus(isPolling: boolean) {
   });
 }
 
+export async function mergeAccounts(targetUid: string, sourceUid: string) {
+  const res = await fetch(`${API_BASE}/api/accounts/${targetUid}/merge-from/${sourceUid}`, {
+    method: 'POST',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to merge accounts');
+  return res.json();
+}
+
 export function useUploadSpiirExport() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -178,3 +187,18 @@ export function useUploadSpiirExport() {
     }
   });
 }
+
+export function useMergeAccounts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ targetUid, sourceUid }: { targetUid: string; sourceUid: string }) =>
+      mergeAccounts(targetUid, sourceUid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  });
+}
+
+

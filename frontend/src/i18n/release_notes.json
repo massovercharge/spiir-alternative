@@ -1,5 +1,23 @@
 [
   {
+    "version": "v1.7.1",
+    "date": "2026-08-28",
+    "changes": {
+      "en": [
+        "Added Smart Ingestion Reconciler for automatic deduplication and metadata preservation during bank sync",
+        "Implemented Account Merge endpoint and service for consolidating archive accounts into live bank accounts",
+        "Added 1-click 'Auto-resolve duplicates' action button in the Notification Drawer and Transactions banner",
+        "Added comprehensive integration test suite for cross-account reconciliation and split preservation"
+      ],
+      "da": [
+        "Tilføjet Smart Ingestion Reconciler for automatisk deduplikering og bevarelse af kategorier/splits under bank-synkronisering",
+        "Implementeret kontofletnings-service for samling af arkivkonti med live bankkonti",
+        "Tilføjet 1-klik 'Løs automatisk' handlingsknap i Notifikationscenteret og på Transaktionssiden",
+        "Tilføjet integrationstest-suite for afstemning på tværs af konti og bevarelse af delte posteringer"
+      ]
+    }
+  },
+  {
     "version": "v1.7.0",
     "date": "2026-08-27",
     "changes": {

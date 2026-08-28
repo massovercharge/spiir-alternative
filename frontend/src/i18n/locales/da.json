@@ -265,7 +265,12 @@
     "bannerTitle": "Mulig dobbeltbetaling detekteret",
     "bannerDesc": "Der findes {{count}} posteringer til samme modtager på samme beløb på denne dato.",
     "viewMatching": "Vis matchende postering",
-    "filterLabel": "Mulige dubletter"
+    "filterLabel": "Mulige dubletter",
+    "resolveBanner": "Der er detekteret overlappende dubletter",
+    "resolveAll": "Løs automatisk",
+    "resolving": "Løser...",
+    "resolveSuccess": "{{count}} dubletter blev løst og konsolideret!",
+    "resolveError": "Kunne ikke løse dubletter automatisk"
   },
   "common": {
     "category": "Kategori",

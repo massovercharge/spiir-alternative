@@ -250,6 +250,8 @@ def _normalize_and_persist(
         .where(RecurringTransaction.status == "active")
     ).all()
 
+    created_posting_ids: list[str] = []
+
     for i, raw_dict in enumerate(raw_txs):
         try:
             tx = EnableBankingTransaction.model_validate(raw_dict)
@@ -329,6 +331,7 @@ def _normalize_and_persist(
             match_posting_to_recurring(posting, alloc, recurring_txs=active_recurring)
 
             new_count += 1
+            created_posting_ids.append(tx_id)
             db.flush()
             if (i + 1) % 100 == 0:
                 db.commit()
@@ -336,6 +339,13 @@ def _normalize_and_persist(
             logger.error("Error persisting transaction %s: %s", tx_id, e)
             db.rollback()
             continue
+
+    if created_posting_ids:
+        try:
+            from .reconciliation_service import reconcile_incoming_postings
+            reconcile_incoming_postings(db, household_id, created_posting_ids)
+        except Exception as e:
+            logger.warning("Reconciliation step encountered error: %s", e)
 
     db.commit()
     return new_count

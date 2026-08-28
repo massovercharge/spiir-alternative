@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE, getHeaders } from '../http';
 
 export interface AppNotification {
@@ -29,5 +29,24 @@ export function useNotifications() {
       return res.json();
     },
     refetchInterval: 30000, // Poll every 30s
+  });
+}
+
+export function useResolveDuplicates() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API_BASE}/api/notifications/resolve-duplicates`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to resolve duplicates');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    },
   });
 }

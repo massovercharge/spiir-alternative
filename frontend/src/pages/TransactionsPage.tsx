@@ -3,8 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { MoreHorizontal, CheckSquare, Square, Trash2, X, AlertTriangle } from 'lucide-react';
-import { useTransactions, useUpdateTransactionCategory, useCreateCustomRule, useTags, useUpdateTransactions as useBulkUpdate } from '../api/client';
+import { MoreHorizontal, CheckSquare, Square, Trash2, X, AlertTriangle, CheckCheck } from 'lucide-react';
+import { useTransactions, useUpdateTransactionCategory, useCreateCustomRule, useTags, useUpdateTransactions as useBulkUpdate, useResolveDuplicates } from '../api/client';
+import { toast } from 'sonner';
 import { Skeleton } from '../components/ui/Skeleton';
 import CategoryPicker from '../components/ui/CategoryPicker';
 import { getCategoryIcon } from '../components/ui/CategoryIcon';
@@ -42,6 +43,7 @@ export default function TransactionsPage() {
   const [categoryId, setCategoryId] = useState<string>(navState?.categoryId || '');
   
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const resolveDuplicatesMutation = useResolveDuplicates();
   
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -273,12 +275,35 @@ export default function TransactionsPage() {
               </span>.
             </div>
             {transactions.some((t: any) => t.has_duplicate_warning) && (
-              <div 
-                onClick={() => setFilterType('Mulige dubletter')}
-                className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline flex items-center gap-1.5 pt-0.5"
-              >
-                <AlertTriangle size={13} />
-                <span>{t('duplicates.bannerTitle', 'Mulige dobbeltbetalinger fundet')} — {t('duplicates.filterLabel', 'klik for at filtrere')}</span>
+              <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                <div 
+                  onClick={() => setFilterType('Mulige dubletter')}
+                  className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline flex items-center gap-1.5"
+                >
+                  <AlertTriangle size={13} />
+                  <span>{t('duplicates.bannerTitle', 'Mulige dobbeltbetalinger fundet')} — {t('duplicates.filterLabel', 'klik for at filtrere')}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    resolveDuplicatesMutation.mutate(undefined, {
+                      onSuccess: (data: any) => {
+                        toast.success(
+                          t('duplicates.resolveSuccess', '{{count}} dubletter blev løst og flettet!', {
+                            count: data?.resolved_duplicates_count || 0,
+                          })
+                        );
+                      },
+                      onError: () => {
+                        toast.error(t('duplicates.resolveError', 'Kunne ikke løse dubletter automatisk'));
+                      },
+                    });
+                  }}
+                  disabled={resolveDuplicatesMutation.isPending}
+                  className="px-2 py-0.5 text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center gap-1 transition-colors disabled:opacity-50"
+                >
+                  <CheckCheck size={12} />
+                  <span>{resolveDuplicatesMutation.isPending ? t('duplicates.resolving', 'Løser...') : t('duplicates.resolveAll', 'Løs automatisk')}</span>
+                </button>
               </div>
             )}
           </div>

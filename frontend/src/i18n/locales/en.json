@@ -265,7 +265,12 @@
     "bannerTitle": "Potential duplicate payment detected",
     "bannerDesc": "There are {{count}} transactions to the same recipient with the same amount on this date.",
     "viewMatching": "View matching transaction",
-    "filterLabel": "Potential duplicates"
+    "filterLabel": "Potential duplicates",
+    "resolveBanner": "Overlapping duplicate transactions detected",
+    "resolveAll": "Auto-resolve",
+    "resolving": "Resolving...",
+    "resolveSuccess": "{{count}} duplicates were resolved and merged!",
+    "resolveError": "Could not auto-resolve duplicates"
   },
   "common": {
     "category": "Category",

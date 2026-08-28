@@ -17,8 +17,9 @@ import {
   Inbox,
   Filter,
 } from 'lucide-react';
-import { useNotifications, useCreateCustomRule, AppNotification } from '../../api/client';
+import { useNotifications, useCreateCustomRule, useResolveDuplicates, AppNotification } from '../../api/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface NotificationDrawerProps {
   compact?: boolean;
@@ -30,6 +31,7 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const resolveDuplicatesMutation = useResolveDuplicates();
 
   const [isOpen, setIsOpen] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(() => {
@@ -250,6 +252,43 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                   >
                     {t('notifications.info', 'Info')} (
                     {notifications.filter((n) => n.severity === 'info').length})
+                  </button>
+                </div>
+              )}
+
+              {/* Quick Action Banner for Duplicates */}
+              {notifications.some((n) => n.type === 'duplicate_payment') && (
+                <div className="p-3 mx-4 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <AlertTriangle size={18} className="text-amber-500 shrink-0" />
+                    <div className="text-xs text-[hsl(var(--text-primary))] font-medium truncate">
+                      {t('duplicates.resolveBanner', 'Der er detekteret overlappende dubletter')}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      resolveDuplicatesMutation.mutate(undefined, {
+                        onSuccess: (data: any) => {
+                          toast.success(
+                            t('duplicates.resolveSuccess', '{{count}} dubletter blev løst og flettet!', {
+                              count: data?.resolved_duplicates_count || 0,
+                            })
+                          );
+                        },
+                        onError: () => {
+                          toast.error(t('duplicates.resolveError', 'Kunne ikke løse dubletter automatisk'));
+                        },
+                      });
+                    }}
+                    disabled={resolveDuplicatesMutation.isPending}
+                    className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shrink-0 transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
+                  >
+                    <CheckCheck size={14} />
+                    <span>
+                      {resolveDuplicatesMutation.isPending
+                        ? t('duplicates.resolving', 'Løser...')
+                        : t('duplicates.resolveAll', 'Løs automatisk')}
+                    </span>
                   </button>
                 </div>
               )}
