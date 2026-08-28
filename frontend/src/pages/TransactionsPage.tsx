@@ -15,6 +15,7 @@ import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import DuplicateReviewModal from '../components/transactions/DuplicateReviewModal';
 
 function formatTransactionDate(dateStr: string, t: any, currentLang: string) {
   if (!dateStr) return t('transactions.unknown_date');
@@ -43,6 +44,7 @@ export default function TransactionsPage() {
   const [categoryId, setCategoryId] = useState<string>(navState?.categoryId || '');
   
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [isDuplicateReviewOpen, setIsDuplicateReviewOpen] = useState(false);
   const resolveDuplicatesMutation = useResolveDuplicates();
   
   // Bulk selection state
@@ -277,32 +279,18 @@ export default function TransactionsPage() {
             {transactions.some((t: any) => t.has_duplicate_warning) && (
               <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                 <div 
-                  onClick={() => setFilterType('Mulige dubletter')}
+                  onClick={() => setIsDuplicateReviewOpen(true)}
                   className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline flex items-center gap-1.5"
                 >
                   <AlertTriangle size={13} />
-                  <span>{t('duplicates.bannerTitle', 'Mulige dobbeltbetalinger fundet')} — {t('duplicates.filterLabel', 'klik for at filtrere')}</span>
+                  <span>{t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}</span>
                 </div>
                 <button
-                  onClick={() => {
-                    resolveDuplicatesMutation.mutate(undefined, {
-                      onSuccess: (data: any) => {
-                        toast.success(
-                          t('duplicates.resolveSuccess', '{{count}} dubletter blev løst og flettet!', {
-                            count: data?.resolved_duplicates_count || 0,
-                          })
-                        );
-                      },
-                      onError: () => {
-                        toast.error(t('duplicates.resolveError', 'Kunne ikke løse dubletter automatisk'));
-                      },
-                    });
-                  }}
-                  disabled={resolveDuplicatesMutation.isPending}
-                  className="px-2 py-0.5 text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center gap-1 transition-colors disabled:opacity-50"
+                  onClick={() => setIsDuplicateReviewOpen(true)}
+                  className="px-2.5 py-0.5 text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center gap-1 transition-colors shadow-xs"
                 >
-                  <CheckCheck size={12} />
-                  <span>{resolveDuplicatesMutation.isPending ? t('duplicates.resolving', 'Løser...') : t('duplicates.resolveAll', 'Løs automatisk')}</span>
+                  <AlertTriangle size={11} />
+                  <span>{t('duplicates.reviewButton', 'Undersøg & Løs')}</span>
                 </button>
               </div>
             )}
@@ -535,6 +523,12 @@ export default function TransactionsPage() {
           onFindSimilar={handleFindSimilar}
         />
       )}
+
+      <DuplicateReviewModal
+        isOpen={isDuplicateReviewOpen}
+        onClose={() => setIsDuplicateReviewOpen(false)}
+        onFilterTransactions={() => setFilterType('Mulige dubletter')}
+      />
     </div>
   );
 }

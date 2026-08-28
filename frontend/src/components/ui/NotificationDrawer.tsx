@@ -20,6 +20,7 @@ import {
 import { useNotifications, useCreateCustomRule, useResolveDuplicates, AppNotification } from '../../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import DuplicateReviewModal from '../transactions/DuplicateReviewModal';
 
 interface NotificationDrawerProps {
   compact?: boolean;
@@ -32,6 +33,7 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const resolveDuplicatesMutation = useResolveDuplicates();
+  const [isDuplicateReviewOpen, setIsDuplicateReviewOpen] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(() => {
@@ -266,29 +268,11 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      resolveDuplicatesMutation.mutate(undefined, {
-                        onSuccess: (data: any) => {
-                          toast.success(
-                            t('duplicates.resolveSuccess', '{{count}} dubletter blev løst og flettet!', {
-                              count: data?.resolved_duplicates_count || 0,
-                            })
-                          );
-                        },
-                        onError: () => {
-                          toast.error(t('duplicates.resolveError', 'Kunne ikke løse dubletter automatisk'));
-                        },
-                      });
-                    }}
-                    disabled={resolveDuplicatesMutation.isPending}
-                    className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shrink-0 transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
+                    onClick={() => setIsDuplicateReviewOpen(true)}
+                    className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shrink-0 transition-colors flex items-center gap-1 shadow-sm"
                   >
-                    <CheckCheck size={14} />
-                    <span>
-                      {resolveDuplicatesMutation.isPending
-                        ? t('duplicates.resolving', 'Løser...')
-                        : t('duplicates.resolveAll', 'Løs automatisk')}
-                    </span>
+                    <AlertTriangle size={13} />
+                    <span>{t('duplicates.reviewButton', 'Undersøg & Løs')}</span>
                   </button>
                 </div>
               )}
@@ -443,6 +427,15 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
           </>
         )}
       </AnimatePresence>
+
+      <DuplicateReviewModal
+        isOpen={isDuplicateReviewOpen}
+        onClose={() => setIsDuplicateReviewOpen(false)}
+        onFilterTransactions={() => {
+          setIsOpen(false);
+          navigate('/transactions', { state: { filterType: 'Mulige dubletter' } });
+        }}
+      />
     </>
   );
 }

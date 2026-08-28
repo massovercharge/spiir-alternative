@@ -6,8 +6,10 @@ import re
 import uuid
 from typing import Any, Optional
 
-from sqlmodel import Session, select
+from sqlalchemy import func
+from sqlmodel import Session, col, select
 
+from app.core.money import format_amount
 from app.models import (
     Account,
     Document,
@@ -419,41 +421,111 @@ def merge_accounts(
     }
 
 
+def get_duplicate_groups_preview(
+    session: Session,
+    household_id: str,
+) -> list[dict[str, Any]]:
+    """Returns grouped duplicate postings for the household with details on whether they are cross-account archive duplicates or same-account transactions."""
+    eff_date_col = func.coalesce(Posting.custom_date, Posting.booking_date)
+    query = (
+        select(Posting)
+        .where(Posting.household_id == household_id)
+        .where(col(Posting.amount_minor) != 0)
+        .order_by(eff_date_col.desc())
+    )
+    postings = session.exec(query).all()
+    accounts_by_uid = {
+        a.uid: a
+        for a in session.exec(select(Account).where(Account.household_id == household_id)).all()
+    }
+
+    groups: dict[tuple[str, int, str], list[Posting]] = {}
+    for p in postings:
+        eff_date = p.custom_date or p.booking_date or ""
+        clean_desc = clean_description_for_matching(p.original_description)
+        if not eff_date or not clean_desc:
+            continue
+        key = (eff_date, p.amount_minor, clean_desc)
+        groups.setdefault(key, []).append(p)
+
+    preview_groups = []
+    for (eff_date, amount_minor, clean_desc), plist in groups.items():
+        if len(plist) < 2:
+            continue
+
+        # Check if this pair is a cross-account archive duplicate pair that can safely be merged
+        can_auto_merge = False
+        if len(plist) == 2:
+            acc1 = accounts_by_uid.get(plist[0].account_uid)
+            acc2 = accounts_by_uid.get(plist[1].account_uid)
+            if acc1 and acc2 and are_accounts_duplicate_pair(session, acc1.uid, acc2.uid, allow_same_account=False):
+                can_auto_merge = True
+
+        postings_data = []
+        for p in plist:
+            acc = accounts_by_uid.get(p.account_uid)
+            allocs = session.exec(
+                select(PostingAllocation).where(PostingAllocation.posting_id == p.id)
+            ).all()
+            category_id = allocs[0].category_id if allocs else None
+            note = allocs[0].note if allocs else None
+            postings_data.append({
+                "id": p.id,
+                "account_uid": p.account_uid,
+                "account_name": acc.name if acc else p.account_uid,
+                "account_source": acc.source if acc else "unknown",
+                "original_description": p.original_description,
+                "amount_minor": p.amount_minor,
+                "amount": format_amount(abs(p.amount_minor)),
+                "date": eff_date,
+                "category_id": category_id,
+                "note": note,
+                "split_count": len(allocs),
+            })
+
+        preview_groups.append({
+            "group_id": f"{eff_date}_{amount_minor}_{clean_desc[:12]}",
+            "date": eff_date,
+            "amount_minor": amount_minor,
+            "amount": format_amount(abs(amount_minor)),
+            "description": plist[0].original_description,
+            "can_auto_merge": can_auto_merge,
+            "postings": postings_data,
+        })
+
+    return preview_groups
+
+
 def resolve_all_household_duplicates(
     session: Session,
     household_id: str,
 ) -> dict[str, Any]:
-    """Find and automatically resolve all current duplicate candidate pairs in the household."""
-    from app.services.notification_service import _get_duplicate_transactions_for_household
-
-    duplicates = _get_duplicate_transactions_for_household(household_id)
+    """Find and automatically resolve ONLY cross-account archive duplicate pairs (Spiir/CSV vs EnableBanking)."""
+    groups = get_duplicate_groups_preview(session, household_id)
     resolved_count = 0
     categories_migrated = 0
     splits_migrated = 0
 
-    # Pair duplicates by date & amount
-    groups: dict[tuple[str, int], list[dict[str, Any]]] = {}
-    for d in duplicates:
-        key = (d["date"], d["amount_minor"])
-        groups.setdefault(key, []).append(d)
+    for g in groups:
+        if not g["can_auto_merge"]:
+            continue
+        plist = g["postings"]
+        if len(plist) == 2:
+            p1_id = plist[0]["id"]
+            p2_id = plist[1]["id"]
+            if p2_id.startswith("eb:") and not p1_id.startswith("eb:"):
+                kept_id, removed_id = p2_id, p1_id
+            else:
+                kept_id, removed_id = p1_id, p2_id
 
-    for (_date_str, _amt), tx_list in groups.items():
-        if len(tx_list) >= 2:
-            # Prefer keeping the live bank post (eb:...) if present
-            bank_item = next((tx for tx in tx_list if tx["id"].startswith("eb:")), tx_list[0])
-            csv_items = [tx for tx in tx_list if tx["id"] != bank_item["id"]]
-
-            for csv_item in csv_items:
-                stats = consolidate_posting_pair(
-                    session,
-                    kept_posting_id=bank_item["id"],
-                    removed_posting_id=csv_item["id"],
-                )
-                resolved_count += 1
-                if stats.get("categories_migrated"):
-                    categories_migrated += 1
-                if stats.get("splits_migrated"):
-                    splits_migrated += 1
+            stats = consolidate_posting_pair(
+                session, kept_posting_id=kept_id, removed_posting_id=removed_id
+            )
+            resolved_count += 1
+            if stats.get("categories_migrated"):
+                categories_migrated += 1
+            if stats.get("splits_migrated"):
+                splits_migrated += 1
 
     session.commit()
 

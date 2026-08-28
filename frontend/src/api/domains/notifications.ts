@@ -18,6 +18,36 @@ export interface NotificationsResponse {
   notifications: AppNotification[];
 }
 
+export interface DuplicatePostingItem {
+  id: string;
+  account_uid: string;
+  account_name: string;
+  account_source: string;
+  original_description: string;
+  amount_minor: number;
+  amount: string;
+  date: string;
+  category_id?: string;
+  note?: string;
+  split_count: number;
+}
+
+export interface DuplicateGroupPreview {
+  group_id: string;
+  date: string;
+  amount_minor: number;
+  amount: string;
+  description: string;
+  can_auto_merge: boolean;
+  postings: DuplicatePostingItem[];
+}
+
+export interface DuplicatePreviewResponse {
+  total_groups: number;
+  mergeable_groups_count: number;
+  groups: DuplicateGroupPreview[];
+}
+
 export function useNotifications() {
   return useQuery<NotificationsResponse>({
     queryKey: ['notifications'],
@@ -29,6 +59,20 @@ export function useNotifications() {
       return res.json();
     },
     refetchInterval: 30000, // Poll every 30s
+  });
+}
+
+export function useDuplicatePreview(enabled = true) {
+  return useQuery<DuplicatePreviewResponse>({
+    queryKey: ['duplicate-preview'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/api/notifications/duplicate-preview`, {
+        headers: getHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to fetch duplicate preview');
+      return res.json();
+    },
+    enabled,
   });
 }
 
@@ -45,6 +89,7 @@ export function useResolveDuplicates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['duplicate-preview'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
     },
