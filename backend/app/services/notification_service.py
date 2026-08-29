@@ -1,4 +1,5 @@
 """Notification service — Proactive household notifications and duplicate detection."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -54,6 +55,7 @@ STATUTORY_SPLIT_KEYWORDS = (
 # Detectors
 # ---------------------------------------------------------------------------
 
+
 def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, Any]]:
     """Find outgoing expense transactions on matching dates with matching amount and recipient."""
     notifications: list[dict[str, Any]] = []
@@ -67,8 +69,13 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
     )
     postings = db.exec(query).all()
 
-    dismissed = db.exec(select(DismissedDuplicate).where(DismissedDuplicate.household_id == household_id)).all()
-    dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
+    dismissed = db.exec(
+        select(DismissedDuplicate).where(DismissedDuplicate.household_id == household_id)
+    ).all()
+    dismissed_pairs = {
+        (min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2))
+        for d in dismissed
+    }
 
     clusters: dict[int, list[Posting]] = {}
     for p in postings:
@@ -78,6 +85,7 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
         clusters.setdefault(p.amount_minor, []).append(p)
 
     import itertools
+
     for amount_minor, plist in clusters.items():
         if len(plist) < 2:
             continue
@@ -92,13 +100,16 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
                     continue
                 matches = False
                 for member in current_group:
-                    is_same = (member.account_uid == plist[j].account_uid)
+                    is_same = member.account_uid == plist[j].account_uid
                     if dates_match(
-                        member.booking_date, member.custom_date,
-                        plist[j].booking_date, plist[j].custom_date,
+                        member.booking_date,
+                        member.custom_date,
+                        plist[j].booking_date,
+                        plist[j].custom_date,
                         is_same_account=is_same,
                     ) and descriptions_match(
-                        member.original_description, plist[j].original_description,
+                        member.original_description,
+                        plist[j].original_description,
                         is_same_account=is_same,
                     ):
                         matches = True
@@ -123,29 +134,35 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
                 eff_date = rep.custom_date or rep.booking_date or ""
                 desc_display = rep.original_description or ""
                 formatted_amount = format_amount(abs(amount_minor))
-                group_hash = hashlib.md5(f"{eff_date}:{amount_minor}:{desc_display}".encode()).hexdigest()[:10]
+                group_hash = hashlib.md5(
+                    f"{eff_date}:{amount_minor}:{desc_display}".encode()
+                ).hexdigest()[:10]
 
-                notifications.append({
-                    "id": f"dup:{eff_date}:{group_hash}",
-                    "type": "duplicate_payment",
-                    "severity": "warning",
-                    "title": "Mulig dobbeltbetaling",
-                    "message": f"{len(current_group)} transaktioner til '{desc_display}' på {formatted_amount} kr. den {eff_date}.",
-                    "created_at": max(p.created_at for p in current_group if p.created_at) if any(p.created_at for p in current_group) else f"{eff_date}T00:00:00Z",
-                    "metadata": {
-                        "transaction_ids": [p.id for p in current_group],
-                        "date": eff_date,
-                        "amount_minor": amount_minor,
-                        "amount": formatted_amount,
-                        "description": desc_display,
-                        "count": len(current_group),
-                    },
-                    "action_type": "filter_transactions",
-                    "action_payload": {
-                        "search": desc_display,
-                        "date": eff_date,
-                    },
-                })
+                notifications.append(
+                    {
+                        "id": f"dup:{eff_date}:{group_hash}",
+                        "type": "duplicate_payment",
+                        "severity": "warning",
+                        "title": "Mulig dobbeltbetaling",
+                        "message": f"{len(current_group)} transaktioner til '{desc_display}' på {formatted_amount} kr. den {eff_date}.",
+                        "created_at": max(p.created_at for p in current_group if p.created_at)
+                        if any(p.created_at for p in current_group)
+                        else f"{eff_date}T00:00:00Z",
+                        "metadata": {
+                            "transaction_ids": [p.id for p in current_group],
+                            "date": eff_date,
+                            "amount_minor": amount_minor,
+                            "amount": formatted_amount,
+                            "description": desc_display,
+                            "count": len(current_group),
+                        },
+                        "action_type": "filter_transactions",
+                        "action_payload": {
+                            "search": desc_display,
+                            "date": eff_date,
+                        },
+                    }
+                )
 
     return notifications
 
@@ -178,41 +195,47 @@ def detect_expiring_consents(db: Session, household_id: str) -> list[dict[str, A
             bank_label = conn.bank_name or "Bankforbindelse"
 
             if days_left <= 0:
-                notifications.append({
-                    "id": f"consent_expired:{conn.id}",
-                    "type": "consent_expiring",
-                    "severity": "danger",
-                    "title": "Banksamtykke er udløbet",
-                    "message": f"Samtykket til {bank_label} er udløbet. Forny forbindelsen for at fortsætte synkronisering.",
-                    "created_at": conn.consent_expires_at,
-                    "metadata": {
-                        "connection_id": conn.id,
-                        "bank_name": bank_label,
-                        "expires_at": conn.consent_expires_at,
-                        "days_left": days_left,
-                    },
-                    "action_type": "navigate",
-                    "action_payload": {"to": "/accounts"},
-                })
+                notifications.append(
+                    {
+                        "id": f"consent_expired:{conn.id}",
+                        "type": "consent_expiring",
+                        "severity": "danger",
+                        "title": "Banksamtykke er udløbet",
+                        "message": f"Samtykket til {bank_label} er udløbet. Forny forbindelsen for at fortsætte synkronisering.",
+                        "created_at": conn.consent_expires_at,
+                        "metadata": {
+                            "connection_id": conn.id,
+                            "bank_name": bank_label,
+                            "expires_at": conn.consent_expires_at,
+                            "days_left": days_left,
+                        },
+                        "action_type": "navigate",
+                        "action_payload": {"to": "/accounts"},
+                    }
+                )
             elif days_left <= 7:
-                notifications.append({
-                    "id": f"consent_expiring:{conn.id}:{days_left}",
-                    "type": "consent_expiring",
-                    "severity": "warning",
-                    "title": "Banksamtykke udløber snart",
-                    "message": f"Samtykket til {bank_label} udløber om {days_left} {'dag' if days_left == 1 else 'dage'}.",
-                    "created_at": conn.created_at,
-                    "metadata": {
-                        "connection_id": conn.id,
-                        "bank_name": bank_label,
-                        "expires_at": conn.consent_expires_at,
-                        "days_left": days_left,
-                    },
-                    "action_type": "navigate",
-                    "action_payload": {"to": "/accounts"},
-                })
+                notifications.append(
+                    {
+                        "id": f"consent_expiring:{conn.id}:{days_left}",
+                        "type": "consent_expiring",
+                        "severity": "warning",
+                        "title": "Banksamtykke udløber snart",
+                        "message": f"Samtykket til {bank_label} udløber om {days_left} {'dag' if days_left == 1 else 'dage'}.",
+                        "created_at": conn.created_at,
+                        "metadata": {
+                            "connection_id": conn.id,
+                            "bank_name": bank_label,
+                            "expires_at": conn.consent_expires_at,
+                            "days_left": days_left,
+                        },
+                        "action_type": "navigate",
+                        "action_payload": {"to": "/accounts"},
+                    }
+                )
         except Exception as e:
-            logger.warning("Failed to parse consent_expires_at '%s': %s", conn.consent_expires_at, e)
+            logger.warning(
+                "Failed to parse consent_expires_at '%s': %s", conn.consent_expires_at, e
+            )
 
     return notifications
 
@@ -237,30 +260,42 @@ def detect_recent_linked_receipts(db: Session, household_id: str) -> list[dict[s
         distinct_postings = {a.posting_id for a in allocs}
         count = len(distinct_postings)
         if count > 0:
-            notifications.append({
-                "id": f"receipts_linked:{count}",
-                "type": "receipts_linked",
-                "severity": "info",
-                "title": "Digitale kvitteringer matchet",
-                "message": f"{count} transaktioner har modtaget specificerede kvitteringslinjer fra Storebox.",
-                "created_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
-                "metadata": {"count": count, "posting_ids": list(distinct_postings)[:5]},
-                "action_type": "navigate",
-                "action_payload": {"to": "/transactions"},
-            })
+            notifications.append(
+                {
+                    "id": f"receipts_linked:{count}",
+                    "type": "receipts_linked",
+                    "severity": "info",
+                    "title": "Digitale kvitteringer matchet",
+                    "message": f"{count} transaktioner har modtaget specificerede kvitteringslinjer fra Storebox.",
+                    "created_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
+                    "metadata": {"count": count, "posting_ids": list(distinct_postings)[:5]},
+                    "action_type": "navigate",
+                    "action_payload": {"to": "/transactions"},
+                }
+            )
 
     return notifications
 
 
 def detect_rule_suggestions(db: Session, household_id: str) -> list[dict[str, Any]]:
     """Find consistent categorization patterns (>= 3 times) that don't have an automated rule yet."""
+    from app.services.rules_service import evaluate_text
+
     notifications: list[dict[str, Any]] = []
 
-    # Get active custom rules
+    # Get all active rules (both household custom rules and global system rules)
     existing_rules = db.exec(
         select(CategorizationRule)
-        .where(CategorizationRule.household_id == household_id)
         .where(CategorizationRule.is_active == True)  # noqa: E712
+        .where(
+            (CategorizationRule.household_id == household_id)
+            | (CategorizationRule.source == "system")
+            | (CategorizationRule.household_id.is_(None))
+        )
+        .order_by(
+            col(CategorizationRule.source).desc(),
+            col(CategorizationRule.priority).asc(),
+        )
     ).all()
     existing_patterns = {r.match_pattern.lower().strip() for r in existing_rules if r.match_pattern}
 
@@ -286,6 +321,11 @@ def detect_rule_suggestions(db: Session, household_id: str) -> list[dict[str, An
         # If already covered by an exact rule, skip
         if clean in existing_patterns:
             continue
+        # If already automatically matched to this category by existing system or custom rules, skip
+        if evaluate_text(orig_desc, rules=existing_rules) == cat_id:
+            continue
+        if evaluate_text(clean, rules=existing_rules) == cat_id:
+            continue
         tallies[(clean, cat_id)] = tallies.get((clean, cat_id), 0) + 1
 
     # Fetch category names lookup
@@ -298,29 +338,37 @@ def detect_rule_suggestions(db: Session, household_id: str) -> list[dict[str, An
         reverse=True,
     )
 
-    for (pattern, cat_id), count in sorted_tallies[:5]:
+    for (pattern, cat_id), count in sorted_tallies:
+        if len(notifications) >= 5:
+            break
+        # Skip if exact pattern already exists or is already categorized by existing rules
+        if pattern in existing_patterns or evaluate_text(pattern, rules=existing_rules) == cat_id:
+            continue
+
         cat_name = all_categories.get(cat_id, cat_id.replace("|", " > "))
         pattern_hash = hashlib.md5(pattern.encode("utf-8")).hexdigest()[:8]
 
-        notifications.append({
-            "id": f"rule_sug:{pattern_hash}",
-            "type": "rule_suggestion",
-            "severity": "suggestion",
-            "title": "Forslag til regel",
-            "message": f"Du har kategoriseret '{pattern}' som '{cat_name}' {count} gange. Vil du oprette en automatisk regel?",
-            "created_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
-            "metadata": {
-                "match_pattern": pattern,
-                "category_id": cat_id,
-                "category_name": cat_name,
-                "count": count,
-            },
-            "action_type": "create_rule",
-            "action_payload": {
-                "match_pattern": pattern,
-                "category_id": cat_id,
-            },
-        })
+        notifications.append(
+            {
+                "id": f"rule_sug:{pattern_hash}",
+                "type": "rule_suggestion",
+                "severity": "suggestion",
+                "title": "Forslag til regel",
+                "message": f"Du har kategoriseret '{pattern}' som '{cat_name}' {count} gange. Vil du oprette en automatisk regel?",
+                "created_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
+                "metadata": {
+                    "match_pattern": pattern,
+                    "category_id": cat_id,
+                    "category_name": cat_name,
+                    "count": count,
+                },
+                "action_type": "create_rule",
+                "action_payload": {
+                    "match_pattern": pattern,
+                    "category_id": cat_id,
+                },
+            }
+        )
 
     return notifications
 
@@ -328,6 +376,7 @@ def detect_rule_suggestions(db: Session, household_id: str) -> list[dict[str, An
 # ---------------------------------------------------------------------------
 # Public Aggregation API
 # ---------------------------------------------------------------------------
+
 
 def get_household_notifications(household_id: str | None = None) -> list[dict[str, Any]]:
     """Aggregate all notifications and warnings for the active household."""

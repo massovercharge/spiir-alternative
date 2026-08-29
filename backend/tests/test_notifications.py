@@ -5,6 +5,7 @@ from sqlmodel import Session
 from app.models import (
     Account,
     BankConnection,
+    CategorizationRule,
     Category,
     Posting,
     PostingAllocation,
@@ -23,6 +24,68 @@ from app.services.reconciliation_service import (
 )
 from app.services.transaction_service import get_transaction, list_transactions
 from tests.conftest import TEST_HOUSEHOLD_ID
+
+
+def test_detect_rule_suggestions_ignores_system_rules():
+    with Session(all_models.engine) as session:
+        acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
+        session.add(acc)
+
+        # Add a global system rule for coop
+        sys_rule = CategorizationRule(
+            id="rule_coop",
+            household_id=None,
+            match_pattern="coop",
+            category_id="husholdning|dagligvarer",
+            source="system",
+            priority=1000,
+            is_active=True,
+        )
+        session.add(sys_rule)
+
+        # 5 Coop transactions categorized as Dagligvarer (already matched by sys_rule)
+        for i in range(5):
+            p = Posting(
+                id=f"coop_{i}",
+                household_id=TEST_HOUSEHOLD_ID,
+                account_uid="acc1",
+                booking_date=f"2026-01-1{i}",
+                amount_minor=-15000,
+                original_description="MobilePay køb MobilePay Coop App",
+            )
+            alloc = PostingAllocation(
+                id=f"coop_alloc_{i}",
+                posting_id=p.id,
+                category_id="husholdning|dagligvarer",
+                amount_minor=-15000,
+            )
+            session.add_all([p, alloc])
+
+        # 3 transactions with unruled pattern
+        for i in range(3):
+            p = Posting(
+                id=f"unruled_{i}",
+                household_id=TEST_HOUSEHOLD_ID,
+                account_uid="acc1",
+                booking_date=f"2026-01-2{i}",
+                amount_minor=-5000,
+                original_description="Lokal Ukendt Butik 123",
+            )
+            alloc = PostingAllocation(
+                id=f"unruled_alloc_{i}",
+                posting_id=p.id,
+                category_id="bolig|andre-boligudgifter",
+                amount_minor=-5000,
+            )
+            session.add_all([p, alloc])
+
+        session.commit()
+
+        notifs = detect_rule_suggestions(session, TEST_HOUSEHOLD_ID)
+        # Coop should NOT be suggested because it is covered by the system rule
+        assert not any("coop" in n["metadata"]["match_pattern"] for n in notifs)
+        # Unruled store SHOULD be suggested
+        assert any("lokal ukendt butik" in n["metadata"]["match_pattern"] for n in notifs)
 
 
 def test_detect_duplicate_payments():
@@ -153,7 +216,7 @@ def test_detect_rule_suggestions():
                 id=f"tx_{i}",
                 household_id=TEST_HOUSEHOLD_ID,
                 account_uid="acc1",
-                booking_date=f"2026-01-0{i+1}",
+                booking_date=f"2026-01-0{i + 1}",
                 amount_minor=-9900,
                 original_description="Spotify AB",
             )
@@ -178,8 +241,22 @@ def test_get_household_notifications_aggregation():
         acc = Account(uid="acc1", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
         session.add(acc)
 
-        p1 = Posting(id="a1", household_id=TEST_HOUSEHOLD_ID, account_uid="acc1", booking_date="2026-01-01", amount_minor=-1000, original_description="Baker")
-        p2 = Posting(id="a2", household_id=TEST_HOUSEHOLD_ID, account_uid="acc1", booking_date="2026-01-01", amount_minor=-1000, original_description="Baker")
+        p1 = Posting(
+            id="a1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc1",
+            booking_date="2026-01-01",
+            amount_minor=-1000,
+            original_description="Baker",
+        )
+        p2 = Posting(
+            id="a2",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc1",
+            booking_date="2026-01-01",
+            amount_minor=-1000,
+            original_description="Baker",
+        )
         session.add_all([p1, p2])
         session.commit()
 
@@ -190,8 +267,18 @@ def test_get_household_notifications_aggregation():
 
 def test_statutory_benefits_and_income_not_flagged_as_duplicates():
     with Session(all_models.engine) as session:
-        acc1 = Account(uid="acc_parent1", household_id=TEST_HOUSEHOLD_ID, name="Parent 1 NemKonto", currency="DKK")
-        acc2 = Account(uid="acc_parent2", household_id=TEST_HOUSEHOLD_ID, name="Parent 2 NemKonto", currency="DKK")
+        acc1 = Account(
+            uid="acc_parent1",
+            household_id=TEST_HOUSEHOLD_ID,
+            name="Parent 1 NemKonto",
+            currency="DKK",
+        )
+        acc2 = Account(
+            uid="acc_parent2",
+            household_id=TEST_HOUSEHOLD_ID,
+            name="Parent 2 NemKonto",
+            currency="DKK",
+        )
         session.add_all([acc1, acc2])
 
         # Positive income: Børne- og Ungeydelse received by both parents on Jan 20th
@@ -225,7 +312,9 @@ def test_statutory_benefits_and_income_not_flagged_as_duplicates():
 
 def test_dismiss_duplicate_pair_and_all_same_account():
     with Session(all_models.engine) as session:
-        acc = Account(uid="acc_same", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
+        acc = Account(
+            uid="acc_same", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK"
+        )
         session.add(acc)
 
         p1 = Posting(
@@ -273,8 +362,22 @@ def test_dismiss_duplicate_pair_and_all_same_account():
         assert tx_detail_after["has_duplicate_warning"] is False
 
         # Add another pair and test dismiss_all_same_account_duplicates
-        p3 = Posting(id="dp3", household_id=TEST_HOUSEHOLD_ID, account_uid="acc_same", booking_date="2026-03-02", amount_minor=-2000, original_description="Netto")
-        p4 = Posting(id="dp4", household_id=TEST_HOUSEHOLD_ID, account_uid="acc_same", booking_date="2026-03-02", amount_minor=-2000, original_description="Netto")
+        p3 = Posting(
+            id="dp3",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_same",
+            booking_date="2026-03-02",
+            amount_minor=-2000,
+            original_description="Netto",
+        )
+        p4 = Posting(
+            id="dp4",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_same",
+            booking_date="2026-03-02",
+            amount_minor=-2000,
+            original_description="Netto",
+        )
         session.add_all([p3, p4])
         session.commit()
 
@@ -285,8 +388,20 @@ def test_dismiss_duplicate_pair_and_all_same_account():
 
 def test_spiir_csv_vs_enable_banking_different_dates_matching():
     with Session(all_models.engine) as session:
-        acc_spiir = Account(uid="csv:123", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus (Spiir)", source="csv", currency="DKK")
-        acc_bank = Account(uid="eb:456", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus", source="enablebanking", currency="DKK")
+        acc_spiir = Account(
+            uid="csv:123",
+            household_id=TEST_HOUSEHOLD_ID,
+            name="SparD Plus (Spiir)",
+            source="csv",
+            currency="DKK",
+        )
+        acc_bank = Account(
+            uid="eb:456",
+            household_id=TEST_HOUSEHOLD_ID,
+            name="SparD Plus",
+            source="enablebanking",
+            currency="DKK",
+        )
         session.add_all([acc_spiir, acc_bank])
 
         # Spiir has custom_date 2025-11-16 (purchase date) and booking_date 2025-11-17 (clearing date)
@@ -335,7 +450,9 @@ def test_spiir_csv_vs_enable_banking_different_dates_matching():
 
 def test_distinct_nota_numbers_not_duplicates():
     with Session(all_models.engine) as session:
-        acc = Account(uid="acc_dsb", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
+        acc = Account(
+            uid="acc_dsb", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK"
+        )
         session.add(acc)
 
         p1 = Posting(
@@ -380,7 +497,13 @@ def test_distinct_nota_numbers_not_duplicates():
 
 def test_dankort_vs_mobilepay_same_account_not_duplicate():
     with Session(all_models.engine) as session:
-        acc = Account(uid="acc_spard", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus", source="enablebanking", currency="DKK")
+        acc = Account(
+            uid="acc_spard",
+            household_id=TEST_HOUSEHOLD_ID,
+            name="SparD Plus",
+            source="enablebanking",
+            currency="DKK",
+        )
         session.add(acc)
 
         p1 = Posting(
@@ -413,5 +536,3 @@ def test_dankort_vs_mobilepay_same_account_not_duplicate():
         assert tx1["has_duplicate_warning"] is False
         tx2 = get_transaction("p_mp1")
         assert tx2["has_duplicate_warning"] is False
-
-

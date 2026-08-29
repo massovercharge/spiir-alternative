@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.7.11",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Filtered out redundant categorization rule suggestions for patterns already covered by global system rules or existing household rules",
+        "Prevented false-positive 'Create rule' notifications for standard transactions such as grocery stores (Coop, Netto, Rema) and salary transfers"
+      ],
+      "da": [
+        "Frasorteret overflødige forslag til kategoriseringsregler for mønstre, som allerede er dækket af de globale systemregler eller eksisterende husstandsregler",
+        "Forhindret falske 'Opret regel'-notifikationer for standardtransaktioner som dagligvarekøb (Coop, Netto, Rema) og lønoverførsler"
+      ]
+    }
+  },
+  {
     "version": "v1.7.10",
     "date": "2026-08-29",
     "changes": {

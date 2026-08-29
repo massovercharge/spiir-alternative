@@ -82,7 +82,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Peng API",
         description="Self-hostable personal finance — categorization, budgeting & accounting.",
-        version="1.6.0",
+        version="1.7.11",
         lifespan=lifespan,
     )
 
@@ -103,7 +103,7 @@ def create_app() -> FastAPI:
     @app.get("/api/health")
     def health_check() -> dict[str, str]:
         """Health check endpoint for Docker and monitoring."""
-        return {"status": "ok", "version": "1.6.0"}
+        return {"status": "ok", "version": "1.7.11"}
 
     # Include routers
     app.include_router(households.router, dependencies=dependencies)
