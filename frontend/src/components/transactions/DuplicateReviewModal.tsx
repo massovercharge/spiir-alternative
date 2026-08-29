@@ -233,22 +233,29 @@ export default function DuplicateReviewModal({
                       {group.postings.map((p: DuplicatePostingItem) => (
                         <div
                           key={p.id}
-                          className="flex items-center justify-between text-xs p-2 rounded-lg bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))]"
+                          className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))]"
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-medium text-[hsl(var(--text-primary))] truncate">
-                              {p.account_name}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/10 dark:bg-white/10 uppercase font-mono">
-                              {p.account_source}
-                            </span>
-                            {p.note && (
-                              <span className="text-[11px] text-muted italic truncate max-w-[150px]">
-                                &quot;{p.note}&quot;
+                          <div className="flex flex-col min-w-0 flex-1 mr-3">
+                            <div className="font-medium text-[hsl(var(--text-primary))] truncate text-[13px]">
+                              {p.original_description || group.description || t('transactions.noDescription', 'Uden beskrivelse')}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted">
+                              <span>{p.account_name}</span>
+                              <span>•</span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/10 dark:bg-white/10 uppercase font-mono">
+                                {p.account_source}
                               </span>
-                            )}
+                              {p.note && (
+                                <>
+                                  <span>•</span>
+                                  <span className="italic truncate max-w-[200px]">
+                                    &quot;{p.note}&quot;
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <div className="font-mono text-xs shrink-0 ml-2 font-semibold">
+                          <div className="font-mono text-xs shrink-0 font-semibold text-[hsl(var(--text-primary))]">
                             {p.amount} kr.
                           </div>
                         </div>

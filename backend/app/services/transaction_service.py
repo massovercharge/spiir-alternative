@@ -113,7 +113,10 @@ def list_transactions(
                             member[1], member[2],
                             plist[j][1], plist[j][2],
                             is_same_account=is_same,
-                        ) and descriptions_match(member[3], plist[j][3]):
+                        ) and descriptions_match(
+                            member[3], plist[j][3],
+                            is_same_account=is_same,
+                        ):
                             current_group.append(plist[j])
                             break
                 if len(current_group) >= 2:
@@ -291,7 +294,10 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
                     posting.booking_date, posting.custom_date,
                     c_b_date, c_c_date,
                     is_same_account=is_same,
-                ) and descriptions_match(posting.original_description, c_desc):
+                ) and descriptions_match(
+                    posting.original_description, c_desc,
+                    is_same_account=is_same,
+                ):
                     # Check dismissed
                     pair_key = (min(transaction_id, c_id), max(transaction_id, c_id))
                     is_dismissed = db.exec(

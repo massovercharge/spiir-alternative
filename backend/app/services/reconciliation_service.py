@@ -66,7 +66,31 @@ def clean_description_for_matching(s: Optional[str]) -> str:
     return re.sub(r"[^a-z0-9æøå]", "", text).strip()
 
 
-def descriptions_match(desc1: Optional[str], desc2: Optional[str]) -> bool:
+def extract_payment_method(desc: Optional[str]) -> Optional[str]:
+    """Extract payment channel or method (dankort, mobilepay, visa, mastercard, betalingsservice, overførsel)."""
+    if not desc:
+        return None
+    d = desc.lower()
+    if "mobilepay" in d:
+        return "mobilepay"
+    if "dankort" in d:
+        return "dankort"
+    if "visa" in d:
+        return "visa"
+    if "mastercard" in d:
+        return "mastercard"
+    if "betalingsservice" in d:
+        return "betalingsservice"
+    if "overførsel" in d or "overført" in d:
+        return "overførsel"
+    return None
+
+
+def descriptions_match(
+    desc1: Optional[str],
+    desc2: Optional[str],
+    is_same_account: bool = False,
+) -> bool:
     """Check whether two descriptions refer to the same payee or transaction."""
     if not desc1 or not desc2:
         return True
@@ -77,15 +101,29 @@ def descriptions_match(desc1: Optional[str], desc2: Optional[str]) -> bool:
     if ref1 and ref2 and ref1 != ref2:
         return False
 
+    # 1b. If one has an explicit reference number and the other doesn't on the same account
+    if is_same_account:
+        if ref1 and not ref2 and ref1 not in desc2.lower():
+            return False
+        if ref2 and not ref1 and ref2 not in desc1.lower():
+            return False
+
+    # 2. On the same account, different payment methods (e.g. Dankort vs MobilePay) cannot be the same transaction
+    if is_same_account:
+        pm1 = extract_payment_method(desc1)
+        pm2 = extract_payment_method(desc2)
+        if pm1 and pm2 and pm1 != pm2:
+            return False
+
     c1 = clean_description_for_matching(desc1)
     c2 = clean_description_for_matching(desc2)
     if not c1 or not c2:
         return True
 
-    if c1 == c2 or c1 in c2 or c2 in c1:
+    if c1 == c2:
         return True
 
-    # 2. Check token overlap (payee words)
+    # 3. Check token overlap (payee words)
     words1 = set(re.findall(r"[a-z0-9æøå]{3,}", c1))
     words2 = set(re.findall(r"[a-z0-9æøå]{3,}", c2))
     if words1 and words2:
@@ -194,7 +232,7 @@ def find_duplicate_candidate_in_db(
                 allow_same_account=allow_same_account,
             ):
                 continue
-            if descriptions_match(target_posting.original_description, cand.original_description):
+            if descriptions_match(target_posting.original_description, cand.original_description, is_same_account=is_same):
                 return cand
 
     return None
@@ -585,7 +623,10 @@ def get_duplicate_groups_preview(
                         member.booking_date, member.custom_date,
                         plist[j].booking_date, plist[j].custom_date,
                         is_same_account=is_same,
-                    ) and descriptions_match(member.original_description, plist[j].original_description):
+                    ) and descriptions_match(
+                        member.original_description, plist[j].original_description,
+                        is_same_account=is_same,
+                    ):
                         matches = True
                         break
                 if matches:

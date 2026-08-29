@@ -97,7 +97,10 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
                         member.booking_date, member.custom_date,
                         plist[j].booking_date, plist[j].custom_date,
                         is_same_account=is_same,
-                    ) and descriptions_match(member.original_description, plist[j].original_description):
+                    ) and descriptions_match(
+                        member.original_description, plist[j].original_description,
+                        is_same_account=is_same,
+                    ):
                         matches = True
                         break
                 if matches:

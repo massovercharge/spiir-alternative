@@ -378,3 +378,40 @@ def test_distinct_nota_numbers_not_duplicates():
             assert tx["duplicate_count"] == 0
 
 
+def test_dankort_vs_mobilepay_same_account_not_duplicate():
+    with Session(all_models.engine) as session:
+        acc = Account(uid="acc_spard", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus", source="enablebanking", currency="DKK")
+        session.add(acc)
+
+        p1 = Posting(
+            id="p_dk1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_spard",
+            booking_date="2025-09-16",
+            amount_minor=-3000,
+            original_description="Dankort-køb DSB APP Nota 254561095",
+        )
+        p2 = Posting(
+            id="p_mp1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_spard",
+            booking_date="2025-09-16",
+            amount_minor=-3000,
+            original_description="MobilePay køb MobilePay DSB APP",
+        )
+        session.add_all([p1, p2])
+        session.commit()
+
+        # Different payment methods and one has explicit nota -> NOT a duplicate
+        preview = get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)
+        assert len(preview) == 0
+
+        notifs = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs) == 0
+
+        tx1 = get_transaction("p_dk1")
+        assert tx1["has_duplicate_warning"] is False
+        tx2 = get_transaction("p_mp1")
+        assert tx2["has_duplicate_warning"] is False
+
+
