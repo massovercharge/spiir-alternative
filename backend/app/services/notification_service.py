@@ -259,7 +259,7 @@ def detect_rule_suggestions(db: Session, household_id: str) -> list[dict[str, An
         .where(CategorizationRule.household_id == household_id)
         .where(CategorizationRule.is_active == True)  # noqa: E712
     ).all()
-    existing_patterns = {r.pattern.lower().strip() for r in existing_rules if r.pattern}
+    existing_patterns = {r.match_pattern.lower().strip() for r in existing_rules if r.match_pattern}
 
     # Fetch categorized postings
     postings_with_alloc = db.exec(
