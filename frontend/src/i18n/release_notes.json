@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.7",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Expanded built-in categorization rules across all households with popular Danish retail chains, public transport, subscriptions, charities, and sports venues",
+        "Promoted merchant keywords (e.g. Min Købmand, Imerco, Thansen, Cykelgear, DSB App, Tryg, Danmarks Lærerforening, IDA, 10er.dk, Fyns Sommerland, Minigolf) to app-wide system rules",
+        "Cleaned up redundant user rules automatically on startup while preserving private and custom transfers"
+      ],
+      "da": [
+        "Udvidet de indbyggede system-kategoriseringsregler for alle husstande med populære danske butikskæder, offentlig transport, abonnementer, velgørenhed og forlystelser",
+        "Løftet handlende og organisationer (f.eks. Min Købmand, Imerco, Thansen, Cykelgear, DSB App, Tryg, Danmarks Lærerforening, IDA, 10er.dk, Fyns Sommerland, Minigolf) til app-dækkende systemregler",
+        "Automatisk oprydning af overflødige brugerregler ved opstart, mens private overførsler og aftaler bevares"
+      ]
+    }
+  },
+  {
     "version": "v1.7.6",
     "date": "2026-08-28",
     "changes": {

@@ -94,6 +94,9 @@ def preprocess_description(raw_desc: str) -> str:
 
 _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     # === INDKOMST ===
+    ("Indkomst", "Løn", [
+        "løn", "lønoverførsel", "gage",
+    ]),
     ("Indkomst", "Pensionsudbetaling", [
         "tjenestemandspension", "førtidspension",
     ]),
@@ -101,13 +104,16 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "kontanthjælp",
     ]),
     ("Indkomst", "Børnepenge", [
-        "familieydelse", "børnecheck",
+        "familieydelse", "børnecheck", "børne og ungeydelse", "ungeydelse",
     ]),
     ("Indkomst", "Udbytte & afkast", [
         "bonus",
     ]),
+    ("Indkomst", "Overskydende skat", [
+        "overskydende skat", "skat overskydende",
+    ]),
     ("Indkomst", "Anden indkomst", [
-        "arveforskud", "pengegaver",
+        "arveforskud", "pengegaver", "fødevarecheck",
     ]),
     ("Indkomst", "Boligstøtte", [
         "boligsikring", "boligtilskud",
@@ -130,14 +136,14 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "villaforsikring",
     ]),
     ("Bolig", "Indbo- & familieforsikring", [
-        "basisforsikring",
+        "basisforsikring", "tryg forsikring", "tryg",
     ]),
     ("Bolig", "Udgifter fritidshus", [
         "udgifter sommerhus", "udgifter campingvogn",
     ]),
     ("Bolig", "Ombygning & vedligehold", [
         "udbygning", "maler", "vvs", "tømrer", "murer", "elektriker",
-        "nyt køkken", "reparation", "arkitekt",
+        "nyt køkken", "reparation", "arkitekt", "lavprisvvs", "lavprisvvs dk",
     ]),
     ("Bolig", "Andre boligudgifter", [
         "flytning", "advokat", "ejendomsmægler", "ejerskifteforsikring",
@@ -152,7 +158,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "billån", "motorcykellån",
     ]),
     ("Transport", "Brændstof", [
-        "benzin", "diesel", "tankstation", "e.on drive", "eon drive",
+        "benzin", "diesel", "tankstation", "eon drive", "e on drive",
     ]),
     ("Transport", "Bilforsikring & autohjælp", [
         "falck", "fdm", "vejhjælp",
@@ -161,7 +167,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "vægtafgift", "bilafgift",
     ]),
     ("Transport", "Bus, tog, færge o.l.", [
-        "brobizz", "metro", "s-tog", "arriva", "dsb", "broafgift",
+        "brobizz", "metro", "s-tog", "arriva", "dsb", "dsb app", "broafgift",
         "månedskort", "togkort", "buskort", "vejafgift", "pendlerkort",
         "periodekort", "rejsekort", "klippekort",
     ]),
@@ -173,6 +179,8 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ]),
     ("Transport", "Værksted & reservedele", [
         "syn", "service", "vinterdæk", "fælge", "bilreparation", "bilvask",
+        "cykelgear", "cykelgear dk", "fri bikeshop", "fri bike shop",
+        "thansen", "t hansen",
     ]),
     ("Transport", "Anden transport", [
         "ny bil", "ny motorcykel", "ny båd", "ny cykel", "ny mc",
@@ -185,10 +193,10 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         # Additional well-known Danish grocery chains (from kvitteringer_service)
         "netto", "rema", "rema 1000", "rema1000", "føtex", "bilka",
         "aldi", "lidl", "meny", "irma", "fakta", "kvickly",
-        "superbrugsen", "nemlig", "365discount", "coop", "coop365", "re:\\b365\\s+[a-zæøå]",
+        "superbrugsen", "nemlig", "365discount", "coop", "coop365", "min købmand", "re:\\b365\\s+[a-zæøå]",
     ]),
     ("Husholdning", "Kiosk, bager & specialbutikker", [
-        "brød", "kager", "frugt", "købmand", "slik",
+        "brød", "kager", "frugt", "købmand", "slik", "friluftslageret",
     ]),
     ("Husholdning", "Kantine- & frokostordning", [
         "madordning", "skolemad",
@@ -205,6 +213,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ]),
     ("Andre leveomkostninger", "Fagforening & a-kasse", [
         "fagligt kontingent", "akasse", "a-kasse", "hk", "3f", "prosa",
+        "danmarks lærerforening", "dlf", "ida ingeniørfore", "ingeniørforeningen", "ida",
     ]),
     ("Andre leveomkostninger", "Livs- & ulykkesforsikring", [
         "gruppeliv",
@@ -215,7 +224,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ("Andre leveomkostninger", "TV & streaming", [
         "kabel tv", "viasat", "sattelit", "antenneforening", "radio",
         "netflix", "netflix.com", "hbo", "viaplay", "disney+", "disney plus",
-        "dr licens", "tv2 play", "amazon prime",
+        "dr licens", "tv2 play", "tv 2 play", "tv2 dk", "tv 2", "amazon prime",
     ]),
     ("Andre leveomkostninger", "Telefoni & internet", [
         "mobiltelefon", "taletidskort", "udlandstelefoni", "fastnet",
@@ -234,14 +243,14 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "studiebøger", "kopier",
     ]),
     ("Andre leveomkostninger", "Foreninger & kontingenter", [
-        "medlemsskab",
+        "medlemsskab", "ældre sagen", "ecykleklub",
     ]),
 
     # === PRIVATFORBRUG ===
     ("Privatforbrug", "Sport & fritid", [
         "spejder", "fitness", "styrketræning", "aftenskole", "håndbold",
         "fodbold", "basket", "badminton", "tennis", "svømning",
-        "squash", "golf",
+        "squash", "golf", "bison boulders", "boulders", "familiespejd",
     ]),
     ("Privatforbrug", "Hus & havehjælp", [
         "rengøring", "gartner", "vinduespudser",
@@ -249,7 +258,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ("Privatforbrug", "Fastfood & takeaway", [
         "junkfood", "burger", "sushi", "pizzaria", "takeaway", "indisk",
         "mcdonalds", "burger king", "subway", "dominos", "pizza",
-        "wolt", "just eat", "hungry", "re:\\bmcd",
+        "wolt", "just eat", "hungry", "bindia", "re:\\bmcd",
     ]),
     ("Privatforbrug", "Bar, cafe & restaurant", [
         "diskotek", "værtshus", "disco", "fest", "middag",
@@ -258,12 +267,12 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ("Privatforbrug", "Tøj, sko & accessories", [
         "smykker", "bukser", "bluse", "jeans", "kjole", "taske",
         "jakke", "frakke", "støvler", "ring", "halskæde", "t-shirt",
-        "skjorte", "beklædning", "h&m", "zara", "zalando",
+        "skjorte", "beklædning", "h&m", "zara", "zalando", "nielsens",
     ]),
     ("Privatforbrug", "Møbler & boligudstyr", [
         "køkkenudstyr", "sofa", "seng", "bord", "stole", "hvidevarer",
         "lamper", "malerier", "kunst", "inventar", "ikea", "jysk",
-        "idemøbler", "ilva",
+        "idemøbler", "ilva", "imerco", "imerco dk",
     ]),
     ("Privatforbrug", "Elektronik & computerudstyr", [
         "ny mobiltelefon", "playstation", "wii", "xbox", "konsol",
@@ -280,16 +289,18 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     ]),
     ("Privatforbrug", "Frisør & personlig pleje", [
         "parfume", "klipning", "hårklip", "massage",
-        "coaching", "wellness", "solcenter", "frisør",
+        "coaching", "wellness", "solcenter", "frisør", "økofamilien", "okofamilien",
     ]),
     ("Privatforbrug", "Film, musik & læsestof", [
         "bøger", "blade", "aviser", "magasiner", "dvd", "cd", "mp3",
         "itunes", "dameblade", "faglitteratur", "fagbøger",
-        "skønlitteratur", "spotify", "saxo", "audible",
+        "skønlitteratur", "spotify", "saxo", "saxo com", "audible", "blockbuster",
     ]),
     ("Privatforbrug", "Biograf, koncerter & forlystelser", [
         "museum", "kultur", "biffen", "musik", "billetter",
-        "tivoli", "sommerland", "legeland", "biograf", "kino",
+        "tivoli", "sommerland", "fyns sommerland", "legeland", "biograf", "kino",
+        "odense zoo", "zoo odense", "moesgaard museum", "moesgaardmuseum", "danmarks jernbanemuseum",
+        "dinoland", "minigolf",
     ]),
     ("Privatforbrug", "Tips & lotto", [
         "poker", "klasselotteri", "casino", "odds", "kasino",
@@ -305,7 +316,8 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "nødhjælp", "donationer", "røde kors", "red barnet",
         "folkekirkens nødhjælp", "wwf verdensnaturfonden", "wspa",
         "børnefonde", "læger uden grænser", "amnesty international",
-        "unicef", "gave",
+        "unicef", "gave", "dansk flygtningehjælp", "flygtningehjælp", "oxfam", "oxfam danmark",
+        "sos børnebyerne", "den danske naturfond", "foreningen sand",
     ]),
     ("Privatforbrug", "Tobak & alkohol", [
         "spiritus", "cigaretter", "øl", "vin", "snus", "vape",
@@ -314,7 +326,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "hæveautomat",
     ]),
     ("Privatforbrug", "Online services & software", [
-        "webhotel", "domæne", "apps", "apple", "google play",
+        "webhotel", "domæne", "apps", "apple", "google play", "10er dk", "10er",
     ]),
     ("Privatforbrug", "Andet privatforbrug", [
         "barnepige", "frimærker", "babysitter", "fragt", "posthus",
@@ -334,7 +346,7 @@ _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
         "hertz", "avis", "europcar", "sixt",
     ]),
     ("Ferie", "Ferieaktiviteter", [
-        "skileje", "liftkort", "skiskole",
+        "skileje", "liftkort", "skiskole", "thurø strand camp", "strand camp",
     ]),
 
     # === DIVERSE ===
@@ -456,7 +468,60 @@ def clean_and_migrate_stored_rules() -> int:
                     updated_count += 1
 
         db.commit()
+
+    updated_count += cleanup_promoted_household_rules()
     return updated_count
+
+
+def cleanup_promoted_household_rules() -> int:
+    """Identify and remove user-defined categorization rules that are now
+    redundant because global system rules provide the exact same categorization,
+    or that have been intentionally promoted/remapped to system rules.
+
+    Returns the number of user rules removed.
+    """
+    removed_count = 0
+    with Session(engine) as db:
+        system_rules = db.exec(
+            select(CategorizationRule)
+            .where(CategorizationRule.source == "system")
+            .where(CategorizationRule.is_active == True)  # noqa: E712
+            .order_by(col(CategorizationRule.priority).asc())
+        ).all()
+
+        user_rules = db.exec(
+            select(CategorizationRule)
+            .where(CategorizationRule.source == "user")
+        ).all()
+
+        # Explicitly promoted / remapped patterns that should be removed from user rules
+        explicit_remap_patterns = {
+            "fyns sommerland",
+            "fyns sommerland koebenhavn s",
+            "thurø minigolf",
+            "thurø minigolf z034996",
+        }
+
+        for rule in user_rules:
+            pattern = rule.match_pattern.lower().strip()
+            if not pattern:
+                db.delete(rule)
+                removed_count += 1
+                continue
+
+            if pattern in explicit_remap_patterns:
+                db.delete(rule)
+                removed_count += 1
+                continue
+
+            # If system rules evaluate this pattern to the exact same category, user rule is redundant
+            matched_cat = evaluate_text(pattern, rules=system_rules)
+            if matched_cat is not None and matched_cat == rule.category_id:
+                db.delete(rule)
+                removed_count += 1
+
+        db.commit()
+    return removed_count
 
 
 # ---------------------------------------------------------------------------
