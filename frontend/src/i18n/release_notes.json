@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.9",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Comprehensive backfill migration for all historical split allocations with blank item names or empty category IDs",
+        "Inherit dominant sibling category across all receipt splits and fallback to transaction/merchant rules (e.g. Coop App, Netto, Harald Nyborg, Bauhaus, Matas)",
+        "Automatically assign 'Difference / Gebyr' label to unnamed remainder splits for visual clarity"
+      ],
+      "da": [
+        "Omfattende migrering af alle historiske split-linjer med blanke varenavne eller tomme kategori-felter",
+        "Automatisk nedarvning af dominerende split-kategori for alle kvitterings-splits samt fallback til butiksregler (f.eks. Coop App, Netto, Harald Nyborg, Bauhaus, Matas)",
+        "Automatisk tildeling af 'Difference / Gebyr' som varenavn på unavngivne rest-splits for tydeligere overblik"
+      ]
+    }
+  },
+  {
     "version": "v1.7.8",
     "date": "2026-08-29",
     "changes": {

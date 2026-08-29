@@ -722,51 +722,50 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
 
 
 def fix_receipt_difference_categories() -> int:
-    """Backfill / fix existing 'Difference / Gebyr' posting allocations that have no category.
+    """Backfill / fix existing posting allocations that have no category or are uncategorized.
 
     Assigns the sibling allocation's category, or falls back to evaluate_posting on the parent posting,
     or 'husholdning|dagligvarer' for grocery receipts/descriptions.
     """
     updated_count = 0
     with Session(_get_engine()) as db:
-        diff_allocs = db.exec(
-            select(PostingAllocation).where(
-                PostingAllocation.item_name == "Difference / Gebyr",
-                or_(
-                    PostingAllocation.category_id == None,  # noqa: E711
-                    PostingAllocation.category_id == "diverse|ikke-kategoriseret",
-                    PostingAllocation.category_id == "diverse|ukategoriseret",
-                ),
-            )
-        ).all()
-
-        if not diff_allocs:
+        all_allocs = db.exec(select(PostingAllocation)).all()
+        if not all_allocs:
             return 0
 
-        for alloc in diff_allocs:
+        from app.services.rules_service import evaluate_posting, evaluate_text
+
+        # Group allocations by posting_id
+        posting_alloc_map: dict[str, list[PostingAllocation]] = {}
+        for a in all_allocs:
+            posting_alloc_map.setdefault(a.posting_id, []).append(a)
+
+        for alloc in all_allocs:
+            cat = (alloc.category_id or "").strip()
+            if cat and cat not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret"):
+                continue
+
             # 1. Look for sibling allocations on the same posting with a valid category
-            sibling_allocs = db.exec(
-                select(PostingAllocation).where(
-                    PostingAllocation.posting_id == alloc.posting_id,
-                    PostingAllocation.id != alloc.id,
-                    PostingAllocation.category_id != None,  # noqa: E711
-                    PostingAllocation.category_id != "diverse|ikke-kategoriseret",
-                    PostingAllocation.category_id != "diverse|ukategoriseret",
-                )
-            ).all()
+            siblings = posting_alloc_map.get(alloc.posting_id, [])
+            valid_cats = [
+                s.category_id.strip()
+                for s in siblings
+                if s.id != alloc.id
+                and (s.category_id or "").strip()
+                and (s.category_id or "").strip() not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+            ]
 
             target_cat = None
-            if sibling_allocs:
-                cats = [s.category_id for s in sibling_allocs if s.category_id]
-                if cats:
-                    target_cat = max(set(cats), key=cats.count)
+            if valid_cats:
+                target_cat = max(set(valid_cats), key=valid_cats.count)
 
             # 2. If no sibling category, evaluate the parent posting
             if not target_cat:
                 posting = db.get(Posting, alloc.posting_id)
                 if posting:
-                    from app.services.rules_service import evaluate_posting
                     target_cat = evaluate_posting(posting)
+                    if not target_cat and posting.original_description:
+                        target_cat = evaluate_text(posting.original_description)
                     if not target_cat and posting.original_description:
                         desc_lower = posting.original_description.lower()
                         if any(
@@ -774,12 +773,18 @@ def fix_receipt_difference_categories() -> int:
                             for k in (
                                 "coop", "netto", "rema", "foetex", "bilka", "meny",
                                 "lidl", "aldi", "brugsen", "365", "spar", "købmand",
+                                "loevbjerg", "løvbjerg", "irma", "nemlig",
                             )
                         ):
                             target_cat = "husholdning|dagligvarer"
 
             if target_cat:
                 alloc.category_id = target_cat
+                if not alloc.item_name and (
+                    alloc.note == "Automatisk difference (fra kvittering)"
+                    or (siblings and len(siblings) > 1)
+                ):
+                    alloc.item_name = "Difference / Gebyr"
                 alloc.updated_at = _utcnow_iso()
                 updated_count += 1
 

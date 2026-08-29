@@ -184,13 +184,13 @@ def test_fix_receipt_difference_categories_migration():
         )
         db.add(item_alloc)
 
-        # Difference allocation without category
+        # Difference allocation without category and without item_name
         diff_alloc = PostingAllocation(
             id="alloc-diff-3",
             posting_id="post-diff-3",
             household_id=TEST_HOUSEHOLD_ID,
-            category_id=None,
-            item_name="Difference / Gebyr",
+            category_id="",
+            item_name=None,
             amount_minor=-1000,
             created_at="2026-08-20T10:00:00Z",
             updated_at="2026-08-20T10:00:00Z",
@@ -204,3 +204,4 @@ def test_fix_receipt_difference_categories_migration():
     with Session(test_engine) as db:
         updated_alloc = db.get(PostingAllocation, "alloc-diff-3")
         assert updated_alloc.category_id == "husholdning|dagligvarer"
+        assert updated_alloc.item_name == "Difference / Gebyr"
