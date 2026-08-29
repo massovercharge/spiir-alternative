@@ -1,6 +1,7 @@
 """Reconciliation Service — Automatic deduplication, overlap merge, and cross-account reconciliation."""
 from __future__ import annotations
 
+import datetime as dt
 import logging
 import re
 import uuid
@@ -30,46 +31,103 @@ UNCATEGORIZED_SLUGS = {
 }
 
 
+def extract_reference_number(desc: Optional[str]) -> Optional[str]:
+    """Extract receipt, nota, ticket, or transaction reference number from a description."""
+    if not desc:
+        return None
+    # Matches patterns like "Nota HFM3S6_1", "Notanr 45795", "Ref. 12345", "Kvittering #9876"
+    m = re.search(r"\b(?:notanr|nota|refnr|ref|transnr|kvit|kvittering)\.?\s*[:#]?\s*([a-z0-9_-]+)", desc, re.IGNORECASE)
+    if m:
+        return m.group(1).lower().strip()
+    return None
+
+
 def clean_description_for_matching(s: Optional[str]) -> str:
     """Normalize text by stripping common payment prefixes and non-alphanumeric chars."""
     if not s:
         return ""
-    text = s.lower()
+    text = s.lower().strip()
+    # Strip leading transaction prefixes
     prefixes = [
         "mobilepay:",
         "mobilepay køb",
         "mobilepay",
+        "dankort-køb",
         "dankort-nota",
         "dankort",
         "visa køb",
         "visa",
         "betalingsservice",
         "overførsel",
-        "nota",
     ]
     for prefix in prefixes:
-        text = text.replace(prefix, "")
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
     return re.sub(r"[^a-z0-9æøå]", "", text).strip()
 
 
 def descriptions_match(desc1: Optional[str], desc2: Optional[str]) -> bool:
     """Check whether two descriptions refer to the same payee or transaction."""
+    if not desc1 or not desc2:
+        return True
+
+    # 1. If both descriptions have explicit receipt/nota reference numbers that differ, they are distinct
+    ref1 = extract_reference_number(desc1)
+    ref2 = extract_reference_number(desc2)
+    if ref1 and ref2 and ref1 != ref2:
+        return False
+
     c1 = clean_description_for_matching(desc1)
     c2 = clean_description_for_matching(desc2)
     if not c1 or not c2:
-        return True  # If one description is blank, allow date+amount match
+        return True
 
     if c1 == c2 or c1 in c2 or c2 in c1:
         return True
 
-    # Check words overlap
+    # 2. Check token overlap (payee words)
     words1 = set(re.findall(r"[a-z0-9æøå]{3,}", c1))
     words2 = set(re.findall(r"[a-z0-9æøå]{3,}", c2))
-    if words1 and words2 and len(words1 & words2) > 0:
-        return True
+    if words1 and words2:
+        common = words1 & words2
+        diff1 = words1 - words2
+        diff2 = words2 - words1
+        # If they share meaningful words and neither has distinct conflicting identifiers of length >= 4
+        if len(common) > 0 and not (diff1 and diff2):
+            return True
 
-    # Prefix overlap (e.g. nettopk vs nettopr)
-    return bool(len(c1) >= 4 and len(c2) >= 4 and c1[:5] == c2[:5])
+    return False
+
+
+def dates_match(
+    b1: Optional[str],
+    c1: Optional[str],
+    b2: Optional[str],
+    c2: Optional[str],
+    is_same_account: bool = False,
+) -> bool:
+    """Check if two postings match on date (exact booking_date, exact custom_date, cross-match, or +/- 2 days settlement difference for cross-account)."""
+    if b1 and b2 and b1 == b2:
+        return True
+    if c1 and c2 and c1 == c2:
+        return True
+    e1 = c1 or b1 or ""
+    e2 = c2 or b2 or ""
+    if e1 and e2 and e1 == e2:
+        return True
+    if c1 and b2 and c1 == b2:
+        return True
+    if c2 and b1 and c2 == b1:
+        return True
+    if not is_same_account and e1 and e2:
+        try:
+            d1 = dt.date.fromisoformat(e1[:10])
+            d2 = dt.date.fromisoformat(e2[:10])
+            if abs((d1 - d2).days) <= 2:
+                return True
+        except ValueError:
+            pass
+    return False
 
 
 def are_accounts_duplicate_pair(
@@ -123,8 +181,12 @@ def find_duplicate_candidate_in_db(
     candidates = session.exec(query).all()
 
     for cand in candidates:
-        cand_date = cand.custom_date or cand.booking_date
-        if cand_date == eff_date:
+        is_same = (target_posting.account_uid == cand.account_uid)
+        if dates_match(
+            target_posting.booking_date, target_posting.custom_date,
+            cand.booking_date, cand.custom_date,
+            is_same_account=is_same,
+        ):
             if not are_accounts_duplicate_pair(
                 session,
                 target_posting.account_uid,
@@ -492,74 +554,97 @@ def get_duplicate_groups_preview(
     }
     dismissed_pairs = get_dismissed_duplicate_pairs(session, household_id)
 
-    groups: dict[tuple[str, int, str], list[Posting]] = {}
+    clusters: dict[int, list[Posting]] = {}
     statutory_keywords = ("børne- og ungeydelse", "børneydelse", "børnepenge", "børnecheck", "børnetilskud", "ungeydelse")
     for p in postings:
-        eff_date = p.custom_date or p.booking_date or ""
-        clean_desc = clean_description_for_matching(p.original_description)
-        if not eff_date or not clean_desc:
+        if p.amount_minor >= 0:
             continue
-        # Exclude known statutory child allowance / split benefits across parents
         lower_desc = (p.original_description or "").lower()
         if any(kw in lower_desc for kw in statutory_keywords):
             continue
-        key = (eff_date, p.amount_minor, clean_desc)
-        groups.setdefault(key, []).append(p)
+        clusters.setdefault(p.amount_minor, []).append(p)
 
     preview_groups = []
     import itertools
-    for (eff_date, amount_minor, clean_desc), plist in groups.items():
+    for amount_minor, plist in clusters.items():
         if len(plist) < 2:
             continue
 
-        # Skip group if all pairs in plist are already dismissed as not duplicate
-        all_dismissed = True
-        for p1, p2 in itertools.combinations(plist, 2):
-            if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
-                all_dismissed = False
-                break
-        if all_dismissed:
-            continue
+        used_ids: set[str] = set()
+        for i in range(len(plist)):
+            if plist[i].id in used_ids:
+                continue
+            current_group = [plist[i]]
+            for j in range(i + 1, len(plist)):
+                if plist[j].id in used_ids:
+                    continue
+                matches = False
+                for member in current_group:
+                    is_same = (member.account_uid == plist[j].account_uid)
+                    if dates_match(
+                        member.booking_date, member.custom_date,
+                        plist[j].booking_date, plist[j].custom_date,
+                        is_same_account=is_same,
+                    ) and descriptions_match(member.original_description, plist[j].original_description):
+                        matches = True
+                        break
+                if matches:
+                    current_group.append(plist[j])
 
-        # Check if this pair is a cross-account archive duplicate pair that can safely be merged
-        can_auto_merge = False
-        if len(plist) == 2:
-            acc1 = accounts_by_uid.get(plist[0].account_uid)
-            acc2 = accounts_by_uid.get(plist[1].account_uid)
-            if acc1 and acc2 and are_accounts_duplicate_pair(session, acc1.uid, acc2.uid, allow_same_account=False):
-                can_auto_merge = True
+            if len(current_group) >= 2:
+                for g in current_group:
+                    used_ids.add(g.id)
 
-        postings_data = []
-        for p in plist:
-            acc = accounts_by_uid.get(p.account_uid)
-            allocs = session.exec(
-                select(PostingAllocation).where(PostingAllocation.posting_id == p.id)
-            ).all()
-            category_id = allocs[0].category_id if allocs else None
-            note = allocs[0].note if allocs else None
-            postings_data.append({
-                "id": p.id,
-                "account_uid": p.account_uid,
-                "account_name": acc.name if acc else p.account_uid,
-                "account_source": acc.source if acc else "unknown",
-                "original_description": p.original_description,
-                "amount_minor": p.amount_minor,
-                "amount": format_amount(abs(p.amount_minor)),
-                "date": eff_date,
-                "category_id": category_id,
-                "note": note,
-                "split_count": len(allocs),
-            })
+                # Skip group if all pairs in current_group are already dismissed
+                all_dismissed = True
+                for p1, p2 in itertools.combinations(current_group, 2):
+                    if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
+                        all_dismissed = False
+                        break
+                if all_dismissed:
+                    continue
 
-        preview_groups.append({
-            "group_id": f"{eff_date}_{amount_minor}_{clean_desc[:12]}",
-            "date": eff_date,
-            "amount_minor": amount_minor,
-            "amount": format_amount(abs(amount_minor)),
-            "description": plist[0].original_description,
-            "can_auto_merge": can_auto_merge,
-            "postings": postings_data,
-        })
+                can_auto_merge = False
+                if len(current_group) == 2:
+                    acc1 = accounts_by_uid.get(current_group[0].account_uid)
+                    acc2 = accounts_by_uid.get(current_group[1].account_uid)
+                    if acc1 and acc2 and are_accounts_duplicate_pair(session, acc1.uid, acc2.uid, allow_same_account=False):
+                        can_auto_merge = True
+
+                postings_data = []
+                for p in current_group:
+                    acc = accounts_by_uid.get(p.account_uid)
+                    allocs = session.exec(
+                        select(PostingAllocation).where(PostingAllocation.posting_id == p.id)
+                    ).all()
+                    category_id = allocs[0].category_id if allocs else None
+                    note = allocs[0].note if allocs else None
+                    p_eff_date = p.custom_date or p.booking_date or ""
+                    postings_data.append({
+                        "id": p.id,
+                        "account_uid": p.account_uid,
+                        "account_name": acc.name if acc else p.account_uid,
+                        "account_source": acc.source if acc else "unknown",
+                        "original_description": p.original_description,
+                        "amount_minor": p.amount_minor,
+                        "amount": format_amount(abs(p.amount_minor)),
+                        "date": p_eff_date,
+                        "category_id": category_id,
+                        "note": note,
+                        "split_count": len(allocs),
+                    })
+
+                eff_date_rep = current_group[0].custom_date or current_group[0].booking_date or ""
+                clean_rep = clean_description_for_matching(current_group[0].original_description)
+                preview_groups.append({
+                    "group_id": f"{eff_date_rep}_{amount_minor}_{clean_rep[:12]}",
+                    "date": eff_date_rep,
+                    "amount_minor": amount_minor,
+                    "amount": format_amount(abs(amount_minor)),
+                    "description": current_group[0].original_description,
+                    "can_auto_merge": can_auto_merge,
+                    "postings": postings_data,
+                })
 
     return preview_groups
 

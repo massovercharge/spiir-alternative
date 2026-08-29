@@ -189,7 +189,7 @@ def test_fix_receipt_difference_categories_migration():
             id="alloc-diff-3",
             posting_id="post-diff-3",
             household_id=TEST_HOUSEHOLD_ID,
-            category_id="",
+            category_id=None,
             item_name=None,
             amount_minor=-1000,
             created_at="2026-08-20T10:00:00Z",

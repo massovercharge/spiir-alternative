@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func
-from sqlmodel import Session, col, delete, or_, select
+from sqlmodel import Session, col, delete, select
 
 import app.models as models
 from app.core.item_utils import clean_item_name
@@ -29,6 +29,7 @@ from app.models import (
     Tag,
 )
 from app.models.all_models import Household, current_household_id
+from app.services.reconciliation_service import dates_match, descriptions_match
 
 logger = logging.getLogger("peng.transaction_service")
 
@@ -75,20 +76,19 @@ def list_transactions(
     with Session(_get_engine()) as db:
         eff_date = func.coalesce(Posting.custom_date, Posting.booking_date)
 
-        # Pre-compute duplicate map for outgoing expenses in the household
+        # Pre-compute duplicate map for outgoing expenses in the household using robust date and description matching
         all_postings_for_dups = db.exec(
-            select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.amount_minor, Posting.original_description)
+            select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.amount_minor, Posting.original_description, Posting.account_uid)
             .where(col(Posting.amount_minor) < 0)
         ).all()
 
-        dup_groups: dict[tuple[str, int, str], list[str]] = {}
-        for p_id, b_date, c_date, amt, desc in all_postings_for_dups:
-            e_date = c_date or b_date or ""
-            cdesc = (desc or "").strip().lower()
-            if e_date and cdesc:
-                if any(kw in cdesc for kw in STATUTORY_SPLIT_KEYWORDS):
-                    continue
-                dup_groups.setdefault((e_date, amt, cdesc), []).append(p_id)
+        dup_clusters: dict[int, list[tuple]] = {}
+        for row in all_postings_for_dups:
+            p_id, b_date, c_date, amt, desc, acc_uid = row
+            desc_lower = (desc or "").lower()
+            if any(kw in desc_lower for kw in STATUTORY_SPLIT_KEYWORDS):
+                continue
+            dup_clusters.setdefault(amt, []).append((p_id, b_date, c_date, desc, acc_uid))
 
         dismissed = db.exec(select(DismissedDuplicate)).all()
         dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
@@ -96,23 +96,42 @@ def list_transactions(
         import itertools
         dup_info_map: dict[str, tuple[int, list[str]]] = {}
         dup_posting_ids: set[str] = set()
-        for group in dup_groups.values():
-            if len(group) >= 2:
-                # Check if all pairs in group are dismissed
-                all_dismissed = True
-                for p1, p2 in itertools.combinations(group, 2):
-                    if (min(p1, p2), max(p1, p2)) not in dismissed_pairs:
-                        all_dismissed = False
-                        break
-                if all_dismissed:
+        for _amt, plist in dup_clusters.items():
+            if len(plist) < 2:
+                continue
+            used_ids: set[str] = set()
+            for i in range(len(plist)):
+                if plist[i][0] in used_ids:
                     continue
-
-                for p_id in group:
-                    # Only include siblings that are not dismissed with this p_id
-                    siblings = [other_id for other_id in group if other_id != p_id and (min(p_id, other_id), max(p_id, other_id)) not in dismissed_pairs]
-                    if siblings:
-                        dup_posting_ids.add(p_id)
-                        dup_info_map[p_id] = (len(siblings) + 1, siblings)
+                current_group = [plist[i]]
+                for j in range(i + 1, len(plist)):
+                    if plist[j][0] in used_ids:
+                        continue
+                    for member in current_group:
+                        is_same = (member[4] == plist[j][4])
+                        if dates_match(
+                            member[1], member[2],
+                            plist[j][1], plist[j][2],
+                            is_same_account=is_same,
+                        ) and descriptions_match(member[3], plist[j][3]):
+                            current_group.append(plist[j])
+                            break
+                if len(current_group) >= 2:
+                    group_ids = [g[0] for g in current_group]
+                    for gid in group_ids:
+                        used_ids.add(gid)
+                    all_dismissed = True
+                    for p1_id, p2_id in itertools.combinations(group_ids, 2):
+                        if (min(p1_id, p2_id), max(p1_id, p2_id)) not in dismissed_pairs:
+                            all_dismissed = False
+                            break
+                    if all_dismissed:
+                        continue
+                    for p_id in group_ids:
+                        siblings = [other_id for other_id in group_ids if other_id != p_id and (min(p_id, other_id), max(p_id, other_id)) not in dismissed_pairs]
+                        if siblings:
+                            dup_posting_ids.add(p_id)
+                            dup_info_map[p_id] = (len(siblings) + 1, siblings)
 
         query = select(Posting).distinct().order_by(
             eff_date.desc(),
@@ -256,31 +275,33 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
             for alloc_id, tag_name in links:
                 tags_map.setdefault(alloc_id, []).append(tag_name)
 
-        # Check for duplicate siblings on same effective date and amount and description for expenses
-        eff_date = posting.custom_date or posting.booking_date
-        cdesc = (posting.original_description or "").strip().lower()
+        # Check for duplicate siblings on matching date, amount and description for expenses
         siblings = []
+        cdesc = (posting.original_description or "").strip().lower()
         is_statutory = any(kw in cdesc for kw in STATUTORY_SPLIT_KEYWORDS)
-        if eff_date and cdesc and posting.amount_minor < 0 and not is_statutory:
-            siblings_query = (
-                select(Posting.id)
+        if posting.amount_minor < 0 and not is_statutory:
+            cands = db.exec(
+                select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.original_description, Posting.account_uid)
                 .where(Posting.id != transaction_id)
-                .where(func.coalesce(Posting.custom_date, Posting.booking_date) == eff_date)
                 .where(Posting.amount_minor == posting.amount_minor)
-                .where(func.lower(func.trim(Posting.original_description)) == cdesc)
-            )
-            raw_siblings = list(db.exec(siblings_query).all())
-            # Exclude siblings that are dismissed with this transaction
-            dismissed = db.exec(
-                select(DismissedDuplicate).where(
-                    (DismissedDuplicate.posting_id_1 == transaction_id) | (DismissedDuplicate.posting_id_2 == transaction_id)
-                )
             ).all()
-            dismissed_with_this = {
-                d.posting_id_2 if d.posting_id_1 == transaction_id else d.posting_id_1
-                for d in dismissed
-            }
-            siblings = [s for s in raw_siblings if s not in dismissed_with_this]
+            for c_id, c_b_date, c_c_date, c_desc, c_acc_uid in cands:
+                is_same = (posting.account_uid == c_acc_uid)
+                if dates_match(
+                    posting.booking_date, posting.custom_date,
+                    c_b_date, c_c_date,
+                    is_same_account=is_same,
+                ) and descriptions_match(posting.original_description, c_desc):
+                    # Check dismissed
+                    pair_key = (min(transaction_id, c_id), max(transaction_id, c_id))
+                    is_dismissed = db.exec(
+                        select(DismissedDuplicate).where(
+                            (DismissedDuplicate.posting_id_1 == pair_key[0]) &
+                            (DismissedDuplicate.posting_id_2 == pair_key[1])
+                        )
+                    ).first() is not None
+                    if not is_dismissed:
+                        siblings.append(c_id)
 
         dup_info = (len(siblings) + 1, siblings) if siblings else (0, [])
 

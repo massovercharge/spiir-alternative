@@ -21,6 +21,7 @@ from app.models import (
     PostingAllocation,
 )
 from app.models.all_models import Household, current_household_id
+from app.services.reconciliation_service import dates_match, descriptions_match
 
 logger = logging.getLogger("peng.notification_service")
 
@@ -54,10 +55,9 @@ STATUTORY_SPLIT_KEYWORDS = (
 # ---------------------------------------------------------------------------
 
 def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, Any]]:
-    """Find outgoing expense transactions on the same date with the same amount and recipient."""
+    """Find outgoing expense transactions on matching dates with matching amount and recipient."""
     notifications: list[dict[str, Any]] = []
 
-    # Get effective date for all postings in the household
     eff_date_col = func.coalesce(Posting.custom_date, Posting.booking_date)
     query = (
         select(Posting)
@@ -67,63 +67,82 @@ def detect_duplicate_payments(db: Session, household_id: str) -> list[dict[str, 
     )
     postings = db.exec(query).all()
 
-    # Group postings by (effective_date, amount_minor, cleaned_desc)
-    groups: dict[tuple[str, int, str], list[Posting]] = {}
-    for p in postings:
-        eff_date = p.custom_date or p.booking_date or ""
-        clean_desc = _clean_description_for_grouping(p.original_description)
-        if not eff_date or not clean_desc:
-            continue
-        # Exclude statutory benefits (e.g. Børne- og Ungeydelse split between parents)
-        lower_desc = (p.original_description or "").lower()
-        if any(kw in lower_desc for kw in STATUTORY_SPLIT_KEYWORDS):
-            continue
-        key = (eff_date, p.amount_minor, clean_desc)
-        groups.setdefault(key, []).append(p)
-
     dismissed = db.exec(select(DismissedDuplicate).where(DismissedDuplicate.household_id == household_id)).all()
     dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
 
+    clusters: dict[int, list[Posting]] = {}
+    for p in postings:
+        lower_desc = (p.original_description or "").lower()
+        if any(kw in lower_desc for kw in STATUTORY_SPLIT_KEYWORDS):
+            continue
+        clusters.setdefault(p.amount_minor, []).append(p)
+
     import itertools
-    for (eff_date, amount_minor, clean_desc), group in groups.items():
-        if len(group) < 2:
+    for amount_minor, plist in clusters.items():
+        if len(plist) < 2:
             continue
 
-        # Skip group if all pairs in group are dismissed
-        all_dismissed = True
-        for p1, p2 in itertools.combinations(group, 2):
-            if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
-                all_dismissed = False
-                break
-        if all_dismissed:
-            continue
+        used_ids: set[str] = set()
+        for i in range(len(plist)):
+            if plist[i].id in used_ids:
+                continue
+            current_group = [plist[i]]
+            for j in range(i + 1, len(plist)):
+                if plist[j].id in used_ids:
+                    continue
+                matches = False
+                for member in current_group:
+                    is_same = (member.account_uid == plist[j].account_uid)
+                    if dates_match(
+                        member.booking_date, member.custom_date,
+                        plist[j].booking_date, plist[j].custom_date,
+                        is_same_account=is_same,
+                    ) and descriptions_match(member.original_description, plist[j].original_description):
+                        matches = True
+                        break
+                if matches:
+                    current_group.append(plist[j])
 
-        rep = group[0]
-        desc_display = rep.original_description or clean_desc
-        formatted_amount = format_amount(abs(amount_minor))
-        group_hash = hashlib.md5(f"{eff_date}:{amount_minor}:{clean_desc}".encode()).hexdigest()[:10]
+            if len(current_group) >= 2:
+                for g in current_group:
+                    used_ids.add(g.id)
 
-        notifications.append({
-            "id": f"dup:{eff_date}:{group_hash}",
-            "type": "duplicate_payment",
-            "severity": "warning",
-            "title": "Mulig dobbeltbetaling",
-            "message": f"{len(group)} transaktioner til '{desc_display}' på {formatted_amount} kr. den {eff_date}.",
-            "created_at": max(p.created_at for p in group if p.created_at) if any(p.created_at for p in group) else f"{eff_date}T00:00:00Z",
-            "metadata": {
-                "transaction_ids": [p.id for p in group],
-                "date": eff_date,
-                "amount_minor": amount_minor,
-                "amount": formatted_amount,
-                "description": desc_display,
-                "count": len(group),
-            },
-            "action_type": "filter_transactions",
-            "action_payload": {
-                "search": desc_display,
-                "date": eff_date,
-            },
-        })
+                # Skip group if all pairs in current_group are dismissed
+                all_dismissed = True
+                for p1, p2 in itertools.combinations(current_group, 2):
+                    if (min(p1.id, p2.id), max(p1.id, p2.id)) not in dismissed_pairs:
+                        all_dismissed = False
+                        break
+                if all_dismissed:
+                    continue
+
+                rep = current_group[0]
+                eff_date = rep.custom_date or rep.booking_date or ""
+                desc_display = rep.original_description or ""
+                formatted_amount = format_amount(abs(amount_minor))
+                group_hash = hashlib.md5(f"{eff_date}:{amount_minor}:{desc_display}".encode()).hexdigest()[:10]
+
+                notifications.append({
+                    "id": f"dup:{eff_date}:{group_hash}",
+                    "type": "duplicate_payment",
+                    "severity": "warning",
+                    "title": "Mulig dobbeltbetaling",
+                    "message": f"{len(current_group)} transaktioner til '{desc_display}' på {formatted_amount} kr. den {eff_date}.",
+                    "created_at": max(p.created_at for p in current_group if p.created_at) if any(p.created_at for p in current_group) else f"{eff_date}T00:00:00Z",
+                    "metadata": {
+                        "transaction_ids": [p.id for p in current_group],
+                        "date": eff_date,
+                        "amount_minor": amount_minor,
+                        "amount": formatted_amount,
+                        "description": desc_display,
+                        "count": len(current_group),
+                    },
+                    "action_type": "filter_transactions",
+                    "action_payload": {
+                        "search": desc_display,
+                        "date": eff_date,
+                    },
+                })
 
     return notifications
 

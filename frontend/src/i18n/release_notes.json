@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.10",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Fixed cross-account duplicate detection between Spiir CSV archives and live bank accounts (handling purchase date vs bank booking date settlement differences and payment prefix normalizations)",
+        "Differentiate transactions with distinct receipt/nota/ticket reference numbers (e.g. DSB APP tickets or separate Dankort notas) so they are never falsely marked as duplicates",
+        "Accurately match and resolve duplicate pairs across archive imports and Enable Banking connections without missing weekend clearing discrepancies"
+      ],
+      "da": [
+        "Rettet registrering af dubletter på tværs af Spiir CSV-arkiv og live bankkonti (håndterer forskelle mellem købsdato og bankens bogføringsdato samt normalisering af betalingspræfikser)",
+        "Skelner automatisk mellem posteringer med forskellige nota-/kvitteringsnumre (f.eks. separate togbilletter i DSB APP eller forskellige Dankort-notaer), så de aldrig markeres som falske dubletter",
+        "Præcis identifikation og fletning af dupletter mellem arkivimport og Enable Banking-forbindelser, så weekend- og helligdagsforskydninger fanges korrekt"
+      ]
+    }
+  },
+  {
     "version": "v1.7.9",
     "date": "2026-08-29",
     "changes": {

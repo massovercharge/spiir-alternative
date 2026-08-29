@@ -283,3 +283,98 @@ def test_dismiss_duplicate_pair_and_all_same_account():
         assert len(get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)) == 0
 
 
+def test_spiir_csv_vs_enable_banking_different_dates_matching():
+    with Session(all_models.engine) as session:
+        acc_spiir = Account(uid="csv:123", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus (Spiir)", source="csv", currency="DKK")
+        acc_bank = Account(uid="eb:456", household_id=TEST_HOUSEHOLD_ID, name="SparD Plus", source="enablebanking", currency="DKK")
+        session.add_all([acc_spiir, acc_bank])
+
+        # Spiir has custom_date 2025-11-16 (purchase date) and booking_date 2025-11-17 (clearing date)
+        p_spiir = Posting(
+            id="p_sp1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="csv:123",
+            booking_date="2025-11-17",
+            custom_date="2025-11-16",
+            amount_minor=-3800,
+            original_description="MobilePay: MobilePay Martin Pries",
+        )
+        # Bank has only booking_date 2025-11-17 and no custom_date
+        p_eb = Posting(
+            id="p_eb1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="eb:456",
+            booking_date="2025-11-17",
+            custom_date=None,
+            amount_minor=-3800,
+            original_description="MobilePay: MobilePay Martin Pries",
+        )
+        session.add_all([p_spiir, p_eb])
+        session.commit()
+
+        # Check that get_duplicate_groups_preview identifies them as an auto-mergeable cross-account duplicate
+        preview = get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)
+        assert len(preview) == 1
+        assert preview[0]["can_auto_merge"] is True
+        assert preview[0]["amount_minor"] == -3800
+        assert len(preview[0]["postings"]) == 2
+
+        # Check that detect_duplicate_payments generates the warning notification
+        notifs = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs) == 1
+        assert notifs[0]["type"] == "duplicate_payment"
+
+        # Check that list_transactions flags the duplicate warning
+        txs = list_transactions(limit=10)
+        flagged_txs = [t for t in txs["transactions"] if t["id"] in ("p_sp1", "p_eb1")]
+        assert len(flagged_txs) == 2
+        for t in flagged_txs:
+            assert t["has_duplicate_warning"] is True
+            assert t["duplicate_count"] == 2
+
+
+def test_distinct_nota_numbers_not_duplicates():
+    with Session(all_models.engine) as session:
+        acc = Account(uid="acc_dsb", household_id=TEST_HOUSEHOLD_ID, name="Checking", currency="DKK")
+        session.add(acc)
+
+        p1 = Posting(
+            id="dsb_1",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_dsb",
+            booking_date="2026-06-03",
+            amount_minor=-3000,
+            original_description="Dankort-køb DSB APP Nota HFM3S6_1",
+        )
+        p2 = Posting(
+            id="dsb_2",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_dsb",
+            booking_date="2026-06-03",
+            amount_minor=-3000,
+            original_description="Dankort-køb DSB APP Nota 07AXGN_1",
+        )
+        p3 = Posting(
+            id="dsb_3",
+            household_id=TEST_HOUSEHOLD_ID,
+            account_uid="acc_dsb",
+            booking_date="2026-06-03",
+            amount_minor=-3000,
+            original_description="Dankort-køb DSB APP Nota FHTJN7_1",
+        )
+        session.add_all([p1, p2, p3])
+        session.commit()
+
+        # They have different nota numbers, so they should NOT be grouped as duplicates
+        preview = get_duplicate_groups_preview(session, TEST_HOUSEHOLD_ID)
+        assert len(preview) == 0
+
+        notifs = detect_duplicate_payments(session, TEST_HOUSEHOLD_ID)
+        assert len(notifs) == 0
+
+        for pid in ("dsb_1", "dsb_2", "dsb_3"):
+            tx = get_transaction(pid)
+            assert tx["has_duplicate_warning"] is False
+            assert tx["duplicate_count"] == 0
+
+
