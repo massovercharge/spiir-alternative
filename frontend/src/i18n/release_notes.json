@@ -1,5 +1,21 @@
 [
   {
+    "version": "v1.7.8",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Fixed receipt split difference/fee categorization so unassigned remainders and fees always inherit the transaction's or grocery store's category instead of falling back to Uncategorized",
+        "Added automatic startup migration to categorize historical receipt differences based on sibling receipt items and merchant metadata",
+        "Improved split editor to inherit the parent category when adding new split rows manually"
+      ],
+      "da": [
+        "Rettet kategorisering af difference- og gebyrlinjer ved kvitterings-splits, så ufordelte rester og gebyrer altid følger transaktionens eller dagligvarebutikkens kategori i stedet for at stå som Ukategoriseret",
+        "Tilføjet automatisk opstartsmigrering, der opdaterer historiske kvitteringsdifferencer ud fra transaktionens øvrige varelinjer og butiksmetadata",
+        "Forbedret split-redigeringen så manuelt tilføjede linjer automatisk arver transaktionens kategori"
+      ]
+    }
+  },
+  {
     "version": "v1.7.7",
     "date": "2026-08-29",
     "changes": {

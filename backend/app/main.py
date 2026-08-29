@@ -50,11 +50,15 @@ async def lifespan(app: FastAPI):
         logging.getLogger(__name__).warning("Error applying rules to uncategorized on startup: %s", e)
 
     try:
-        from app.services.transaction_service import auto_link_receipts
+        from app.services.transaction_service import (
+            auto_link_receipts,
+            fix_receipt_difference_categories,
+        )
+        fix_receipt_difference_categories()
         auto_link_receipts()
     except Exception as e:
         import logging
-        logging.getLogger(__name__).warning("Error running startup auto-link receipts: %s", e)
+        logging.getLogger(__name__).warning("Error running startup receipt processing / difference migration: %s", e)
 
     # Start background workers
     import asyncio

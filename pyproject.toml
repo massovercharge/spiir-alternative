@@ -1,6 +1,6 @@
 [project]
 name = "peng"
-version = "1.7.7"
+version = "1.7.8"
 description = "Self-hostable personal finance app — categorization, budgeting, and accounting with bank integration via Enable Banking."
 readme = "README.md"
 license = "AGPL-3.0-or-later"

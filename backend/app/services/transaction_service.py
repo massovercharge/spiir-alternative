@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func
-from sqlmodel import Session, col, delete, select
+from sqlmodel import Session, col, delete, or_, select
 
 import app.models as models
 from app.core.item_utils import clean_item_name
@@ -625,6 +625,27 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             from app.services.rules_service import evaluate_posting
             fallback_category_id = evaluate_posting(posting) or fallback_category_id
 
+        # Also try merchant from receipt metadata if still unknown
+        receipt_info = receipt_data.get("receipt", {})
+        if not fallback_category_id or fallback_category_id in (
+            "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+        ):
+            from app.services.rules_service import evaluate_text
+            merchant_name = receipt_info.get("merchant_name")
+            merchant_key = str(receipt_info.get("merchant_key", "")).lower()
+            if merchant_name:
+                fallback_category_id = evaluate_text(merchant_name) or fallback_category_id
+            if not fallback_category_id or fallback_category_id in (
+                "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+            ):
+                if merchant_key in (
+                    "aldi", "bilka", "foetex", "fakta", "irma", "kvickly",
+                    "lidl", "meny", "nemlig", "netto", "rema1000", "rema",
+                    "superbrugsen", "daglibrugsen", "spar", "min koebmand", "min købmand",
+                    "coop", "coop365", "365discount", "loevbjerg", "løvbjerg"
+                ):
+                    fallback_category_id = "husholdning|dagligvarer"
+
         splits = []
         sum_items = 0
 
@@ -676,15 +697,96 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
 
         if abs(sum_items) != abs(posting.amount_minor):
             diff = abs(posting.amount_minor) - abs(sum_items)
+            diff_category_id = fallback_category_id
+            if not diff_category_id or diff_category_id in (
+                "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+            ):
+                valid_split_cats = [
+                    s["category_id"]
+                    for s in splits
+                    if s.get("category_id")
+                    and s["category_id"] not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                ]
+                if valid_split_cats:
+                    diff_category_id = max(set(valid_split_cats), key=valid_split_cats.count)
+
             splits.append({
                 "amount_minor": diff * multiplier,
                 "item_name": "Difference / Gebyr",
                 "item_cluster_id": None,
-                "category_id": None,
+                "category_id": diff_category_id,
                 "note": "Automatisk difference (fra kvittering)"
             })
 
         return split_allocation(posting_id, splits)
+
+
+def fix_receipt_difference_categories() -> int:
+    """Backfill / fix existing 'Difference / Gebyr' posting allocations that have no category.
+
+    Assigns the sibling allocation's category, or falls back to evaluate_posting on the parent posting,
+    or 'husholdning|dagligvarer' for grocery receipts/descriptions.
+    """
+    updated_count = 0
+    with Session(_get_engine()) as db:
+        diff_allocs = db.exec(
+            select(PostingAllocation).where(
+                PostingAllocation.item_name == "Difference / Gebyr",
+                or_(
+                    PostingAllocation.category_id == None,  # noqa: E711
+                    PostingAllocation.category_id == "diverse|ikke-kategoriseret",
+                    PostingAllocation.category_id == "diverse|ukategoriseret",
+                ),
+            )
+        ).all()
+
+        if not diff_allocs:
+            return 0
+
+        for alloc in diff_allocs:
+            # 1. Look for sibling allocations on the same posting with a valid category
+            sibling_allocs = db.exec(
+                select(PostingAllocation).where(
+                    PostingAllocation.posting_id == alloc.posting_id,
+                    PostingAllocation.id != alloc.id,
+                    PostingAllocation.category_id != None,  # noqa: E711
+                    PostingAllocation.category_id != "diverse|ikke-kategoriseret",
+                    PostingAllocation.category_id != "diverse|ukategoriseret",
+                )
+            ).all()
+
+            target_cat = None
+            if sibling_allocs:
+                cats = [s.category_id for s in sibling_allocs if s.category_id]
+                if cats:
+                    target_cat = max(set(cats), key=cats.count)
+
+            # 2. If no sibling category, evaluate the parent posting
+            if not target_cat:
+                posting = db.get(Posting, alloc.posting_id)
+                if posting:
+                    from app.services.rules_service import evaluate_posting
+                    target_cat = evaluate_posting(posting)
+                    if not target_cat and posting.original_description:
+                        desc_lower = posting.original_description.lower()
+                        if any(
+                            k in desc_lower
+                            for k in (
+                                "coop", "netto", "rema", "foetex", "bilka", "meny",
+                                "lidl", "aldi", "brugsen", "365", "spar", "købmand",
+                            )
+                        ):
+                            target_cat = "husholdning|dagligvarer"
+
+            if target_cat:
+                alloc.category_id = target_cat
+                alloc.updated_at = _utcnow_iso()
+                updated_count += 1
+
+        if updated_count > 0:
+            db.commit()
+
+    return updated_count
 
 
 def auto_link_receipts(

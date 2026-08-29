@@ -140,7 +140,8 @@ export function TransactionDetailsSidebar({ transaction, onClose, onFindSimilar 
   const addSplit = () => {
     const missingAmount = targetSum - currentSum;
     const amountStr = Math.abs(missingAmount) > 0.01 ? missingAmount.toFixed(2).replace('.', ',') : '';
-    setSplits([...splits, { amount_minor: 0, amount_input: amountStr, category_id: null }]);
+    const defaultCat = transaction.category_id || (splits[0]?.category_id ?? null);
+    setSplits([...splits, { amount_minor: 0, amount_input: amountStr, category_id: defaultCat }]);
   };
 
   const removeSplit = (index: number) => {
