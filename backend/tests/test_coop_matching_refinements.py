@@ -1,8 +1,3 @@
-import uuid
-from sqlmodel import Session
-
-import app.models as models
-from app.models.all_models import Account, Household, Posting
 from app.services.kvitteringer_service import _description_matches_merchant
 
 
