@@ -2908,7 +2908,7 @@ RETAIL_BRAND_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     (
         "COOP",
         re.compile(
-            r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta)\b",
+            r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta|brugsen)\b",
             re.IGNORECASE,
         ),
     ),
@@ -2987,7 +2987,27 @@ def _description_matches_merchant(
         if in_merchant and in_desc:
             return True
 
-    # 2. Substring match
+    # 2. Coop sub-chains & Coop App / NOTPROVIDED aliases
+    is_coop = bool(
+        re.search(
+            r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta|brugsen)\b",
+            norm_merchant + " " + norm_key,
+            re.IGNORECASE,
+        )
+        or "coop" in norm_key
+        or "365" in norm_key
+        or "kvickly" in norm_key
+        or "brugsen" in norm_key
+        or norm_merchant in ("UKENDT BUTIK", "UKENDT", "")
+        or norm_key in ("UKENDT-BUTIK", "UKENDT", "")
+    )
+    if is_coop:
+        if bool(re.search(r"\bcoop\b", norm_desc, re.IGNORECASE)):
+            return True
+        if bool(re.search(r"\bnotprovided\b", norm_desc, re.IGNORECASE)):
+            return True
+
+    # 3. Substring match
     clean_desc = re.sub(r"[^A-Z0-9]+", "", norm_desc)
     clean_merchant = re.sub(r"[^A-Z0-9]+", "", norm_merchant)
     clean_key = re.sub(r"[^A-Z0-9]+", "", norm_key)
@@ -3000,7 +3020,7 @@ def _description_matches_merchant(
     if clean_key and len(clean_key) >= 3 and (clean_key in clean_desc or clean_desc in clean_key):
         return True
 
-    # 3. Word Token Overlap (store/city/brand tokens >= 3 letters)
+    # 4. Word Token Overlap (store/city/brand tokens >= 3 letters)
     merchant_tokens = {
         t
         for t in re.findall(r"[A-Z0-9]{3,}", norm_merchant + " " + norm_key)
