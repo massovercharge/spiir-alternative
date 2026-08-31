@@ -70,7 +70,13 @@
     "summaryFromPeriod": "transactions from selected period.",
     "notCategorized": "uncategorized",
     "total": "Total:",
-    "average": "Average:"
+    "average": "Average:",
+    "masterCategoryLabel": "Category for whole transaction (all splits)",
+    "masterCategoryDesc": "Select a category to assign all rows and receipt items at once.",
+    "masterCategoryPlaceholder": "Select to assign all splits to the same category...",
+    "allSplitsUpdatedToast": "All splits assigned to {{category}}",
+    "mixedCategories": "Mixed categories",
+    "individualSplits": "Individual lines / splits"
   },
   "budgets": {
     "description": "Track your spending for {{year}} and stay on top of your expenses.",

@@ -70,7 +70,13 @@
     "summaryFromPeriod": "poster fra den valgte periode.",
     "notCategorized": "ikke kategoriserede",
     "total": "I alt:",
-    "average": "Gennemsnit:"
+    "average": "Gennemsnit:",
+    "masterCategoryLabel": "Kategori for hele transaktionen (alle splits)",
+    "masterCategoryDesc": "Vælg en kategori for at opdatere alle rækker og kvitteringen på én gang.",
+    "masterCategoryPlaceholder": "Vælg for at sætte alle splits til samme kategori...",
+    "allSplitsUpdatedToast": "Alle splits sat til {{category}}",
+    "mixedCategories": "Blandede kategorier",
+    "individualSplits": "Individuelle linjer / splits"
   },
   "budgets": {
     "description": "Følg med i dit forbrug for {{year}} og hold styr på dine udgifter.",

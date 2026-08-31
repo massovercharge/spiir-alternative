@@ -66,6 +66,7 @@ export function TransactionDetailsSidebar({
       amount_input: string;
       category_id: string | null;
       item_name?: string;
+      item_cluster_id?: string;
     }[]
   >([]);
 
@@ -96,6 +97,7 @@ export function TransactionDetailsSidebar({
           amount_input: ((a.amount_minor * mult) / 100).toString().replace('.', ','),
           category_id: a.category_id,
           item_name: a.item_name,
+          item_cluster_id: a.item_cluster_id,
         }))
       );
     } else {
@@ -105,10 +107,32 @@ export function TransactionDetailsSidebar({
           amount_input: (Math.abs(transaction.amount_minor) / 100).toString().replace('.', ','),
           category_id: transaction.category_id,
           item_name: undefined,
+          item_cluster_id: undefined,
         },
       ]);
     }
   }, [transaction]);
+
+  const handleMasterCategoryChange = (selectedCategoryId: string) => {
+    const newSplits = splits.map((s) => ({
+      ...s,
+      category_id: selectedCategoryId,
+    }));
+    setSplits(newSplits);
+    const catName =
+      selectedCategoryId.split('|')[1] || selectedCategoryId.split('|')[0] || selectedCategoryId;
+    toast.success(
+      t('transactions.allSplitsUpdatedToast', {
+        category: catName,
+        defaultValue: `Alle splits sat til ${catName}`,
+      })
+    );
+  };
+
+  const allSameCategory =
+    splits.length > 0 && splits.every((s) => s.category_id && s.category_id === splits[0].category_id)
+      ? (splits[0].category_id as string)
+      : undefined;
 
   const handleSave = () => {
     const patch: any = {};
@@ -145,6 +169,8 @@ export function TransactionDetailsSidebar({
           splits: parsedSplits.map((s) => ({
             amount_minor: s.amount_minor,
             category_id: s.category_id,
+            item_name: s.item_name,
+            item_cluster_id: s.item_cluster_id,
           })),
         },
         {
@@ -387,42 +413,88 @@ export function TransactionDetailsSidebar({
                 <span className="font-semibold">{targetSum.toFixed(2).replace('.', ',')}</span>
               </div>
 
-              <div className="space-y-3">
-                {splits.map((split, index) => (
-                  <div key={index} className="flex gap-2 items-start flex-col sm:flex-row">
-                    <div className="flex-1 w-full">
-                      {split.item_name && (
-                        <div className="text-xs font-semibold mb-1 text-[hsl(var(--text-primary))]">
-                          {split.item_name}
-                        </div>
+              {/* Master category picker for all splits / whole transaction */}
+              <div className="bg-[hsl(var(--bg-secondary))] p-3.5 rounded-xl border border-[hsl(var(--border-color))] space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-[hsl(var(--text-primary))] uppercase tracking-wider flex items-center gap-1.5">
+                    <TagIcon size={14} className="text-[hsl(var(--brand-primary))]" />
+                    <span>
+                      {t(
+                        'transactions.masterCategoryLabel',
+                        'Kategori for hele transaktionen (alle splits)'
                       )}
-                      <CategoryPicker
-                        selectedCategoryId={split.category_id || undefined}
-                        onSelect={(id) => updateSplit(index, 'category_id', id)}
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <div className="w-24">
-                        <input
-                          type="text"
-                          value={split.amount_input}
-                          onChange={(e) => updateSplit(index, 'amount_input', e.target.value)}
-                          placeholder="Beløb"
-                          className={`w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary h-[38px] ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}
+                    </span>
+                  </label>
+                  {!allSameCategory && splits.length > 0 && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">
+                      {t('transactions.mixedCategories', 'Blandede kategorier')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted leading-relaxed">
+                  {t(
+                    'transactions.masterCategoryDesc',
+                    'Vælg en kategori for at opdatere alle rækker og kvitteringen på én gang.'
+                  )}
+                </p>
+                <CategoryPicker
+                  selectedCategoryId={allSameCategory}
+                  onSelect={handleMasterCategoryChange}
+                  placeholder={t(
+                    'transactions.masterCategoryPlaceholder',
+                    'Vælg for at sætte alle splits til samme kategori...'
+                  )}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-[hsl(var(--border-color))] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+                    {t('transactions.individualSplits', 'Individuelle linjer / splits')}
+                  </span>
+                  <span className="text-xs text-muted font-medium">
+                    {splits.length} {splits.length === 1 ? 'række' : 'rækker'}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {splits.map((split, index) => (
+                    <div key={index} className="flex gap-2 items-start flex-col sm:flex-row">
+                      <div className="flex-1 w-full">
+                        {split.item_name && (
+                          <div className="text-xs font-semibold mb-1 text-[hsl(var(--text-primary))] truncate">
+                            {split.item_name}
+                          </div>
+                        )}
+                        <CategoryPicker
+                          selectedCategoryId={split.category_id || undefined}
+                          onSelect={(id) => updateSplit(index, 'category_id', id)}
+                          className="w-full"
                         />
                       </div>
-                      {splits.length > 1 && (
-                        <button
-                          onClick={() => removeSplit(index)}
-                          className={`p-2 text-red-500 hover:bg-red-500/10 rounded-lg mt-0.5 ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="w-24">
+                          <input
+                            type="text"
+                            value={split.amount_input}
+                            onChange={(e) => updateSplit(index, 'amount_input', e.target.value)}
+                            placeholder="Beløb"
+                            className={`w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary h-[38px] ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}
+                          />
+                        </div>
+                        {splits.length > 1 && (
+                          <button
+                            onClick={() => removeSplit(index)}
+                            className={`p-2 text-red-500 hover:bg-red-500/10 rounded-lg mt-0.5 ${split.item_name ? 'mt-0 sm:mt-[20px]' : ''}`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               <Button variant="outline" className="w-full mt-2" onClick={addSplit}>

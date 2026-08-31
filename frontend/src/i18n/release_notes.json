@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.8.2",
+    "date": "2026-08-31",
+    "changes": {
+      "en": [
+        "Master category dropdown in transaction details: Categorize an entire transaction and all its splits or receipt lines at once with a single selection",
+        "Preserve receipt item descriptions and metadata during split modifications"
+      ],
+      "da": [
+        "Samlet kategorisering i transaktionsdetaljer: Kategoriser hele transaktionen og alle dens splits eller kvitteringslinjer på én gang fra en samlet dropdown",
+        "Bevar kvitteringsvarenavne og metadata ved split-redigering"
+      ]
+    }
+  },
+  {
     "version": "v1.8.1",
     "date": "2026-08-31",
     "changes": {
