@@ -34,7 +34,11 @@ async def purge_deleted_households_worker():
                                 deleted_time = deleted_time.replace(tzinfo=datetime.UTC)
 
                             if deleted_time < cutoff:
-                                logger.info("Purging household %s (%s) as it was deleted > 2 hours ago", hh.id, hh.name)
+                                logger.info(
+                                    "Purging household %s (%s) as it was deleted > 2 hours ago",
+                                    hh.id,
+                                    hh.name,
+                                )
 
                                 # Since SQLite does not automatically handle ON DELETE CASCADE if the schema
                                 # was created before ondelete="CASCADE" was added, we must manually delete dependent records.
@@ -57,35 +61,62 @@ async def purge_deleted_households_worker():
 
                                 # Delete dependent rows in reverse dependency order
                                 models_to_purge = [
-                                    Document, PostingAllocation, Posting,
-                                    RecurringTransaction, Account, BankConnection, Payee,
-                                    BudgetBill, Budget, CategorizationRule,
-                                    CategoryOverrideLog, SyncJob, Tag, InboundEmail, HouseholdMember
+                                    Document,
+                                    PostingAllocation,
+                                    Posting,
+                                    RecurringTransaction,
+                                    Account,
+                                    BankConnection,
+                                    Payee,
+                                    BudgetBill,
+                                    Budget,
+                                    CategorizationRule,
+                                    CategoryOverrideLog,
+                                    SyncJob,
+                                    Tag,
+                                    InboundEmail,
+                                    HouseholdMember,
                                 ]
 
                                 # Manually delete link tables that don't have household_id
                                 from app.models import PostingAllocationTagLink
-                                allocations = db.exec(select(PostingAllocation).where(PostingAllocation.household_id == hh.id)).all()
+
+                                allocations = db.exec(
+                                    select(PostingAllocation).where(
+                                        PostingAllocation.household_id == hh.id
+                                    )
+                                ).all()
                                 for alloc in allocations:
-                                    links = db.exec(select(PostingAllocationTagLink).where(PostingAllocationTagLink.allocation_id == alloc.id)).all()
+                                    links = db.exec(
+                                        select(PostingAllocationTagLink).where(
+                                            PostingAllocationTagLink.allocation_id == alloc.id
+                                        )
+                                    ).all()
                                     for link in links:
                                         db.delete(link)
 
                                 for model in models_to_purge:
                                     if hasattr(model, "household_id"):
-                                        rows = db.exec(select(model).where(model.household_id == hh.id)).all()
+                                        rows = db.exec(
+                                            select(model).where(model.household_id == hh.id)
+                                        ).all()
                                         for row in rows:
                                             db.delete(row)
                                         try:
                                             db.flush()
                                         except Exception as e:
-                                            logger.error("Failed when flushing %s: %s", model.__name__, e)
+                                            logger.error(
+                                                "Failed when flushing %s: %s", model.__name__, e
+                                            )
                                             raise
 
                                 # Check if household was restored during purge processing
                                 db.refresh(hh)
                                 if not hh.deleted_at:
-                                    logger.info("Household %s was restored during purge, aborting deletion", hh.id)
+                                    logger.info(
+                                        "Household %s was restored during purge, aborting deletion",
+                                        hh.id,
+                                    )
                                     db.rollback()
                                     continue
 
@@ -94,7 +125,9 @@ async def purge_deleted_households_worker():
                                 try:
                                     db.commit()
                                 except Exception as e:
-                                    logger.error("Failed when committing household %s: %s", hh.id, e)
+                                    logger.error(
+                                        "Failed when committing household %s: %s", hh.id, e
+                                    )
                                     raise
                         except Exception as e:
                             logger.error("Error purging household %s: %s", hh.id, e)

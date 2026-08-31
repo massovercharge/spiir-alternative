@@ -1,4 +1,5 @@
 """Tests for money utilities — integer-based monetary arithmetic."""
+
 from decimal import Decimal
 
 import pytest

@@ -151,7 +151,9 @@ def test_insights_sunburst_aggregates_cleaned_items():
             husholdning = next((n for n in echarts_data if n["name"] == "Husholdning"), None)
             assert husholdning is not None, f"Husholdning not in {echarts_data}"
 
-            dagligvarer = next((c for c in husholdning.get("children", []) if c["name"] == "Dagligvarer"), None)
+            dagligvarer = next(
+                (c for c in husholdning.get("children", []) if c["name"] == "Dagligvarer"), None
+            )
             assert dagligvarer is not None, f"Dagligvarer not in {husholdning}"
 
             # In Dagligvarer children: there should be only ONE item child "GULD 45+ ML" with unified sum 290.74 kr

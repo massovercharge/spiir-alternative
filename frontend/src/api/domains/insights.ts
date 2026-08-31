@@ -12,12 +12,23 @@ export async function fetchIncomeExpenseSeries(year?: number) {
 }
 
 export async function fetchCategoryDrilldown(categoryName: string, year: number) {
-  const res = await fetch(`${API_BASE}/api/insights/category-drilldown?category_name=${encodeURIComponent(categoryName)}&year=${year}`, { headers: getHeaders() });
+  const res = await fetch(
+    `${API_BASE}/api/insights/category-drilldown?category_name=${encodeURIComponent(categoryName)}&year=${year}`,
+    { headers: getHeaders() }
+  );
   if (!res.ok) throw new Error('Failed to fetch category drilldown');
   return res.json();
 }
 
-export async function fetchInsightsSunburst(params: { year?: number; month?: number; filterType?: string; startDate?: string; endDate?: string } = {}) {
+export async function fetchInsightsSunburst(
+  params: {
+    year?: number;
+    month?: number;
+    filterType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}
+) {
   const url = new URL(`${API_BASE}/api/insights/sunburst`, window.location.origin);
   if (params.year) url.searchParams.append('year', params.year.toString());
   if (params.month) url.searchParams.append('month', params.month.toString());
@@ -30,7 +41,9 @@ export async function fetchInsightsSunburst(params: { year?: number; month?: num
 }
 
 export async function fetchInsightsAverages(year: number) {
-  const res = await fetch(`${API_BASE}/api/insights/averages?year=${year}`, { headers: getHeaders() });
+  const res = await fetch(`${API_BASE}/api/insights/averages?year=${year}`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch insights averages');
   return res.json();
 }
@@ -43,10 +56,27 @@ export function useIncomeExpenseSeries(year?: number) {
   });
 }
 
-export function useInsightsSunburst(params: { year?: number; month?: number; filterType?: string; startDate?: string; endDate?: string } = {}) {
+export function useInsightsSunburst(
+  params: {
+    year?: number;
+    month?: number;
+    filterType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}
+) {
   const currentHouseholdId = getHouseholdId();
   return useQuery({
-    queryKey: ['insights', 'sunburst', currentHouseholdId, params.year, params.month, params.filterType, params.startDate, params.endDate],
+    queryKey: [
+      'insights',
+      'sunburst',
+      currentHouseholdId,
+      params.year,
+      params.month,
+      params.filterType,
+      params.startDate,
+      params.endDate,
+    ],
     queryFn: () => fetchInsightsSunburst(params),
   });
 }

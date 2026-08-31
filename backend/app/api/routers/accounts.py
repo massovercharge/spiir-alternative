@@ -24,7 +24,9 @@ def accounts_list() -> list[dict[str, Any]]:
 @router.patch("/{account_uid}")
 def account_update(account_uid: str, payload: AccountUpdateRequest) -> dict[str, Any]:
     """Update an account."""
-    result = update_account(account_uid, payload.name, payload.account_type, payload.savings_category_id)
+    result = update_account(
+        account_uid, payload.name, payload.account_type, payload.savings_category_id
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Account not found")
     return result
@@ -43,10 +45,13 @@ def account_merge(target_uid: str, source_uid: str) -> dict[str, Any]:
         hh_id = current_household_id.get()
     except LookupError:
         from app.services.notification_service import _get_default_household_id
+
         hh_id = _get_default_household_id()
 
     with Session(engine) as session:
         try:
-            return merge_accounts(session, hh_id, source_account_uid=source_uid, target_account_uid=target_uid)
+            return merge_accounts(
+                session, hh_id, source_account_uid=source_uid, target_account_uid=target_uid
+            )
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e

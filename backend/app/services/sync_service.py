@@ -1,4 +1,5 @@
 """Sync service — Enable Banking retrieval, normalization, and persistence."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -41,6 +42,7 @@ def _utcnow_iso() -> str:
 class RateLimitError(Exception):
     pass
 
+
 class EnableBankingAmount(BaseModel):
     amount: Optional[str] = "0"
     currency: Optional[str] = None
@@ -54,16 +56,20 @@ class EnableBankingAmount(BaseModel):
             return "0"
         return str(v)
 
+
 class EnableBankingAccountID(BaseModel):
     iban: Optional[str] = None
     other: Optional[Any] = None
 
+
 class EnableBankingParty(BaseModel):
     name: Optional[str] = None
+
 
 class EnableBankingCode(BaseModel):
     code: Optional[str] = None
     description: Optional[str] = None
+
 
 class EnableBankingTransaction(BaseModel):
     transaction_amount: Optional[EnableBankingAmount] = None
@@ -82,9 +88,11 @@ class EnableBankingTransaction(BaseModel):
     merchant_category_code: Optional[str] = None
     entry_reference: Optional[str] = None
 
+
 # ---------------------------------------------------------------------------
 # Enable Banking Auth
 # ---------------------------------------------------------------------------
+
 
 def _enablebanking_dir() -> Path:
     return get_data_dir() / "transactions" / "enablebanking"
@@ -146,7 +154,10 @@ def _request_json(method: str, path: str, **kwargs: Any) -> Any:
 # Transaction Normalization
 # ---------------------------------------------------------------------------
 
-def _signed_amount_minor(tx: EnableBankingTransaction, amount_field: Optional[EnableBankingAmount] = None) -> int:
+
+def _signed_amount_minor(
+    tx: EnableBankingTransaction, amount_field: Optional[EnableBankingAmount] = None
+) -> int:
     field_data = amount_field if amount_field is not None else tx.transaction_amount
     if not field_data:
         return 0
@@ -236,6 +247,7 @@ def _normalize_and_persist(
     from sqlmodel import col, select
 
     from app.models import CategorizationRule, RecurringTransaction
+
     active_rules = db.exec(
         select(CategorizationRule)
         .where(CategorizationRule.is_active == True)  # noqa: E712
@@ -246,8 +258,7 @@ def _normalize_and_persist(
     ).all()
 
     active_recurring = db.exec(
-        select(RecurringTransaction)
-        .where(RecurringTransaction.status == "active")
+        select(RecurringTransaction).where(RecurringTransaction.status == "active")
     ).all()
 
     created_posting_ids: list[str] = []
@@ -257,18 +268,15 @@ def _normalize_and_persist(
             tx = EnableBankingTransaction.model_validate(raw_dict)
         except Exception as e:
             if "entry_reference" in raw_dict:
-                logger.warning("Skipping malformed transaction %s: %s", raw_dict.get("entry_reference"), e)
+                logger.warning(
+                    "Skipping malformed transaction %s: %s", raw_dict.get("entry_reference"), e
+                )
             continue
 
         try:
             entry_reference = str(tx.entry_reference or "")
             tx_id = f"eb:{account_uid}:{entry_reference}"
-            booking_date = (
-                tx.booking_date
-                or tx.transaction_date
-                or tx.value_date
-                or ""
-            )
+            booking_date = tx.booking_date or tx.transaction_date or tx.value_date or ""
 
             existing = db.get(Posting, tx_id)
             if existing is not None:
@@ -298,24 +306,32 @@ def _normalize_and_persist(
                 booking_date_time=tx.booking_date_time,
                 value_date=tx.value_date,
                 amount_minor=_signed_amount_minor(tx),
-                currency=(tx.transaction_amount.currency if tx.transaction_amount else None) or account_currency,
+                currency=(tx.transaction_amount.currency if tx.transaction_amount else None)
+                or account_currency,
                 credit_debit_indicator=tx.credit_debit_indicator,
                 original_description=_description(tx),
-                remittance_information="\n".join(s for s in tx.remittance_information if s) if tx.remittance_information else "",
+                remittance_information="\n".join(s for s in tx.remittance_information if s)
+                if tx.remittance_information
+                else "",
                 creditor_name=tx.creditor.name if tx.creditor else None,
                 debtor_name=tx.debtor.name if tx.debtor else None,
                 creditor_account=_extract_acc_id(tx.creditor_account),
                 debtor_account=_extract_acc_id(tx.debtor_account),
                 merchant_category_code=tx.merchant_category_code,
                 entry_reference=entry_reference,
-                transaction_type=tx.bank_transaction_code.description if tx.bank_transaction_code else None,
-                transaction_type_code=tx.bank_transaction_code.code if tx.bank_transaction_code else None,
+                transaction_type=tx.bank_transaction_code.description
+                if tx.bank_transaction_code
+                else None,
+                transaction_type_code=tx.bank_transaction_code.code
+                if tx.bank_transaction_code
+                else None,
                 balance_after_transaction_minor=balance_amount,
             )
             db.add(posting)
 
             # Auto-categorize via rules engine
             from .rules_service import evaluate_posting
+
             matched_category = evaluate_posting(posting, rules=active_rules)
             fallback_category = "diverse|ikke-kategoriseret"
 
@@ -328,6 +344,7 @@ def _normalize_and_persist(
 
             # Link to recurring transaction
             from .recurring_service import match_posting_to_recurring
+
             match_posting_to_recurring(posting, alloc, recurring_txs=active_recurring)
 
             new_count += 1
@@ -343,6 +360,7 @@ def _normalize_and_persist(
     if created_posting_ids:
         try:
             from .reconciliation_service import reconcile_incoming_postings
+
             reconcile_incoming_postings(db, household_id, created_posting_ids)
         except Exception as e:
             logger.warning("Reconciliation step encountered error: %s", e)
@@ -355,11 +373,13 @@ def _normalize_and_persist(
 # Retrieval Orchestration
 # ---------------------------------------------------------------------------
 
+
 def _latest_booking_date(account_uid: str) -> dt.date | None:
     """Find the most recent booking date for a specific account (excluding future dates)."""
     import datetime as dt_mod
 
     from sqlmodel import col, select
+
     with Session(engine) as db:
         today_iso = dt_mod.date.today().isoformat()
         result = db.exec(
@@ -422,9 +442,7 @@ def retrieve_transactions(
     notify("Læser aktive bankforbindelser", 5, None)
 
     with Session(engine) as db:
-        connections = db.exec(
-            select(BankConnection).where(BankConnection.status == "active")
-        ).all()
+        connections = db.exec(select(BankConnection).where(BankConnection.status == "active")).all()
 
         if not connections:
             raise FileNotFoundError("Ingen aktive bankforbindelser fundet. Tilknyt en bank først.")
@@ -464,7 +482,11 @@ def retrieve_transactions(
                         notify(
                             f"Henter konto {idx}/{len(accounts)} · side {page}",
                             min(75, 15 + idx * 10 + page * 3),
-                            {"account_index": idx, "page_number": page, "fetch_window": fetch_window},
+                            {
+                                "account_index": idx,
+                                "page_number": page,
+                                "fetch_window": fetch_window,
+                            },
                         )
                         page_params = dict(params)
                         if continuation_key:
@@ -478,7 +500,10 @@ def retrieve_transactions(
                             break
                 except Exception as e:
                     import traceback
-                    logger.error("Error fetching account %s: %s", account_uid, traceback.format_exc())
+
+                    logger.error(
+                        "Error fetching account %s: %s", account_uid, traceback.format_exc()
+                    )
                     account_errors[account_uid] = str(e)
                     continue
 
@@ -498,7 +523,10 @@ def retrieve_transactions(
 
                     if preferred_balance:
                         from app.core.money import to_minor
-                        amt_str = str((preferred_balance.get("balance_amount") or {}).get("amount", "0"))
+
+                        amt_str = str(
+                            (preferred_balance.get("balance_amount") or {}).get("amount", "0")
+                        )
 
                         with Session(engine) as inner_db:
                             db_acc = inner_db.get(Account, account_uid)
@@ -517,14 +545,30 @@ def retrieve_transactions(
 
                 # Save raw JSON for audit trail
                 _raw_dir().mkdir(parents=True, exist_ok=True)
-                raw_path = _raw_dir() / f"tx_{session_name}_{account_uid}_{dt.datetime.now(dt.UTC).strftime('%Y%m%dT%H%M%SZ')}.json"
-                raw_path.write_text(json.dumps({
-                    "fetched_at": _utcnow_iso(),
-                    "account": account,
-                    "transactions": raw_transactions,
-                }, indent=2, ensure_ascii=False), encoding="utf-8")
+                raw_path = (
+                    _raw_dir()
+                    / f"tx_{session_name}_{account_uid}_{dt.datetime.now(dt.UTC).strftime('%Y%m%dT%H%M%SZ')}.json"
+                )
+                raw_path.write_text(
+                    json.dumps(
+                        {
+                            "fetched_at": _utcnow_iso(),
+                            "account": account,
+                            "transactions": raw_transactions,
+                        },
+                        indent=2,
+                        ensure_ascii=False,
+                    ),
+                    encoding="utf-8",
+                )
 
-                new = _normalize_and_persist(db, account, session_name, {"transactions": raw_transactions}, account["household_id"])
+                new = _normalize_and_persist(
+                    db,
+                    account,
+                    session_name,
+                    {"transactions": raw_transactions},
+                    account["household_id"],
+                )
                 total_new += new
 
     elapsed = round((dt.datetime.now(dt.UTC) - started).total_seconds(), 3)
@@ -543,13 +587,13 @@ def retrieve_transactions(
 # Background Job Management (via SyncJob table)
 # ---------------------------------------------------------------------------
 
+
 def get_sync_status() -> dict[str, Any]:
     """Return the latest sync job status."""
     with Session(engine) as db:
         from sqlmodel import col, select
-        job = db.exec(
-            select(SyncJob).order_by(col(SyncJob.started_at).desc()).limit(1)
-        ).first()
+
+        job = db.exec(select(SyncJob).order_by(col(SyncJob.started_at).desc()).limit(1)).first()
 
     if job is None:
         return {
@@ -589,6 +633,7 @@ def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
     """Background thread target for retrieval."""
     if hh_id:
         from app.models import current_household_id
+
         current_household_id.set(hh_id)
 
     def _update_job(status: str, progress: int, phase: str | None = None, **kwargs: Any) -> None:
@@ -620,6 +665,7 @@ def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
         _update_job("running", 95, "Matcher kvitteringer...")
         try:
             from .transaction_service import auto_link_receipts
+
             linked = auto_link_receipts()
             if linked > 0:
                 msg += f" (Forbandt {linked} kvitteringer)"
@@ -627,14 +673,20 @@ def _run_sync_job(job_id: str, hh_id: str | None = None) -> None:
             logger.warning("Failed to auto-link receipts after sync: %s", e)
 
         _update_job(
-            "succeeded" if not account_errors else "completed_with_errors", 100, msg,
+            "succeeded" if not account_errors else "completed_with_errors",
+            100,
+            msg,
             completed_at=_utcnow_iso(),
             result_json=json.dumps(result, default=str),
-            error_message="Nogle konti fejlede: " + ", ".join(account_errors) if account_errors else None
+            error_message="Nogle konti fejlede: " + ", ".join(account_errors)
+            if account_errors
+            else None,
         )
     except Exception as exc:
         _update_job(
-            "failed", 0, "Fejlede",
+            "failed",
+            0,
+            "Fejlede",
             completed_at=_utcnow_iso(),
             error_message=str(exc),
         )
@@ -648,6 +700,7 @@ def start_sync_job() -> dict[str, Any]:
             return get_sync_status()
 
         from app.models import current_household_id
+
         try:
             hh_id = current_household_id.get()
         except LookupError:

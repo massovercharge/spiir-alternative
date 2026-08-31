@@ -17,6 +17,7 @@ Examples::
     >>> format_amount(10050, "DKK")
     '100.50'
 """
+
 from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation

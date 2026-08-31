@@ -4,6 +4,7 @@ All data paths default to ``<project_root>/data`` and can be overridden via
 environment variables. The ``PENG_DATA_DIR`` variable is the primary override
 for the data root directory.
 """
+
 from __future__ import annotations
 
 import os
@@ -61,14 +62,18 @@ def get_enable_banking_redirect_url() -> str:
         raise RuntimeError("Set ENABLEBANKING_REDIRECT_URL for Enable Banking")
     return url
 
+
 def get_kvitteringer_db_path() -> Path:
     return get_data_dir() / "kvitteringer.db"
+
 
 def get_kvitteringer_data_dir() -> Path:
     return get_data_dir() / "kvitteringer"
 
+
 def get_kvitteringer_category_overrides_file() -> Path:
     return get_data_dir() / "kvitteringer-categories.json"
+
 
 def get_storebox_source_dir() -> Path:
     return get_data_dir() / "storebox-downloads"
@@ -76,7 +81,10 @@ def get_storebox_source_dir() -> Path:
 
 def get_inbound_email_domain() -> str:
     """Return the configured domain for inbound receipt emails."""
-    return _env("INBOUND_EMAIL_DOMAIN", "PENG_INBOUND_EMAIL_DOMAIN", "SPIIR_INBOUND_EMAIL_DOMAIN") or "inbound.peng.local"
+    return (
+        _env("INBOUND_EMAIL_DOMAIN", "PENG_INBOUND_EMAIL_DOMAIN", "SPIIR_INBOUND_EMAIL_DOMAIN")
+        or "inbound.peng.local"
+    )
 
 
 def get_inbound_email_prefix() -> str:
@@ -101,7 +109,9 @@ def get_imap_config() -> dict[str, object]:
     enabled_val = _env("INBOUND_EMAIL_IMAP_ENABLED", "PENG_IMAP_ENABLED", "SPIIR_IMAP_ENABLED")
     enabled = bool(enabled_val and enabled_val.lower() in ("1", "true", "yes"))
     port_val = _env("INBOUND_EMAIL_IMAP_PORT", "PENG_IMAP_PORT", "SPIIR_IMAP_PORT") or "993"
-    interval_val = _env("INBOUND_EMAIL_IMAP_INTERVAL", "PENG_IMAP_POLL_INTERVAL", "PENG_IMAP_INTERVAL") or "60"
+    interval_val = (
+        _env("INBOUND_EMAIL_IMAP_INTERVAL", "PENG_IMAP_POLL_INTERVAL", "PENG_IMAP_INTERVAL") or "60"
+    )
     ssl_val = _env("INBOUND_EMAIL_IMAP_SSL", "PENG_IMAP_SSL")
     use_ssl = True if ssl_val is None else (ssl_val.lower() in ("1", "true", "yes"))
 
@@ -110,9 +120,11 @@ def get_imap_config() -> dict[str, object]:
         "host": _env("INBOUND_EMAIL_IMAP_HOST", "PENG_IMAP_HOST", "SPIIR_IMAP_HOST") or "",
         "port": int(port_val),
         "user": _env("INBOUND_EMAIL_IMAP_USER", "PENG_IMAP_USER", "SPIIR_IMAP_USER") or "",
-        "password": _env("INBOUND_EMAIL_IMAP_PASSWORD", "PENG_IMAP_PASSWORD", "SPIIR_IMAP_PASSWORD") or "",
+        "password": _env("INBOUND_EMAIL_IMAP_PASSWORD", "PENG_IMAP_PASSWORD", "SPIIR_IMAP_PASSWORD")
+        or "",
         "ssl": use_ssl,
-        "folder": _env("INBOUND_EMAIL_IMAP_FOLDER", "PENG_IMAP_FOLDER", "SPIIR_IMAP_FOLDER") or "INBOX",
+        "folder": _env("INBOUND_EMAIL_IMAP_FOLDER", "PENG_IMAP_FOLDER", "SPIIR_IMAP_FOLDER")
+        or "INBOX",
         "poll_interval": max(10, int(interval_val)),
     }
 
@@ -120,4 +132,3 @@ def get_imap_config() -> dict[str, object]:
 def get_inbound_email_webhook_secret() -> str | None:
     """Return the optional shared secret for authenticating inbound webhook calls."""
     return _env("INBOUND_EMAIL_WEBHOOK_SECRET", "PENG_WEBHOOK_SECRET")
-

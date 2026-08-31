@@ -23,8 +23,14 @@ describe('i18n Locale Dictionaries', () => {
     const missingInEn = daKeys.filter((k) => !enKeys.includes(k));
     const missingInDa = enKeys.filter((k) => !daKeys.includes(k));
 
-    expect(missingInEn, `Keys present in da.json but missing in en.json: ${missingInEn.join(', ')}`).toEqual([]);
-    expect(missingInDa, `Keys present in en.json but missing in da.json: ${missingInDa.join(', ')}`).toEqual([]);
+    expect(
+      missingInEn,
+      `Keys present in da.json but missing in en.json: ${missingInEn.join(', ')}`
+    ).toEqual([]);
+    expect(
+      missingInDa,
+      `Keys present in en.json but missing in da.json: ${missingInDa.join(', ')}`
+    ).toEqual([]);
   });
 
   it('includes required transaction action and summary keys', () => {

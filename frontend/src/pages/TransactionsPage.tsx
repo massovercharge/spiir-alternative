@@ -3,7 +3,15 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { MoreHorizontal, CheckSquare, Square, Trash2, X, AlertTriangle, CheckCheck } from 'lucide-react';
+import {
+  MoreHorizontal,
+  CheckSquare,
+  Square,
+  Trash2,
+  X,
+  AlertTriangle,
+  CheckCheck,
+} from 'lucide-react';
 import {
   useTransactions,
   useUpdateTransactionCategory,
@@ -41,7 +49,7 @@ export default function TransactionsPage() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const navState = location.state as any;
-  
+
   const [filterType, setFilterType] = useState(navState?.filterType || 'Alle poster');
   const [startDate, setStartDate] = useState(navState?.startDate || '');
   const [endDate, setEndDate] = useState(navState?.endDate || '');
@@ -50,13 +58,13 @@ export default function TransactionsPage() {
   const [amountOp, setAmountOp] = useState<string>('');
   const [amountVal, setAmountVal] = useState<number | undefined>(undefined);
   const [categoryId, setCategoryId] = useState<string>(navState?.categoryId || '');
-  
+
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isDuplicateReviewOpen, setIsDuplicateReviewOpen] = useState(false);
   const resolveDuplicatesMutation = useResolveDuplicates();
   const { data: duplicatePreviewData } = useDuplicatePreview();
   const duplicateGroupsCount = duplicatePreviewData?.total_groups || 0;
-  
+
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -73,11 +81,11 @@ export default function TransactionsPage() {
     amountVal,
     categoryId || undefined
   );
-  
+
   const updateCategoryMutation = useUpdateTransactionCategory();
   const bulkUpdateMutation = useBulkUpdate();
   const createRuleMutation = useCreateCustomRule();
-  
+
   // Rule Creation State
   const [rulePrompt, setRulePrompt] = useState<{
     isOpen: boolean;
@@ -85,7 +93,7 @@ export default function TransactionsPage() {
     description: string;
     categoryId: string;
     categoryName: string;
-  }>({ isOpen: false, txId: "", description: "", categoryId: "", categoryName: "" });
+  }>({ isOpen: false, txId: '', description: '', categoryId: '', categoryName: '' });
 
   const transactions = data?.transactions || [];
 
@@ -97,10 +105,10 @@ export default function TransactionsPage() {
       acc[dateStr].push(tx);
       return acc;
     }, {});
-    
+
     // Sort groups by date descending
-    return Object.entries(groups).sort((a, b) => 
-      new Date(b[0]).getTime() - new Date(a[0]).getTime()
+    return Object.entries(groups).sort(
+      (a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()
     );
   }, [transactions]);
 
@@ -118,7 +126,7 @@ export default function TransactionsPage() {
   const virtualizer = useVirtualizer({
     count: flattened.length,
     getScrollElement: () => document.getElementById('scroll-container'),
-    estimateSize: (index: number) => flattened[index].type === 'header' ? 33 : 89,
+    estimateSize: (index: number) => (flattened[index].type === 'header' ? 33 : 89),
     overscan: 10,
   });
 
@@ -129,15 +137,20 @@ export default function TransactionsPage() {
       const catId = t.allocations?.[0]?.category_id;
       return !catId || catId === 'diverse|ikke-kategoriseret' || catId === 'diverse|ukategoriseret';
     }).length;
-    const total = transactions.reduce((sum: number, t: any) => sum + (t.amount_minor / 100), 0);
+    const total = transactions.reduce((sum: number, t: any) => sum + t.amount_minor / 100, 0);
     const avg = count > 0 ? total / count : 0;
-    
-    return { txCount: count, uncategorizedCount: uncategorized, totalAmount: total, avgAmount: avg };
+
+    return {
+      txCount: count,
+      uncategorizedCount: uncategorized,
+      totalAmount: total,
+      avgAmount: avg,
+    };
   }, [transactions]);
 
   const handleCategoryChange = (tx: any, newCategoryId: string) => {
     updateCategoryMutation.mutate({ transactionId: tx.id, categoryId: newCategoryId });
-    
+
     if (tx.description && tx.description.trim().length > 2) {
       const catParts = newCategoryId.split('|');
       const catName = catParts[1] ? catParts[1] : catParts[0];
@@ -146,20 +159,23 @@ export default function TransactionsPage() {
         txId: tx.id,
         description: tx.description,
         categoryId: newCategoryId,
-        categoryName: catName
+        categoryName: catName,
       });
     }
   };
 
   const handleCreateRule = () => {
-    createRuleMutation.mutate({
-      matchPattern: rulePrompt.description.toLowerCase().trim(),
-      categoryId: rulePrompt.categoryId
-    }, {
-      onSuccess: () => {
-        setRulePrompt({ ...rulePrompt, isOpen: false });
+    createRuleMutation.mutate(
+      {
+        matchPattern: rulePrompt.description.toLowerCase().trim(),
+        categoryId: rulePrompt.categoryId,
+      },
+      {
+        onSuccess: () => {
+          setRulePrompt({ ...rulePrompt, isOpen: false });
+        },
       }
-    });
+    );
   };
 
   const handleFindSimilar = (desc: string) => {
@@ -197,23 +213,26 @@ export default function TransactionsPage() {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
 
-    bulkUpdateMutation.mutate({
-      transactionIds: ids,
-      patch: { category_id: newCategoryId }
-    }, {
-      onSuccess: () => {
-        setSelectedIds(new Set());
+    bulkUpdateMutation.mutate(
+      {
+        transactionIds: ids,
+        patch: { category_id: newCategoryId },
+      },
+      {
+        onSuccess: () => {
+          setSelectedIds(new Set());
+        },
       }
-    });
+    );
   };
 
   const generateFilterSummary = () => {
     let text = t('transactions.showingCount', { count: `${txCount}${txCount === 500 ? '+' : ''}` });
-    
+
     if (filterType !== 'Alle poster') {
       text += ` ${t('transactions.underFilter', { filter: filterType })}`;
     }
-    
+
     if (startDate && endDate) {
       text += ` ${t('transactions.dateRange', { start: startDate, end: endDate })}`;
     } else {
@@ -233,13 +252,13 @@ export default function TransactionsPage() {
       text += ` ${t('transactions.withAmount', { op: opText, amount: amountVal })}`;
     }
 
-    return text + ".";
+    return text + '.';
   };
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28 md:pb-8">
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }} 
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-4"
       >
@@ -249,8 +268,8 @@ export default function TransactionsPage() {
             <p className="text-muted text-sm mt-1">{generateFilterSummary()}</p>
           </div>
         </div>
-        
-        <TransactionFilters 
+
+        <TransactionFilters
           filterType={filterType}
           setFilterType={setFilterType}
           startDate={startDate}
@@ -264,8 +283,10 @@ export default function TransactionsPage() {
           setSelectedTag={setSelectedTag}
           amountOp={amountOp}
           setAmountOp={setAmountOp}
-          amountVal={amountVal} setAmountVal={setAmountVal}
-          categoryId={categoryId} setCategoryId={setCategoryId}
+          amountVal={amountVal}
+          setAmountVal={setAmountVal}
+          categoryId={categoryId}
+          setCategoryId={setCategoryId}
         />
       </motion.div>
 
@@ -285,12 +306,18 @@ export default function TransactionsPage() {
                 <span>{t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}</span>
                 {duplicateGroupsCount > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
-                    {duplicateGroupsCount} {duplicateGroupsCount === 1 ? t('duplicates.groupSingle', 'gruppe') : t('duplicates.groupPlural', 'grupper')}
+                    {duplicateGroupsCount}{' '}
+                    {duplicateGroupsCount === 1
+                      ? t('duplicates.groupSingle', 'gruppe')
+                      : t('duplicates.groupPlural', 'grupper')}
                   </span>
                 )}
               </div>
               <p className="text-[11px] text-muted mt-0.5">
-                {t('duplicates.persistentBannerDesc', 'Der er uafklarede posteringer med samme dato og beløb.')}
+                {t(
+                  'duplicates.persistentBannerDesc',
+                  'Der er uafklarede posteringer med samme dato og beløb.'
+                )}
               </p>
             </div>
           </div>
@@ -318,27 +345,41 @@ export default function TransactionsPage() {
 
       {/* Summary Box */}
       {!isLoading && txCount > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-[hsla(var(--brand-primary),0.05)] border border-[hsla(var(--brand-primary),0.2)] rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-sm"
         >
           <div className="text-sm space-y-1">
             <div>
-              <span className="font-semibold">{txCount}</span> {t('transactions.summaryFromPeriod', 'poster fra den valgte periode.')}{' '}
-              <span 
-                onClick={() => { if (uncategorizedCount > 0) setFilterType('Ukategoriseret'); }}
+              <span className="font-semibold">{txCount}</span>{' '}
+              {t('transactions.summaryFromPeriod', 'poster fra den valgte periode.')}{' '}
+              <span
+                onClick={() => {
+                  if (uncategorizedCount > 0) setFilterType('Ukategoriseret');
+                }}
                 className={`font-semibold ${uncategorizedCount > 0 ? 'text-[hsl(var(--brand-danger))] cursor-pointer hover:underline' : 'text-success'}`}
               >
                 {uncategorizedCount} {t('transactions.notCategorized', 'ikke kategoriserede')}
-              </span>.
+              </span>
+              .
             </div>
           </div>
           <div className="text-sm md:text-right flex items-center md:items-end flex-col">
             <div>
-              {t('transactions.total', 'I alt:')} <span className="font-bold text-lg">{totalAmount.toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US', { style: 'currency', currency: 'DKK' })}</span>
+              {t('transactions.total', 'I alt:')}{' '}
+              <span className="font-bold text-lg">
+                {totalAmount.toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US', {
+                  style: 'currency',
+                  currency: 'DKK',
+                })}
+              </span>
             </div>
-            <span className="text-muted text-xs">({t('transactions.average', 'Gennemsnit:')} {Math.round(avgAmount).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')} kr.)</span>
+            <span className="text-muted text-xs">
+              ({t('transactions.average', 'Gennemsnit:')}{' '}
+              {Math.round(avgAmount).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')}{' '}
+              kr.)
+            </span>
           </div>
         </motion.div>
       )}
@@ -373,10 +414,19 @@ export default function TransactionsPage() {
 
           {!isLoading && grouped.length > 0 && (
             <div className="bg-[hsl(var(--bg-tertiary))] border-b border-[hsl(var(--border-color))] px-4 md:px-6 py-2 flex items-center gap-3">
-              <button onClick={toggleAll} className="text-muted hover:text-[hsl(var(--text-primary))] transition-colors">
-                {selectedIds.size === transactions.length ? <CheckSquare size={18} className="text-[hsl(var(--brand-primary))]" /> : <Square size={18} />}
+              <button
+                onClick={toggleAll}
+                className="text-muted hover:text-[hsl(var(--text-primary))] transition-colors"
+              >
+                {selectedIds.size === transactions.length ? (
+                  <CheckSquare size={18} className="text-[hsl(var(--brand-primary))]" />
+                ) : (
+                  <Square size={18} />
+                )}
               </button>
-              <span className="text-xs font-semibold text-muted uppercase tracking-wider">Vælg alle</span>
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+                Vælg alle
+              </span>
             </div>
           )}
 
@@ -390,7 +440,7 @@ export default function TransactionsPage() {
             >
               {virtualizer.getVirtualItems().map((virtualItem: any) => {
                 const item = flattened[virtualItem.index];
-                
+
                 return (
                   <div
                     key={virtualItem.key}
@@ -415,31 +465,56 @@ export default function TransactionsPage() {
                           const amount = tx.amount_minor / 100;
                           const description = tx.description || t('transactions.unknown', 'Ukendt');
                           const categoryParts = (tx.allocations?.[0]?.category_id || '').split('|');
-                          const categoryName = categoryParts[1] ? categoryParts[1] : categoryParts[0] || t('transactions.uncategorized', 'Ukategoriseret');
+                          const categoryName = categoryParts[1]
+                            ? categoryParts[1]
+                            : categoryParts[0] || t('transactions.uncategorized', 'Ukategoriseret');
                           const isSelected = selectedIds.has(tx.id);
 
                           return (
-                            <div 
+                            <div
                               className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-5 md:py-4 transition-colors group cursor-pointer ${isSelected ? 'bg-[hsla(var(--brand-primary),0.1)]' : 'hover:bg-[hsla(var(--bg-tertiary),0.5)]'}`}
                               onClick={() => setSelectedTransaction(tx)}
                             >
-                              <button 
+                              <button
                                 onClick={(e) => toggleSelection(tx.id, e)}
                                 className="text-muted hover:text-[hsl(var(--brand-primary))] transition-colors shrink-0"
                               >
-                                {isSelected ? <CheckSquare size={18} className="text-[hsl(var(--brand-primary))]" /> : <Square size={18} className="opacity-30 group-hover:opacity-100" />}
+                                {isSelected ? (
+                                  <CheckSquare
+                                    size={18}
+                                    className="text-[hsl(var(--brand-primary))]"
+                                  />
+                                ) : (
+                                  <Square
+                                    size={18}
+                                    className="opacity-30 group-hover:opacity-100"
+                                  />
+                                )}
                               </button>
-                              
-                              <div className={`hidden sm:flex flex-shrink-0 w-10 h-10 rounded-full bg-[hsla(var(--border-color),0.5)] flex items-center justify-center text-muted group-hover:bg-[hsl(var(--bg-secondary))] group-hover:shadow-sm transition-all ${isSelected ? 'bg-[hsl(var(--bg-secondary))] shadow-sm' : ''}`}>
+
+                              <div
+                                className={`hidden sm:flex flex-shrink-0 w-10 h-10 rounded-full bg-[hsla(var(--border-color),0.5)] flex items-center justify-center text-muted group-hover:bg-[hsl(var(--bg-secondary))] group-hover:shadow-sm transition-all ${isSelected ? 'bg-[hsl(var(--bg-secondary))] shadow-sm' : ''}`}
+                              >
                                 {getCategoryIcon(tx.allocations?.[0]?.category_id || '')}
                               </div>
-                              
-                              <div className="flex-1 min-w-0 flex flex-col justify-center items-start" onClick={(e) => e.stopPropagation()}>
+
+                              <div
+                                className="flex-1 min-w-0 flex flex-col justify-center items-start"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <div className="flex items-center gap-2 max-w-full flex-wrap mb-1">
-                                  <p className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words cursor-pointer" onClick={() => setSelectedTransaction(tx)}>{description}</p>
+                                  <p
+                                    className="font-medium text-sm md:text-base line-clamp-2 md:line-clamp-1 break-words cursor-pointer"
+                                    onClick={() => setSelectedTransaction(tx)}
+                                  >
+                                    {description}
+                                  </p>
                                   {tx.has_duplicate_warning && (
                                     <span
-                                      title={t('duplicates.bannerTitle', 'Mulig dobbeltbetaling detekteret')}
+                                      title={t(
+                                        'duplicates.bannerTitle',
+                                        'Mulig dobbeltbetaling detekteret'
+                                      )}
                                       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0"
                                     >
                                       <AlertTriangle size={11} />
@@ -447,26 +522,41 @@ export default function TransactionsPage() {
                                     </span>
                                   )}
                                 </div>
-                                <CategoryPicker 
-                                  selectedCategoryId={tx.allocations?.[0]?.category_id} 
+                                <CategoryPicker
+                                  selectedCategoryId={tx.allocations?.[0]?.category_id}
                                   onSelect={(newCatId) => handleCategoryChange(tx, newCatId)}
                                 />
-                                {tx.note && <span className="text-xs text-muted mt-1">📝 {tx.note}</span>}
+                                {tx.note && (
+                                  <span className="text-xs text-muted mt-1">📝 {tx.note}</span>
+                                )}
                                 {tx.tags?.length > 0 && (
                                   <div className="flex gap-1 mt-1">
                                     {tx.tags.map((tag: string) => (
-                                      <span key={tag} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">#{tag}</span>
+                                      <span
+                                        key={tag}
+                                        className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded"
+                                      >
+                                        #{tag}
+                                      </span>
                                     ))}
                                   </div>
                                 )}
                               </div>
                               <div className="text-right flex-shrink-0">
-                                <p className={`font-semibold ${amount > 0 ? "text-success" : ""}`}>
-                                  {amount > 0 ? '+' : ''}{amount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
+                                <p className={`font-semibold ${amount > 0 ? 'text-success' : ''}`}>
+                                  {amount > 0 ? '+' : ''}
+                                  {amount.toLocaleString('da-DK', {
+                                    style: 'currency',
+                                    currency: 'DKK',
+                                  })}
                                 </p>
                               </div>
                               <div className="hidden sm:block flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="sm" className="px-2 h-8 w-8 rounded-full">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="px-2 h-8 w-8 rounded-full"
+                                >
                                   <MoreHorizontal size={16} />
                                 </Button>
                               </div>
@@ -486,7 +576,7 @@ export default function TransactionsPage() {
       {/* Bulk Action Toolbar */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
-          <motion.div 
+          <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
@@ -497,16 +587,15 @@ export default function TransactionsPage() {
                 <div className="bg-[hsl(var(--brand-primary))] text-white font-bold w-8 h-8 rounded-full flex items-center justify-center">
                   {selectedIds.size}
                 </div>
-                <span className="font-semibold text-sm">{t('transactions.itemsSelected', 'poster valgt')}</span>
+                <span className="font-semibold text-sm">
+                  {t('transactions.itemsSelected', 'poster valgt')}
+                </span>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="flex-1 sm:w-48">
-                  <CategoryPicker 
-                    onSelect={handleBulkCategorize}
-                    className="w-full"
-                  />
+                  <CategoryPicker onSelect={handleBulkCategorize} className="w-full" />
                 </div>
-                <button 
+                <button
                   onClick={() => setSelectedIds(new Set())}
                   className="p-2 text-muted hover:text-[hsl(var(--text-primary))] bg-[hsl(var(--bg-tertiary))] rounded-lg shrink-0"
                   title={t('transactions.cancel', 'Annuller')}
@@ -522,42 +611,46 @@ export default function TransactionsPage() {
       {/* Rule Prompt Dialog */}
       {rulePrompt.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="bg-[hsl(var(--bg-primary))] rounded-2xl shadow-xl p-6 max-w-md w-full border border-[hsl(var(--border-color))]"
           >
-            <h3 className="text-xl font-bold mb-2">{t('transactions.rememberRuleTitle', 'Husk denne fremover?')}</h3>
+            <h3 className="text-xl font-bold mb-2">
+              {t('transactions.rememberRuleTitle', 'Husk denne fremover?')}
+            </h3>
             <p className="text-muted text-sm mb-6">
               {t('transactions.rememberRuleBody', {
                 description: rulePrompt.description,
                 category: rulePrompt.categoryName.replace('-', ' '),
-                defaultValue: `Vil du automatisk kategorisere fremtidige og tidligere betalinger til "${rulePrompt.description}" som ${rulePrompt.categoryName.replace('-', ' ')}?`
+                defaultValue: `Vil du automatisk kategorisere fremtidige og tidligere betalinger til "${rulePrompt.description}" som ${rulePrompt.categoryName.replace('-', ' ')}?`,
               })}
             </p>
             <div className="flex justify-end gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setRulePrompt({ ...rulePrompt, isOpen: false })}
                 disabled={createRuleMutation.isPending}
               >
                 {t('transactions.noThanks', 'Nej tak')}
               </Button>
-              <Button 
+              <Button
                 onClick={handleCreateRule}
                 disabled={createRuleMutation.isPending}
                 className="bg-[hsl(var(--brand-primary))] text-white"
               >
-                {createRuleMutation.isPending ? t('common.saving', 'Gemmer...') : t('transactions.yesRememberIt', 'Ja, husk det')}
+                {createRuleMutation.isPending
+                  ? t('common.saving', 'Gemmer...')
+                  : t('transactions.yesRememberIt', 'Ja, husk det')}
               </Button>
             </div>
           </motion.div>
         </div>
       )}
-      
+
       {selectedTransaction && (
-        <TransactionDetailsSidebar 
-          transaction={selectedTransaction} 
+        <TransactionDetailsSidebar
+          transaction={selectedTransaction}
           onClose={() => setSelectedTransaction(null)}
           onFindSimilar={handleFindSimilar}
         />

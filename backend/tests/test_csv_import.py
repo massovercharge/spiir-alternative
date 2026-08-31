@@ -1,4 +1,5 @@
 """Tests for Spiir CSV export importer."""
+
 from sqlmodel import Session, select
 
 from app.models import (
@@ -59,7 +60,9 @@ def test_import_spiir_csv_new_and_allocations():
         assert posting.amount_minor == -15050
         assert posting.booking_date == "2023-05-15"
 
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)).first()
+        alloc = db.exec(
+            select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)
+        ).first()
         assert alloc is not None
         assert alloc.amount_minor == -15050
         assert alloc.category_id == "dagligvarer|supermarked"
@@ -111,7 +114,9 @@ def test_import_spiir_csv_merge_existing():
     assert stats["merged_existing"] == 1
 
     with Session(engine) as db:
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.id == "a_existing")).first()
+        alloc = db.exec(
+            select(PostingAllocation).where(PostingAllocation.id == "a_existing")
+        ).first()
         assert alloc is not None
         assert alloc.category_id == "dagligvarer|supermarked"
         assert alloc.note == "Mad til gæster"

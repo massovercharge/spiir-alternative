@@ -3,6 +3,7 @@
 Provides endpoints for income/expense time series, category sunbursts,
 and statistical anomaly/trend detection.
 """
+
 from __future__ import annotations
 
 import statistics
@@ -23,6 +24,7 @@ def _utcnow_iso() -> str:
 # ---------------------------------------------------------------------------
 # Charts
 # ---------------------------------------------------------------------------
+
 
 def income_expense_series(year: int | None = None) -> dict[str, Any]:
     """Build monthly income/expense aggregates for charts."""
@@ -46,7 +48,9 @@ def income_expense_series(year: int | None = None) -> dict[str, Any]:
             continue
 
         month_key = posting.booking_date[:7] if posting.booking_date else "unknown"
-        bucket = months.setdefault(month_key, {"income": 0, "expense_fixed": 0, "expense_variable": 0, "savings": 0})
+        bucket = months.setdefault(
+            month_key, {"income": 0, "expense_fixed": 0, "expense_variable": 0, "savings": 0}
+        )
 
         amt = alloc.amount_minor
         if category:
@@ -71,15 +75,17 @@ def income_expense_series(year: int | None = None) -> dict[str, Any]:
     for month, data in sorted(months.items()):
         total_expense = data["expense_fixed"] + data["expense_variable"]
         net = data["income"] - total_expense
-        series.append({
-            "month": month,
-            "income": format_amount(data["income"]),
-            "expense_fixed": format_amount(data["expense_fixed"]),
-            "expense_variable": format_amount(data["expense_variable"]),
-            "savings": format_amount(data["savings"]),
-            "expense": format_amount(total_expense),
-            "net": format_amount(net),
-        })
+        series.append(
+            {
+                "month": month,
+                "income": format_amount(data["income"]),
+                "expense_fixed": format_amount(data["expense_fixed"]),
+                "expense_variable": format_amount(data["expense_variable"]),
+                "savings": format_amount(data["savings"]),
+                "expense": format_amount(total_expense),
+                "net": format_amount(net),
+            }
+        )
 
     return {
         "generated_at": _utcnow_iso(),
@@ -87,14 +93,19 @@ def income_expense_series(year: int | None = None) -> dict[str, Any]:
     }
 
 
-def sunburst_data(year: int | None = None, month: int | None = None, filter_type: str | None = None, start_date: str | None = None, end_date: str | None = None) -> dict[str, Any]:
+def sunburst_data(
+    year: int | None = None,
+    month: int | None = None,
+    filter_type: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> dict[str, Any]:
     """Build hierarchical sunburst chart data grouped by category, optionally filtered by month/year, date range, and expense_type."""
     from app.services.category_service import list_categories
 
     with Session(engine) as db:
         query = (
-            select(Posting)
-            .where(Posting.is_excluded == False)  # noqa: E712
+            select(Posting).where(Posting.is_excluded == False)  # noqa: E712
         )
         # We no longer hard-filter by Posting.amount_minor here.
         # Refunds (positive) in expense categories need to be fetched to net correctly.
@@ -116,11 +127,13 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
         posting_ids = [p.id for p in postings]
         allocs: list[PostingAllocation] = []
         if posting_ids:
-            allocs = list(db.exec(
-                select(PostingAllocation).where(
-                    PostingAllocation.posting_id.in_(posting_ids)  # type: ignore[union-attr]
-                )
-            ).all())
+            allocs = list(
+                db.exec(
+                    select(PostingAllocation).where(
+                        PostingAllocation.posting_id.in_(posting_ids)  # type: ignore[union-attr]
+                    )
+                ).all()
+            )
 
     # Map posting_id to list of allocations
     allocs_by_posting: dict[str, list[PostingAllocation]] = {}
@@ -138,22 +151,38 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
         p_allocs = allocs_by_posting.get(p.id, [])
         if not p_allocs:
             cat_id = "diverse|ikke-kategoriseret"
-            cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt", "expenseType": "Variable", "categoryType": "Expense"}
+            cat = categories.get(cat_id) or {
+                "mainCategoryName": "Diverse",
+                "categoryName": "Ukendt",
+                "expenseType": "Variable",
+                "categoryType": "Expense",
+            }
             if cat["mainCategoryName"] == "Vis ikke":
                 continue
             if filter_type:
-                if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
+                if (filter_type == "Income" and cat.get("categoryType") != "Income") or (
+                    filter_type in ["Fixed", "Variable"]
+                    and cat.get("expenseType", "Variable") != filter_type
+                ):
                     continue
             key = (cat_id, None)
             totals[key] = totals.get(key, 0) + p.amount_minor
         else:
             for alloc in p_allocs:
                 cat_id = alloc.category_id or "diverse|ikke-kategoriseret"
-                cat = categories.get(cat_id) or {"mainCategoryName": "Diverse", "categoryName": "Ukendt", "expenseType": "Variable", "categoryType": "Expense"}
+                cat = categories.get(cat_id) or {
+                    "mainCategoryName": "Diverse",
+                    "categoryName": "Ukendt",
+                    "expenseType": "Variable",
+                    "categoryType": "Expense",
+                }
                 if cat["mainCategoryName"] == "Vis ikke":
                     continue
                 if filter_type:
-                    if (filter_type == "Income" and cat.get("categoryType") != "Income") or (filter_type in ["Fixed", "Variable"] and cat.get("expenseType", "Variable") != filter_type):
+                    if (filter_type == "Income" and cat.get("categoryType") != "Income") or (
+                        filter_type in ["Fixed", "Variable"]
+                        and cat.get("expenseType", "Variable") != filter_type
+                    ):
                         continue
                 raw_item_name = alloc.item_name
                 item_name = clean_item_name(raw_item_name) if raw_item_name else None
@@ -204,9 +233,14 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
     # Then add all subs
     for sub, s_total in sorted(sub_totals.items(), key=lambda x: -x[1]):
         # Find its main
-        main = next((categories.get(cid, {}).get("mainCategoryName", "Diverse")
-                    for (cid, itm), t in totals.items()
-                    if categories.get(cid, {}).get("categoryName", cid) == sub), "Diverse")
+        main = next(
+            (
+                categories.get(cid, {}).get("mainCategoryName", "Diverse")
+                for (cid, itm), t in totals.items()
+                if categories.get(cid, {}).get("categoryName", cid) == sub
+            ),
+            "Diverse",
+        )
         labels.append(sub)
         parents.append(main)
         values.append(s_total)
@@ -259,7 +293,10 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
                 sub_nodes[sub_key]["children"] = []
 
             # Check if this item_name already exists under this sub_category (e.g. "Mælk" across multiple transactions)
-            existing_item = next((child for child in sub_nodes[sub_key]["children"] if child["name"] == item_name), None)
+            existing_item = next(
+                (child for child in sub_nodes[sub_key]["children"] if child["name"] == item_name),
+                None,
+            )
             if existing_item:
                 existing_item["value"] = round(existing_item["value"] + amount, 2)
             else:
@@ -271,6 +308,7 @@ def sunburst_data(year: int | None = None, month: int | None = None, filter_type
         "values": [format_amount(v) for v in values],
         "echarts_data": echarts_tree,
     }
+
 
 def get_averages(year: int) -> dict[str, Any]:
     """Calculate average monthly income, fixed expenses, variable expenses and net result for the given year."""
@@ -319,6 +357,7 @@ def get_averages(year: int) -> dict[str, Any]:
 # Trends & Anomalies
 # ---------------------------------------------------------------------------
 
+
 def get_category_trends() -> list[dict[str, Any]]:
     """Calculate moving averages, stddev, and detect anomalies per category.
 
@@ -356,7 +395,9 @@ def get_category_trends() -> list[dict[str, Any]]:
             monthly_cat_totals[cat_id] = {}
 
         # Add algebraic amount natively
-        monthly_cat_totals[cat_id][month_key] = monthly_cat_totals[cat_id].get(month_key, 0) + alloc.amount_minor
+        monthly_cat_totals[cat_id][month_key] = (
+            monthly_cat_totals[cat_id].get(month_key, 0) + alloc.amount_minor
+        )
 
     current_month_key = _utcnow_iso()[:7]
     trends = []
@@ -380,17 +421,19 @@ def get_category_trends() -> list[dict[str, Any]]:
 
         # If we have very little history, we can't do meaningful stddev
         if len(historical_values) < 2:
-            trends.append({
-                "category_id": cat_id,
-                "current_month_amount_minor": current_month_val,
-                "moving_average_minor": historical_values[-1] if historical_values else 0,
-                "historical_stddev_minor": 0,
-                "trend_direction": "stable",
-                "trend_slope_per_month_minor": 0,
-                "is_anomaly": False,
-                "anomaly_severity": None,
-                "monthly_history": sparkline,
-            })
+            trends.append(
+                {
+                    "category_id": cat_id,
+                    "current_month_amount_minor": current_month_val,
+                    "moving_average_minor": historical_values[-1] if historical_values else 0,
+                    "historical_stddev_minor": 0,
+                    "trend_direction": "stable",
+                    "trend_slope_per_month_minor": 0,
+                    "is_anomaly": False,
+                    "anomaly_severity": None,
+                    "monthly_history": sparkline,
+                }
+            )
             continue
 
         avg = statistics.mean(historical_values)
@@ -406,8 +449,10 @@ def get_category_trends() -> list[dict[str, Any]]:
             x_vals = list(range(len(recent_6)))
             x_mean = statistics.mean(x_vals)
             y_mean = statistics.mean(recent_6)
-            numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_vals, recent_6, strict=False))
-            denominator = sum((x - x_mean)**2 for x in x_vals)
+            numerator = sum(
+                (x - x_mean) * (y - y_mean) for x, y in zip(x_vals, recent_6, strict=False)
+            )
+            denominator = sum((x - x_mean) ** 2 for x in x_vals)
             slope = numerator / denominator if denominator != 0 else 0
         else:
             slope = 0
@@ -428,21 +473,24 @@ def get_category_trends() -> list[dict[str, Any]]:
                 is_anomaly = True
                 severity = round(sigma_diff, 2)
 
-        trends.append({
-            "category_id": cat_id,
-            "current_month_amount_minor": current_month_val,
-            "moving_average_minor": moving_avg,
-            "historical_stddev_minor": int(stddev),
-            "trend_direction": direction,
-            "trend_slope_per_month_minor": int(slope),
-            "is_anomaly": is_anomaly,
-            "anomaly_severity": severity,
-            "monthly_history": sparkline,
-        })
+        trends.append(
+            {
+                "category_id": cat_id,
+                "current_month_amount_minor": current_month_val,
+                "moving_average_minor": moving_avg,
+                "historical_stddev_minor": int(stddev),
+                "trend_direction": direction,
+                "trend_slope_per_month_minor": int(slope),
+                "is_anomaly": is_anomaly,
+                "anomaly_severity": severity,
+                "monthly_history": sparkline,
+            }
+        )
 
     # Sort so anomalies and high spenders are at the top
     trends.sort(key=lambda t: (not t["is_anomaly"], -t["current_month_amount_minor"]))
     return trends
+
 
 def category_drilldown(category_name: str, year: int) -> dict[str, Any]:
     """Get monthly trends and top transactions for a specific category name (main or sub)."""
@@ -476,11 +524,7 @@ def category_drilldown(category_name: str, year: int) -> dict[str, Any]:
 
     for i in range(1, 13):
         month_str = f"{year}-{i:02d}"
-        months_data[month_str] = {
-            "month": month_str,
-            "total_amount_minor": 0,
-            "transactions": []
-        }
+        months_data[month_str] = {"month": month_str, "total_amount_minor": 0, "transactions": []}
 
     for alloc, posting in rows:
         month_str = posting.booking_date[:7] if posting.booking_date else f"{year}-01"
@@ -489,24 +533,24 @@ def category_drilldown(category_name: str, year: int) -> dict[str, Any]:
 
         amount = alloc.amount_minor
         months_data[month_str]["total_amount_minor"] += amount
-        months_data[month_str]["transactions"].append({
-            "date": posting.booking_date,
-            "payee": posting.original_description,
-            "amount_minor": amount,
-        })
+        months_data[month_str]["transactions"].append(
+            {
+                "date": posting.booking_date,
+                "payee": posting.original_description,
+                "amount_minor": amount,
+            }
+        )
 
     monthly_results = []
     for month_str, data in sorted(months_data.items()):
         # Sort transactions by absolute amount descending, take top 3
         top_tx = sorted(data["transactions"], key=lambda x: -abs(x["amount_minor"]))[:3]
-        monthly_results.append({
-            "month": month_str,
-            "total_amount_minor": data["total_amount_minor"],
-            "top_transactions": top_tx
-        })
+        monthly_results.append(
+            {
+                "month": month_str,
+                "total_amount_minor": data["total_amount_minor"],
+                "top_transactions": top_tx,
+            }
+        )
 
-    return {
-        "category_name": category_name,
-        "year": year,
-        "monthly_data": monthly_results
-    }
+    return {"category_name": category_name, "year": year, "monthly_data": monthly_results}

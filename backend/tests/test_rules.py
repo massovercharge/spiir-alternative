@@ -7,6 +7,7 @@ Covers:
 - CRUD operations
 - Retroactive application to uncategorized postings
 """
+
 import pytest
 from conftest import TEST_HOUSEHOLD_ID
 from sqlmodel import Session, SQLModel, create_engine, select
@@ -37,6 +38,7 @@ from app.services.rules_service import (
 def engine():
     """Create an in-memory SQLite engine with tables."""
     from sqlalchemy.pool import StaticPool
+
     eng = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
@@ -73,6 +75,7 @@ def seeded_db(engine, _patch_engine):
 # ---------------------------------------------------------------------------
 # Text Pre-processing
 # ---------------------------------------------------------------------------
+
 
 class TestPreprocessDescription:
     def test_lowercase(self):
@@ -138,6 +141,7 @@ class TestPreprocessDescription:
 # Seeding
 # ---------------------------------------------------------------------------
 
+
 class TestSeedSpiirRules:
     def test_seeds_all_hints(self, seeded_db):
         """All Spiir hints should create rules in the database."""
@@ -165,6 +169,7 @@ class TestSeedSpiirRules:
 # ---------------------------------------------------------------------------
 # Rule Evaluation
 # ---------------------------------------------------------------------------
+
 
 class TestEvaluatePosting:
     def test_matches_netto(self, seeded_db):
@@ -339,10 +344,10 @@ class TestEvaluatePosting:
         assert result is None
 
 
-
 # ---------------------------------------------------------------------------
 # Priority: user rules override system rules
 # ---------------------------------------------------------------------------
+
 
 class TestRulePriority:
     def test_user_rule_overrides_system(self, seeded_db):
@@ -386,6 +391,7 @@ class TestRulePriority:
 # ---------------------------------------------------------------------------
 # CRUD Operations
 # ---------------------------------------------------------------------------
+
 
 class TestRuleCRUD:
     def test_create_and_list(self, seeded_db):
@@ -433,6 +439,7 @@ class TestRuleCRUD:
 # Retroactive Application
 # ---------------------------------------------------------------------------
 
+
 class TestApplyRules:
     def test_categorizes_uncategorized_postings(self, seeded_db):
         with Session(seeded_db) as db:
@@ -440,22 +447,26 @@ class TestApplyRules:
             db.add(Account(uid="acc-retro", household_id=TEST_HOUSEHOLD_ID, session_name="test"))
 
             # Create postings WITHOUT allocations
-            db.add(Posting(
-                id="retro-1",
-                household_id=TEST_HOUSEHOLD_ID,
-                account_uid="acc-retro",
-                amount_minor=-15000,
-                booking_date="2026-07-01",
-                original_description="NETTO AARHUS",
-            ))
-            db.add(Posting(
-                id="retro-2",
-                household_id=TEST_HOUSEHOLD_ID,
-                account_uid="acc-retro",
-                amount_minor=-9900,
-                booking_date="2026-07-02",
-                original_description="Netflix.com Monthly",
-            ))
+            db.add(
+                Posting(
+                    id="retro-1",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    account_uid="acc-retro",
+                    amount_minor=-15000,
+                    booking_date="2026-07-01",
+                    original_description="NETTO AARHUS",
+                )
+            )
+            db.add(
+                Posting(
+                    id="retro-2",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    account_uid="acc-retro",
+                    amount_minor=-9900,
+                    booking_date="2026-07-02",
+                    original_description="Netflix.com Monthly",
+                )
+            )
             db.commit()
 
         result = apply_rules_to_uncategorized()
@@ -464,15 +475,13 @@ class TestApplyRules:
         # Verify the allocations were created
         with Session(seeded_db) as db:
             alloc1 = db.exec(
-                select(PostingAllocation)
-                .where(PostingAllocation.posting_id == "retro-1")
+                select(PostingAllocation).where(PostingAllocation.posting_id == "retro-1")
             ).first()
             assert alloc1 is not None
             assert alloc1.category_id == "husholdning|dagligvarer"
 
             alloc2 = db.exec(
-                select(PostingAllocation)
-                .where(PostingAllocation.posting_id == "retro-2")
+                select(PostingAllocation).where(PostingAllocation.posting_id == "retro-2")
             ).first()
             assert alloc2 is not None
             assert alloc2.category_id == "andre-leveomkostninger|tv-streaming"
@@ -480,20 +489,24 @@ class TestApplyRules:
     def test_skips_already_categorized(self, seeded_db):
         with Session(seeded_db) as db:
             db.add(Account(uid="acc-skip", household_id=TEST_HOUSEHOLD_ID, session_name="test"))
-            db.add(Posting(
-                id="skip-1",
-                household_id=TEST_HOUSEHOLD_ID,
-                account_uid="acc-skip",
-                amount_minor=-15000,
-                booking_date="2026-07-01",
-                original_description="NETTO AARHUS",
-            ))
+            db.add(
+                Posting(
+                    id="skip-1",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    account_uid="acc-skip",
+                    amount_minor=-15000,
+                    booking_date="2026-07-01",
+                    original_description="NETTO AARHUS",
+                )
+            )
             # Already has a real allocation
-            db.add(PostingAllocation(
-                posting_id="skip-1",
-                category_id="privatforbrug|tobak-alkohol",
-                amount_minor=-15000,
-            ))
+            db.add(
+                PostingAllocation(
+                    posting_id="skip-1",
+                    category_id="privatforbrug|tobak-alkohol",
+                    amount_minor=-15000,
+                )
+            )
             db.commit()
 
         result = apply_rules_to_uncategorized()
@@ -503,25 +516,31 @@ class TestApplyRules:
     def test_does_not_overwrite_splits(self, seeded_db):
         with Session(seeded_db) as db:
             db.add(Account(uid="acc-split", household_id=TEST_HOUSEHOLD_ID, session_name="test"))
-            db.add(Posting(
-                id="split-1",
-                household_id=TEST_HOUSEHOLD_ID,
-                account_uid="acc-split",
-                amount_minor=-20000,
-                booking_date="2026-07-01",
-                original_description="NETTO AARHUS",
-            ))
+            db.add(
+                Posting(
+                    id="split-1",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    account_uid="acc-split",
+                    amount_minor=-20000,
+                    booking_date="2026-07-01",
+                    original_description="NETTO AARHUS",
+                )
+            )
             # Multiple splits = user-created, should not be touched
-            db.add(PostingAllocation(
-                posting_id="split-1",
-                category_id="husholdning|dagligvarer",
-                amount_minor=-15000,
-            ))
-            db.add(PostingAllocation(
-                posting_id="split-1",
-                category_id="privatforbrug|tobak-alkohol",
-                amount_minor=-5000,
-            ))
+            db.add(
+                PostingAllocation(
+                    posting_id="split-1",
+                    category_id="husholdning|dagligvarer",
+                    amount_minor=-15000,
+                )
+            )
+            db.add(
+                PostingAllocation(
+                    posting_id="split-1",
+                    category_id="privatforbrug|tobak-alkohol",
+                    amount_minor=-5000,
+                )
+            )
             db.commit()
 
         result = apply_rules_to_uncategorized()
@@ -535,14 +554,23 @@ class TestPromotedRules:
         [
             ("Dankort-nota CYKELGEAR DK 4477003 TERNDRUP", "transport|værksted-reservedele"),
             ("BS AFTALENR 009920408 TRYG FORSIKRING", "bolig|indbo-familieforsikring"),
-            ("Dankort-nota FYNS SOMMERLAND KOEBENHAVN S", "privatforbrug|biograf-koncerter-forlystelser"),
+            (
+                "Dankort-nota FYNS SOMMERLAND KOEBENHAVN S",
+                "privatforbrug|biograf-koncerter-forlystelser",
+            ),
             ("Dankort-nota THURØ MINIGOLF Z034996", "privatforbrug|biograf-koncerter-forlystelser"),
             ("Lønoverførsel august", "indkomst|løn"),
             ("Udbetaling af overskydende skat", "indkomst|overskydende-skat"),
             ("Børne- og ungeydelse 3. kvartal", "indkomst|børnepenge"),
             ("Fødevarecheck udk f", "indkomst|anden-indkomst"),
-            ("BS Danmarks Lærerforening medlem aftalenr 020985907", "andre-leveomkostninger|fagforening-a-kasse"),
-            ("Betalingsservice IDA Ingeniørfore i Danmark aftalenr 904365853", "andre-leveomkostninger|fagforening-a-kasse"),
+            (
+                "BS Danmarks Lærerforening medlem aftalenr 020985907",
+                "andre-leveomkostninger|fagforening-a-kasse",
+            ),
+            (
+                "Betalingsservice IDA Ingeniørfore i Danmark aftalenr 904365853",
+                "andre-leveomkostninger|fagforening-a-kasse",
+            ),
             ("TV2 DK ID 223534191 Odense C", "andre-leveomkostninger|tv-streaming"),
             ("IMERCO DK", "privatforbrug|møbler-boligudstyr"),
             ("Bison Boulders Soeborg", "privatforbrug|sport-fritid"),
@@ -551,9 +579,18 @@ class TestPromotedRules:
             ("DSB App WD7FYF 1", "transport|bus-tog-færge-o-l"),
             ("THANSEN SVENDBORG Z118692", "transport|værksted-reservedele"),
             ("10er 10er ministeriet kbenhavn", "privatforbrug|online-services-software"),
-            ("Betalingsservice Dansk Flygtningehjælp aftalenr 965857648", "privatforbrug|gaver-velgørenhed"),
-            ("Betalingsservice Oxfam Danmark aftalenr 970548842", "privatforbrug|gaver-velgørenhed"),
-            ("Betalingsservice SOS Børnebyerne aftalenr 965467548", "privatforbrug|gaver-velgørenhed"),
+            (
+                "Betalingsservice Dansk Flygtningehjælp aftalenr 965857648",
+                "privatforbrug|gaver-velgørenhed",
+            ),
+            (
+                "Betalingsservice Oxfam Danmark aftalenr 970548842",
+                "privatforbrug|gaver-velgørenhed",
+            ),
+            (
+                "Betalingsservice SOS Børnebyerne aftalenr 965467548",
+                "privatforbrug|gaver-velgørenhed",
+            ),
             ("Dankort Thurø Strand Camp Z003527", "ferie|ferieaktiviteter"),
             ("LavprisVVS dk C60568979", "bolig|ombygning-vedligehold"),
             ("Friluftslageret Ap C062091", "husholdning|kiosk-bager-specialbutikker"),
@@ -581,38 +618,44 @@ class TestCleanupPromotedHouseholdRules:
     def test_removes_redundant_user_rules_and_preserves_custom(self, seeded_db):
         with Session(seeded_db) as db:
             # Redundant user rule (matches system rule for Thansen)
-            db.add(CategorizationRule(
-                id="user-rule-1",
-                household_id=TEST_HOUSEHOLD_ID,
-                category_id="transport|værksted-reservedele",
-                match_pattern="thansen svendborg z118692",
-                is_regex=False,
-                priority=500,
-                source="user",
-                is_active=True,
-            ))
+            db.add(
+                CategorizationRule(
+                    id="user-rule-1",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    category_id="transport|værksted-reservedele",
+                    match_pattern="thansen svendborg z118692",
+                    is_regex=False,
+                    priority=500,
+                    source="user",
+                    is_active=True,
+                )
+            )
             # Explicitly promoted / remapped rule (Fyns sommerland)
-            db.add(CategorizationRule(
-                id="user-rule-2",
-                household_id=TEST_HOUSEHOLD_ID,
-                category_id="ferie|ferieaktiviteter",
-                match_pattern="fyns sommerland koebenhavn s",
-                is_regex=False,
-                priority=500,
-                source="user",
-                is_active=True,
-            ))
+            db.add(
+                CategorizationRule(
+                    id="user-rule-2",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    category_id="ferie|ferieaktiviteter",
+                    match_pattern="fyns sommerland koebenhavn s",
+                    is_regex=False,
+                    priority=500,
+                    source="user",
+                    is_active=True,
+                )
+            )
             # Custom private user rule (should be preserved!)
-            db.add(CategorizationRule(
-                id="user-rule-3",
-                household_id=TEST_HOUSEHOLD_ID,
-                category_id="vis-ikke|kontooverførsel",
-                match_pattern="til boliglån",
-                is_regex=False,
-                priority=500,
-                source="user",
-                is_active=True,
-            ))
+            db.add(
+                CategorizationRule(
+                    id="user-rule-3",
+                    household_id=TEST_HOUSEHOLD_ID,
+                    category_id="vis-ikke|kontooverførsel",
+                    match_pattern="til boliglån",
+                    is_regex=False,
+                    priority=500,
+                    source="user",
+                    is_active=True,
+                )
+            )
             db.commit()
 
         removed = cleanup_promoted_household_rules()

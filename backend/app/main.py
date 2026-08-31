@@ -3,6 +3,7 @@
 Provides transaction listing, categorization, insights, and bank
 synchronization backed by a local SQLite database.
 """
+
 from __future__ import annotations
 
 import os
@@ -35,6 +36,7 @@ from app.services.rules_service import seed_spiir_rules
 # Lifespan
 # ---------------------------------------------------------------------------
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize the database, seed categories, and seed Spiir rules on startup."""
@@ -44,27 +46,36 @@ async def lifespan(app: FastAPI):
 
     try:
         from app.services.rules_service import apply_rules_to_uncategorized
+
         apply_rules_to_uncategorized()
     except Exception as e:
         import logging
-        logging.getLogger(__name__).warning("Error applying rules to uncategorized on startup: %s", e)
+
+        logging.getLogger(__name__).warning(
+            "Error applying rules to uncategorized on startup: %s", e
+        )
 
     try:
         from app.services.transaction_service import (
             auto_link_receipts,
             fix_receipt_difference_categories,
         )
+
         fix_receipt_difference_categories()
         auto_link_receipts()
     except Exception as e:
         import logging
-        logging.getLogger(__name__).warning("Error running startup receipt processing / difference migration: %s", e)
+
+        logging.getLogger(__name__).warning(
+            "Error running startup receipt processing / difference migration: %s", e
+        )
 
     # Start background workers
     import asyncio
 
     from app.services.imap_worker import run_imap_poller_loop
     from app.worker import purge_deleted_households_worker
+
     task = asyncio.create_task(purge_deleted_households_worker())
     imap_task = asyncio.create_task(run_imap_poller_loop())
 
@@ -73,9 +84,11 @@ async def lifespan(app: FastAPI):
     task.cancel()
     imap_task.cancel()
 
+
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
+
 
 def create_app() -> FastAPI:
     """Create and configure the Peng FastAPI application."""
@@ -87,7 +100,16 @@ def create_app() -> FastAPI:
     )
 
     from fastapi import Request
+    from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     # All API routes require auth
     dependencies = [Depends(get_auth_dependency())]
@@ -122,11 +144,15 @@ def create_app() -> FastAPI:
 
     # Check if the frontend dist folder exists (e.g. built via Docker)
     # Local dev structure: spiir-alternative/backend/app/api.py -> spiir-alternative/frontend/dist
-    frontend_dist_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist")
+    frontend_dist_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist"
+    )
 
     # Docker structure: /app/app/api.py -> /app/frontend/dist
     if not os.path.isdir(frontend_dist_path):
-        frontend_dist_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+        frontend_dist_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "frontend", "dist"
+        )
 
     if os.path.isdir(frontend_dist_path):
         # Serve static assets (js, css, images) from /assets
@@ -145,5 +171,6 @@ def create_app() -> FastAPI:
             return FileResponse(os.path.join(frontend_dist_path, "index.html"))
 
     return app
+
 
 app = create_app()

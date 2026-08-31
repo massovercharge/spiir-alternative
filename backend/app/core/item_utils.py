@@ -43,6 +43,6 @@ def extract_quantity_and_clean_name(name: str | None) -> tuple[float | None, str
             qty = float(raw_qty)
         except (ValueError, TypeError):
             qty = None
-        cleaned = normalized[match.end():].strip()
+        cleaned = normalized[match.end() :].strip()
         return qty, (cleaned if cleaned else normalized)
     return None, normalized

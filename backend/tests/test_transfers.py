@@ -1,4 +1,5 @@
 """Tests for internal transfer auto-detection."""
+
 from sqlmodel import Session, select
 
 from app.models import (
@@ -41,8 +42,12 @@ def test_detect_internal_transfers_creates_category_and_links():
         db.add(p1)
         db.add(p2)
 
-        a1 = PostingAllocation(posting_id="p_out", amount_minor=-100000, category_id="diverse|ikke-kategoriseret")
-        a2 = PostingAllocation(posting_id="p_in", amount_minor=100000, category_id="diverse|ikke-kategoriseret")
+        a1 = PostingAllocation(
+            posting_id="p_out", amount_minor=-100000, category_id="diverse|ikke-kategoriseret"
+        )
+        a2 = PostingAllocation(
+            posting_id="p_in", amount_minor=100000, category_id="diverse|ikke-kategoriseret"
+        )
         db.add(a1)
         db.add(a2)
         db.commit()

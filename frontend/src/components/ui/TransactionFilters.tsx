@@ -26,14 +26,23 @@ interface TransactionFiltersProps {
 }
 
 export function TransactionFilters({
-  filterType, setFilterType,
-  startDate, setStartDate,
-  endDate, setEndDate,
-  search, setSearch,
-  tags, selectedTag, setSelectedTag,
-  amountOp, setAmountOp,
-  amountVal, setAmountVal,
-  categoryId, setCategoryId
+  filterType,
+  setFilterType,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  search,
+  setSearch,
+  tags,
+  selectedTag,
+  setSelectedTag,
+  amountOp,
+  setAmountOp,
+  amountVal,
+  setAmountVal,
+  categoryId,
+  setCategoryId,
 }: TransactionFiltersProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'da' ? da : enUS;
@@ -64,7 +73,7 @@ export function TransactionFilters({
   }, [amountVal]);
 
   const { data: categories = [] } = useCategories();
-  
+
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   const activeFiltersCount = useMemo(() => {
@@ -89,16 +98,15 @@ export function TransactionFilters({
     setTempSearch('');
     setSearch('');
   };
-  
+
   const groupedCategories = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    
+
     let filtered = categories;
     if (categorySearch.trim()) {
       const q = categorySearch.toLowerCase().trim();
-      filtered = categories.filter((c: any) => 
-        c.name.toLowerCase().includes(q) || 
-        c.mainCategoryName.toLowerCase().includes(q)
+      filtered = categories.filter(
+        (c: any) => c.name.toLowerCase().includes(q) || c.mainCategoryName.toLowerCase().includes(q)
       );
     }
 
@@ -108,12 +116,12 @@ export function TransactionFilters({
     });
     return groups;
   }, [categories, categorySearch]);
-  
+
   const toggleCategoryExpand = (mainCat: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setExpandedCategories(prev => ({
+    setExpandedCategories((prev) => ({
       ...prev,
-      [mainCat]: !prev[mainCat]
+      [mainCat]: !prev[mainCat],
     }));
   };
 
@@ -130,7 +138,14 @@ export function TransactionFilters({
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const types = ['Alle poster', 'Regninger', 'Forbrug', 'Ukategoriseret', 'Ekstraordinær', 'Mulige dubletter'];
+  const types = [
+    'Alle poster',
+    'Regninger',
+    'Forbrug',
+    'Ukategoriseret',
+    'Ekstraordinær',
+    'Mulige dubletter',
+  ];
 
   // Calculate current year and quick links
   const currentYear = new Date().getFullYear();
@@ -154,7 +169,7 @@ export function TransactionFilters({
 
   const getPeriodLabel = () => {
     if (!startDate && !endDate) return 'hele perioden';
-    
+
     // Check if it's "Denne måned"
     const thisMonthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
     const thisMonthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
@@ -170,13 +185,12 @@ export function TransactionFilters({
 
   return (
     <div className="bg-[hsl(var(--bg-tertiary))] border border-[hsl(var(--border-color))] rounded-lg p-3 shadow-sm relative z-20">
-      
       {/* Mobile view search and filter trigger */}
       <div className="md:hidden flex items-center gap-2 w-full">
         <div className="relative flex-grow">
-          <input 
-            type="text" 
-            placeholder={t('app.search') + "..."}
+          <input
+            type="text"
+            placeholder={t('app.search') + '...'}
             value={tempSearch}
             onChange={(e) => setTempSearch(e.target.value)}
             onKeyDown={(e) => {
@@ -207,24 +221,31 @@ export function TransactionFilters({
 
       {/* Desktop view filters (hidden on mobile) */}
       <div className="hidden md:flex flex-wrap items-center gap-3 text-sm w-full">
-        
         <div className="flex items-center gap-2">
           <span className="text-muted">Viser</span>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className="flex items-center gap-1 font-medium bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] px-3 py-1.5 rounded-md hover:border-primary"
-              onClick={() => { setShowTypeDropdown(!showTypeDropdown); setShowPeriodDropdown(false); setShowTagDropdown(false); setShowAmountOpDropdown(false); }}
+              onClick={() => {
+                setShowTypeDropdown(!showTypeDropdown);
+                setShowPeriodDropdown(false);
+                setShowTagDropdown(false);
+                setShowAmountOpDropdown(false);
+              }}
             >
               {filterType || 'Alle poster'} <ChevronDown size={14} />
             </button>
-            
+
             {showTypeDropdown && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in">
-                {types.map(t => (
-                  <button 
+                {types.map((t) => (
+                  <button
                     key={t}
                     className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                    onClick={() => { setFilterType(t); setShowTypeDropdown(false); }}
+                    onClick={() => {
+                      setFilterType(t);
+                      setShowTypeDropdown(false);
+                    }}
                   >
                     {t}
                   </button>
@@ -237,9 +258,14 @@ export function TransactionFilters({
         <div className="flex items-center gap-2">
           <span className="text-muted">fra</span>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className="flex items-center gap-1 font-medium bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] px-3 py-1.5 rounded-md hover:border-primary"
-              onClick={() => { setShowPeriodDropdown(!showPeriodDropdown); setShowTypeDropdown(false); setShowTagDropdown(false); setShowAmountOpDropdown(false); }}
+              onClick={() => {
+                setShowPeriodDropdown(!showPeriodDropdown);
+                setShowTypeDropdown(false);
+                setShowTagDropdown(false);
+                setShowAmountOpDropdown(false);
+              }}
             >
               {getPeriodLabel()} <ChevronDown size={14} />
             </button>
@@ -247,45 +273,102 @@ export function TransactionFilters({
             {showPeriodDropdown && (
               <div className="absolute top-full left-0 mt-1 min-w-[20rem] w-max max-w-[90vw] bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg p-4 z-30 animate-fade-in">
                 <h3 className="text-lg text-primary mb-4 font-light">Måneder</h3>
-                
+
                 <div className="flex items-center gap-2 mb-4">
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1" value={customStartMonth} onChange={e => setCustomStartMonth(e.target.value)}>
-                    {Array.from({length: 12}, (_, i) => {
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1"
+                    value={customStartMonth}
+                    onChange={(e) => setCustomStartMonth(e.target.value)}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => {
                       const m = (i + 1).toString().padStart(2, '0');
                       const name = format(new Date(2000, i, 1), 'MMMM', { locale });
-                      return <option key={m} value={m}>{name}</option>
+                      return (
+                        <option key={m} value={m}>
+                          {name}
+                        </option>
+                      );
                     })}
                   </select>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1" value={customStartYear} onChange={e => setCustomStartYear(e.target.value)}>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1"
+                    value={customStartYear}
+                    onChange={(e) => setCustomStartYear(e.target.value)}
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
                   </select>
                   <span className="text-muted">til</span>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1" value={customEndMonth} onChange={e => setCustomEndMonth(e.target.value)}>
-                    {Array.from({length: 12}, (_, i) => {
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1"
+                    value={customEndMonth}
+                    onChange={(e) => setCustomEndMonth(e.target.value)}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => {
                       const m = (i + 1).toString().padStart(2, '0');
                       const name = format(new Date(2000, i, 1), 'MMMM', { locale });
-                      return <option key={m} value={m}>{name}</option>
+                      return (
+                        <option key={m} value={m}>
+                          {name}
+                        </option>
+                      );
                     })}
                   </select>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1" value={customEndYear} onChange={e => setCustomEndYear(e.target.value)}>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] rounded p-1"
+                    value={customEndYear}
+                    onChange={(e) => setCustomEndYear(e.target.value)}
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <button onClick={applyCustomPeriod} className="w-full bg-primary text-primary-foreground py-1 rounded mb-4 hover:opacity-90">Anvend</button>
+                <button
+                  onClick={applyCustomPeriod}
+                  className="w-full bg-primary text-primary-foreground py-1 rounded mb-4 hover:opacity-90"
+                >
+                  Anvend
+                </button>
 
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-primary">
-                  <button onClick={() => { setStartDate(''); setEndDate(''); setShowPeriodDropdown(false); }} className="hover:underline">Hele perioden</button>
-                  <button onClick={() => {
-                    setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-                    setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
-                    setShowPeriodDropdown(false);
-                  }} className="hover:underline">Denne måned</button>
-                  {years.map(y => (
-                    <button key={y} onClick={() => {
-                      setStartDate(`${y}-01-01`);
-                      setEndDate(`${y}-12-31`);
+                  <button
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
                       setShowPeriodDropdown(false);
-                    }} className="hover:underline">{y}</button>
+                    }}
+                    className="hover:underline"
+                  >
+                    Hele perioden
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+                      setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+                      setShowPeriodDropdown(false);
+                    }}
+                    className="hover:underline"
+                  >
+                    Denne måned
+                  </button>
+                  {years.map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => {
+                        setStartDate(`${y}-01-01`);
+                        setEndDate(`${y}-12-31`);
+                        setShowPeriodDropdown(false);
+                      }}
+                      className="hover:underline"
+                    >
+                      {y}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -296,26 +379,37 @@ export function TransactionFilters({
         <div className="flex items-center gap-2">
           <span className="text-muted">med tag</span>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className="flex items-center gap-1 font-medium bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] px-3 py-1.5 rounded-md hover:border-primary"
-              onClick={() => { setShowTagDropdown(!showTagDropdown); setShowTypeDropdown(false); setShowPeriodDropdown(false); setShowAmountOpDropdown(false); }}
+              onClick={() => {
+                setShowTagDropdown(!showTagDropdown);
+                setShowTypeDropdown(false);
+                setShowPeriodDropdown(false);
+                setShowAmountOpDropdown(false);
+              }}
             >
               {selectedTag ? `#${selectedTag}` : 'Alle tags'} <ChevronDown size={14} />
             </button>
-            
+
             {showTagDropdown && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in max-h-60 overflow-y-auto">
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => { setSelectedTag(''); setShowTagDropdown(false); }}
+                  onClick={() => {
+                    setSelectedTag('');
+                    setShowTagDropdown(false);
+                  }}
                 >
                   Alle tags
                 </button>
-                {tags?.map(t => (
-                  <button 
+                {tags?.map((t) => (
+                  <button
                     key={t.id}
                     className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                    onClick={() => { setSelectedTag(t.name); setShowTagDropdown(false); }}
+                    onClick={() => {
+                      setSelectedTag(t.name);
+                      setShowTagDropdown(false);
+                    }}
                   >
                     #{t.name}
                   </button>
@@ -328,33 +422,46 @@ export function TransactionFilters({
         <div className="flex items-center gap-2">
           <span className="text-muted">med kategori</span>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className="flex items-center gap-1 font-medium bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] px-3 py-1.5 rounded-md hover:border-primary max-w-[200px] truncate"
-              onClick={() => { setShowCategoryDropdown(!showCategoryDropdown); setShowTagDropdown(false); setShowTypeDropdown(false); setShowPeriodDropdown(false); setShowAmountOpDropdown(false); }}
+              onClick={() => {
+                setShowCategoryDropdown(!showCategoryDropdown);
+                setShowTagDropdown(false);
+                setShowTypeDropdown(false);
+                setShowPeriodDropdown(false);
+                setShowAmountOpDropdown(false);
+              }}
             >
-              {categoryId ? categories.find((c: any) => c.id === categoryId)?.name.replace('-', ' ') || 'Alle kategorier' : 'Alle kategorier'} <ChevronDown size={14} className="shrink-0" />
+              {categoryId
+                ? categories.find((c: any) => c.id === categoryId)?.name.replace('-', ' ') ||
+                  'Alle kategorier'
+                : 'Alle kategorier'}{' '}
+              <ChevronDown size={14} className="shrink-0" />
             </button>
-            
+
             {showCategoryDropdown && (
               <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-1 w-64 max-w-[calc(100vw-32px)] bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in flex flex-col max-h-80">
-                
                 <div className="p-2 border-b border-[hsl(var(--border-color))] flex items-center gap-2 sticky top-0 bg-[hsl(var(--bg-primary))] z-10">
                   <Search size={16} className="text-muted shrink-0" />
-                  <input 
-                    type="text" 
-                    placeholder={t('app.search') + "..."}
+                  <input
+                    type="text"
+                    placeholder={t('app.search') + '...'}
                     value={categorySearch}
-                    onChange={e => setCategorySearch(e.target.value)}
+                    onChange={(e) => setCategorySearch(e.target.value)}
                     className="w-full bg-transparent outline-none text-sm"
                     autoFocus
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
 
                 <div ref={categoryListRef} className="overflow-y-auto flex-1">
-                  <button 
+                  <button
                     className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors font-medium border-b border-[hsl(var(--border-color))]"
-                    onClick={() => { setCategoryId(''); setShowCategoryDropdown(false); setCategorySearch(''); }}
+                    onClick={() => {
+                      setCategoryId('');
+                      setShowCategoryDropdown(false);
+                      setCategorySearch('');
+                    }}
                   >
                     Alle kategorier
                   </button>
@@ -362,35 +469,48 @@ export function TransactionFilters({
                     <p className="text-center text-sm text-muted p-4">Ingen kategorier fundet</p>
                   )}
                   {Object.entries(groupedCategories).map(([mainCat, subCats]) => (
-                  <div key={mainCat} className="flex flex-col border-b border-[hsl(var(--border-color))] last:border-0">
-                    <div className="flex items-center w-full hover:bg-primary hover:text-primary-foreground transition-colors">
-                      <button 
-                        className="flex-1 text-left px-4 py-2 font-medium text-sm capitalize"
-                        onClick={() => { setCategoryId(mainCat.toLowerCase()); setShowCategoryDropdown(false); }}
-                      >
-                        {mainCat}
-                      </button>
-                      <button 
-                        className="p-2 mr-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
-                        onClick={(e) => toggleCategoryExpand(mainCat, e)}
-                      >
-                        {(expandedCategories[mainCat] || categorySearch.trim().length > 0) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                      </button>
-                    </div>
-                    {(expandedCategories[mainCat] || categorySearch.trim().length > 0) && (
-                      <div className="flex flex-col bg-[hsl(var(--bg-tertiary))] py-1">
-                        {subCats.map((c: any) => (
-                          <button 
-                            key={c.id}
-                            className="w-full text-left px-4 py-2 pl-8 hover:bg-primary hover:text-primary-foreground transition-colors text-sm capitalize"
-                            onClick={() => { setCategoryId(c.id); setShowCategoryDropdown(false); }}
-                          >
-                            {c.name.replace('-', ' ')}
-                          </button>
-                        ))}
+                    <div
+                      key={mainCat}
+                      className="flex flex-col border-b border-[hsl(var(--border-color))] last:border-0"
+                    >
+                      <div className="flex items-center w-full hover:bg-primary hover:text-primary-foreground transition-colors">
+                        <button
+                          className="flex-1 text-left px-4 py-2 font-medium text-sm capitalize"
+                          onClick={() => {
+                            setCategoryId(mainCat.toLowerCase());
+                            setShowCategoryDropdown(false);
+                          }}
+                        >
+                          {mainCat}
+                        </button>
+                        <button
+                          className="p-2 mr-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
+                          onClick={(e) => toggleCategoryExpand(mainCat, e)}
+                        >
+                          {expandedCategories[mainCat] || categorySearch.trim().length > 0 ? (
+                            <ChevronDown size={16} />
+                          ) : (
+                            <ChevronRight size={16} />
+                          )}
+                        </button>
                       </div>
-                    )}
-                  </div>
+                      {(expandedCategories[mainCat] || categorySearch.trim().length > 0) && (
+                        <div className="flex flex-col bg-[hsl(var(--bg-tertiary))] py-1">
+                          {subCats.map((c: any) => (
+                            <button
+                              key={c.id}
+                              className="w-full text-left px-4 py-2 pl-8 hover:bg-primary hover:text-primary-foreground transition-colors text-sm capitalize"
+                              onClick={() => {
+                                setCategoryId(c.id);
+                                setShowCategoryDropdown(false);
+                              }}
+                            >
+                              {c.name.replace('-', ' ')}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -401,47 +521,71 @@ export function TransactionFilters({
         <div className="flex items-center gap-2">
           <span className="text-muted">med beløb</span>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className="flex items-center gap-1 font-medium bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] px-3 py-1.5 rounded-md hover:border-primary"
-              onClick={() => { setShowAmountOpDropdown(!showAmountOpDropdown); setShowTagDropdown(false); setShowTypeDropdown(false); setShowPeriodDropdown(false); }}
+              onClick={() => {
+                setShowAmountOpDropdown(!showAmountOpDropdown);
+                setShowTagDropdown(false);
+                setShowTypeDropdown(false);
+                setShowPeriodDropdown(false);
+              }}
             >
-              {amountOp === 'lt' ? 'mindre end' : amountOp === 'gt' ? 'større end' : amountOp === 'eq' ? 'lig med' : 'alle beløb'} <ChevronDown size={14} />
+              {amountOp === 'lt'
+                ? 'mindre end'
+                : amountOp === 'gt'
+                  ? 'større end'
+                  : amountOp === 'eq'
+                    ? 'lig med'
+                    : 'alle beløb'}{' '}
+              <ChevronDown size={14} />
             </button>
-            
+
             {showAmountOpDropdown && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))] rounded-md shadow-lg py-1 z-30 animate-fade-in">
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => { setAmountOp(''); setShowAmountOpDropdown(false); }}
+                  onClick={() => {
+                    setAmountOp('');
+                    setShowAmountOpDropdown(false);
+                  }}
                 >
                   alle beløb
                 </button>
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => { setAmountOp('lt'); setShowAmountOpDropdown(false); }}
+                  onClick={() => {
+                    setAmountOp('lt');
+                    setShowAmountOpDropdown(false);
+                  }}
                 >
                   mindre end
                 </button>
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => { setAmountOp('gt'); setShowAmountOpDropdown(false); }}
+                  onClick={() => {
+                    setAmountOp('gt');
+                    setShowAmountOpDropdown(false);
+                  }}
                 >
                   større end
                 </button>
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => { setAmountOp('eq'); setShowAmountOpDropdown(false); }}
+                  onClick={() => {
+                    setAmountOp('eq');
+                    setShowAmountOpDropdown(false);
+                  }}
                 >
                   lig med
                 </button>
               </div>
             )}
           </div>
-          
+
           {amountOp && (
             <div className="relative w-24">
-              <input 
-                type="number" 
+              <input
+                type="number"
                 placeholder="beløb"
                 value={tempAmount}
                 onChange={(e) => setTempAmount(e.target.value)}
@@ -464,8 +608,8 @@ export function TransactionFilters({
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <span className="text-muted">med teksten</span>
           <div className="relative flex-1">
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Skriv søgeord og tryk enter"
               value={tempSearch}
               onChange={(e) => setTempSearch(e.target.value)}
@@ -479,51 +623,61 @@ export function TransactionFilters({
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
           </div>
         </div>
-
       </div>
 
       {/* Mobile Drawer (Bottom Sheet) */}
       {isMobileDrawerOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-[90] animate-fade-in" onClick={() => setIsMobileDrawerOpen(false)} />
+          <div
+            className="fixed inset-0 bg-black/60 z-[90] animate-fade-in"
+            onClick={() => setIsMobileDrawerOpen(false)}
+          />
           <div className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[hsl(var(--bg-secondary))] border-t border-[hsl(var(--border-color))] rounded-t-2xl shadow-2xl z-[100] flex flex-col animate-slide-in-up text-sm overflow-hidden">
-            
             {/* Header */}
             <div className="p-4 border-b border-[hsl(var(--border-color))] flex justify-between items-center bg-[hsl(var(--bg-secondary))] rounded-t-2xl sticky top-0 z-10">
               <h3 className="font-semibold text-base">Filtrér transaktioner</h3>
-              <button 
-                onClick={() => setIsMobileDrawerOpen(false)} 
+              <button
+                onClick={() => setIsMobileDrawerOpen(false)}
                 className="text-muted hover:text-[hsl(var(--text-primary))] font-medium"
               >
                 Luk
               </button>
             </div>
-            
+
             {/* Scrollable Filters */}
             <div className="p-5 flex flex-col gap-6 overflow-y-auto flex-grow bg-[hsl(var(--bg-primary))]">
               {/* Viser (Filter Type) */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Vis</label>
-                <select 
-                  value={filterType} 
-                  onChange={e => setFilterType(e.target.value)}
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
                   className="w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-3 outline-none focus:border-primary text-sm"
                 >
-                  {types.map(t => <option key={t} value={t}>{t}</option>)}
+                  {types.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Periode */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted uppercase tracking-wider">Periode</label>
+                <label className="text-xs font-bold text-muted uppercase tracking-wider">
+                  Periode
+                </label>
                 <div className="flex flex-wrap gap-2 mb-2">
-                  <button 
-                    onClick={() => { setStartDate(''); setEndDate(''); }}
+                  <button
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
+                    }}
                     className={`px-3 py-1.5 rounded-full text-xs border font-medium ${!startDate && !endDate ? 'bg-[hsl(var(--brand-primary))] text-white border-[hsl(var(--brand-primary))]' : 'bg-[hsl(var(--bg-secondary))] border-[hsl(var(--border-color))] text-muted'}`}
                   >
                     Hele perioden
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
                       setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -532,63 +686,109 @@ export function TransactionFilters({
                   >
                     Denne måned
                   </button>
-                  {years.slice(0, 3).map(y => (
-                    <button 
-                      key={y} 
-                      onClick={() => { setStartDate(`${y}-01-01`); setEndDate(`${y}-12-31`); }}
+                  {years.slice(0, 3).map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => {
+                        setStartDate(`${y}-01-01`);
+                        setEndDate(`${y}-12-31`);
+                      }}
                       className={`px-3 py-1.5 rounded-full text-xs border font-medium ${startDate === `${y}-01-01` && endDate === `${y}-12-31` ? 'bg-[hsl(var(--brand-primary))] text-white border-[hsl(var(--brand-primary))]' : 'bg-[hsl(var(--bg-secondary))] border-[hsl(var(--border-color))] text-muted'}`}
                     >
                       {y}
                     </button>
                   ))}
                 </div>
-                
+
                 {/* Custom Month Selector */}
                 <div className="flex items-center gap-1 bg-[hsl(var(--bg-secondary))] p-2 rounded-lg border border-[hsl(var(--border-color))]">
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0" value={customStartMonth} onChange={e => setCustomStartMonth(e.target.value)}>
-                    {Array.from({length: 12}, (_, i) => {
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0"
+                    value={customStartMonth}
+                    onChange={(e) => setCustomStartMonth(e.target.value)}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => {
                       const m = (i + 1).toString().padStart(2, '0');
                       const name = format(new Date(2000, i, 1), 'MMMM', { locale });
-                      return <option key={m} value={m}>{name}</option>
+                      return (
+                        <option key={m} value={m}>
+                          {name}
+                        </option>
+                      );
                     })}
                   </select>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0" value={customStartYear} onChange={e => setCustomStartYear(e.target.value)}>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0"
+                    value={customStartYear}
+                    onChange={(e) => setCustomStartYear(e.target.value)}
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
                   </select>
                   <span className="text-muted px-1 text-xs">til</span>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0" value={customEndMonth} onChange={e => setCustomEndMonth(e.target.value)}>
-                    {Array.from({length: 12}, (_, i) => {
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0"
+                    value={customEndMonth}
+                    onChange={(e) => setCustomEndMonth(e.target.value)}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => {
                       const m = (i + 1).toString().padStart(2, '0');
                       const name = format(new Date(2000, i, 1), 'MMMM', { locale });
-                      return <option key={m} value={m}>{name}</option>
+                      return (
+                        <option key={m} value={m}>
+                          {name}
+                        </option>
+                      );
                     })}
                   </select>
-                  <select className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0" value={customEndYear} onChange={e => setCustomEndYear(e.target.value)}>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  <select
+                    className="border border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] rounded p-1.5 flex-1 min-w-0"
+                    value={customEndYear}
+                    onChange={(e) => setCustomEndYear(e.target.value)}
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
                   </select>
-                  <button onClick={applyCustomPeriod} className="bg-primary text-primary-foreground px-3 py-1.5 rounded ml-2 hover:opacity-90 shrink-0 font-medium text-xs font-semibold">Anvend</button>
+                  <button
+                    onClick={applyCustomPeriod}
+                    className="bg-primary text-primary-foreground px-3 py-1.5 rounded ml-2 hover:opacity-90 shrink-0 font-medium text-xs font-semibold"
+                  >
+                    Anvend
+                  </button>
                 </div>
               </div>
 
               {/* Tag */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Tag</label>
-                <select 
-                  value={selectedTag} 
-                  onChange={e => setSelectedTag(e.target.value)}
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
                   className="w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-3 outline-none focus:border-primary text-sm"
                 >
                   <option value="">Alle tags</option>
-                  {tags?.map(t => <option key={t.id} value={t.name}>#{t.name}</option>)}
+                  {tags?.map((t) => (
+                    <option key={t.id} value={t.name}>
+                      #{t.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Kategori */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted uppercase tracking-wider">Kategori</label>
-                <select 
-                  value={categoryId} 
-                  onChange={e => setCategoryId(e.target.value)}
+                <label className="text-xs font-bold text-muted uppercase tracking-wider">
+                  Kategori
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
                   className="w-full bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-3 outline-none focus:border-primary text-sm capitalize"
                 >
                   <option value="">Alle kategorier</option>
@@ -607,11 +807,13 @@ export function TransactionFilters({
 
               {/* Beløb */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted uppercase tracking-wider">Beløb</label>
+                <label className="text-xs font-bold text-muted uppercase tracking-wider">
+                  Beløb
+                </label>
                 <div className="flex gap-2">
-                  <select 
-                    value={amountOp} 
-                    onChange={e => setAmountOp(e.target.value)}
+                  <select
+                    value={amountOp}
+                    onChange={(e) => setAmountOp(e.target.value)}
                     className="flex-1 bg-[hsl(var(--bg-secondary))] border border-[hsl(var(--border-color))] rounded-lg p-3 outline-none focus:border-primary text-sm"
                   >
                     <option value="">Alle beløb</option>
@@ -620,8 +822,8 @@ export function TransactionFilters({
                     <option value="eq">lig med</option>
                   </select>
                   {amountOp && (
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       placeholder="beløb"
                       value={tempAmount}
                       onChange={(e) => {
@@ -635,16 +837,16 @@ export function TransactionFilters({
                 </div>
               </div>
             </div>
-            
+
             {/* Footer */}
             <div className="p-4 pb-safe border-t border-[hsl(var(--border-color))] bg-[hsl(var(--bg-secondary))] flex gap-3 sticky bottom-0 z-10">
-              <button 
+              <button
                 onClick={handleResetFilters}
                 className="flex-1 py-3 rounded-lg border border-[hsl(var(--border-color))] text-sm font-medium hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
               >
                 Nulstil
               </button>
-              <button 
+              <button
                 onClick={() => setIsMobileDrawerOpen(false)}
                 className="flex-1 py-3 rounded-lg bg-[hsl(var(--brand-primary))] text-white text-sm font-medium hover:opacity-95 transition-colors"
               >
@@ -654,7 +856,6 @@ export function TransactionFilters({
           </div>
         </>
       )}
-
     </div>
   );
 }

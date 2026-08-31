@@ -1,4 +1,5 @@
 """Category service — seeds and queries the taxonomy from the Category table."""
+
 from __future__ import annotations
 
 import re
@@ -15,66 +16,120 @@ engine = None
 def _get_engine():
     return engine or models.all_models.engine
 
+
 # ---------------------------------------------------------------------------
 # Default Taxonomy
 # ---------------------------------------------------------------------------
 
 DEFAULT_TAXONOMY: dict[str, list[str]] = {
     "Bolig": [
-        "Boliglån/husleje", "El, vand, varme & renovation", "Ejerforening",
-        "Ejendomsskat", "Husforsikring", "Indbo- & familieforsikring",
-        "Alarmsystem", "Udgifter fritidshus", "Ombygning & vedligehold",
-        "Have & planter", "Andre boligudgifter",
+        "Boliglån/husleje",
+        "El, vand, varme & renovation",
+        "Ejerforening",
+        "Ejendomsskat",
+        "Husforsikring",
+        "Indbo- & familieforsikring",
+        "Alarmsystem",
+        "Udgifter fritidshus",
+        "Ombygning & vedligehold",
+        "Have & planter",
+        "Andre boligudgifter",
     ],
     "Transport": [
-        "Bil-, MC-, bådlån o.l.", "Brændstof", "Bilforsikring & autohjælp",
-        "Ejerafgift/grøn afgift", "Bus, tog, færge o.l.", "Taxi", "Parkering",
-        "Værksted & reservedele", "Anden transport",
+        "Bil-, MC-, bådlån o.l.",
+        "Brændstof",
+        "Bilforsikring & autohjælp",
+        "Ejerafgift/grøn afgift",
+        "Bus, tog, færge o.l.",
+        "Taxi",
+        "Parkering",
+        "Værksted & reservedele",
+        "Anden transport",
     ],
     "Husholdning": [
-        "Dagligvarer", "Kiosk, bager & specialbutikker",
+        "Dagligvarer",
+        "Kiosk, bager & specialbutikker",
         "Kantine- & frokostordning",
     ],
     "Andre leveomkostninger": [
-        "Apotek & medicin", "Behandling & læger", "Underholds- & børnebidrag",
-        "Institution", "Fagforening & a-kasse", "Livs- & ulykkesforsikring",
-        "Sundheds- & sygeforsikring", "Briller & kontaktlinser",
-        "TV & streaming", "Telefoni & internet", "Studieudgifter",
+        "Apotek & medicin",
+        "Behandling & læger",
+        "Underholds- & børnebidrag",
+        "Institution",
+        "Fagforening & a-kasse",
+        "Livs- & ulykkesforsikring",
+        "Sundheds- & sygeforsikring",
+        "Briller & kontaktlinser",
+        "TV & streaming",
+        "Telefoni & internet",
+        "Studieudgifter",
         "Foreninger & kontingenter",
     ],
     "Privatforbrug": [
-        "Fastfood & takeaway", "Bar, cafe & restaurant",
-        "Tøj, sko & accessories", "Møbler & boligudstyr",
-        "Elektronik & computerudstyr", "Film, musik & læsestof",
-        "Online services & software", "Hobby & sportsudstyr",
-        "Biograf, koncerter & forlystelser", "Frisør & personlig pleje",
-        "Sport & fritid", "Hus & havehjælp", "Spil & legetøj",
-        "Tips & lotto", "Babyudstyr", "Kæledyr", "Gaver & velgørenhed",
-        "Tobak & alkohol", "Kontanthævning & check",
-        "Højskole- & kursusophold", "Serviceydelser & rådgivning",
+        "Fastfood & takeaway",
+        "Bar, cafe & restaurant",
+        "Tøj, sko & accessories",
+        "Møbler & boligudstyr",
+        "Elektronik & computerudstyr",
+        "Film, musik & læsestof",
+        "Online services & software",
+        "Hobby & sportsudstyr",
+        "Biograf, koncerter & forlystelser",
+        "Frisør & personlig pleje",
+        "Sport & fritid",
+        "Hus & havehjælp",
+        "Spil & legetøj",
+        "Tips & lotto",
+        "Babyudstyr",
+        "Kæledyr",
+        "Gaver & velgørenhed",
+        "Tobak & alkohol",
+        "Kontanthævning & check",
+        "Højskole- & kursusophold",
+        "Serviceydelser & rådgivning",
         "Andet privatforbrug",
     ],
     "Ferie": [
-        "Fly & Hotel", "Billeje", "Sommerhus & camping",
-        "Ferieaktiviteter", "Rejseforsikring",
+        "Fly & Hotel",
+        "Billeje",
+        "Sommerhus & camping",
+        "Ferieaktiviteter",
+        "Rejseforsikring",
     ],
     "Diverse": [
-        "Ukendt", "Bankgebyrer", "Rykkergebyrer", "Bøder & afgifter",
-        "Restskat", "Offentligt gebyr", "Ikke kategoriseret",
+        "Ukendt",
+        "Bankgebyrer",
+        "Rykkergebyrer",
+        "Bøder & afgifter",
+        "Restskat",
+        "Offentligt gebyr",
+        "Ikke kategoriseret",
     ],
     "Lån & gæld": [
-        "Studielån", "Forbrugslån", "Private lån (venner & familie)",
+        "Studielån",
+        "Forbrugslån",
+        "Private lån (venner & familie)",
         "Udlånsrenter",
     ],
     "Pension & Opsparing": [
-        "Pensionsopsparing", "Børneopsparing", "Anden opsparing",
+        "Pensionsopsparing",
+        "Børneopsparing",
+        "Anden opsparing",
         "Værdipapirshandel",
     ],
     "Indkomst": [
-        "Løn", "Pensionsudbetaling", "Dagpenge/overførselsindkomst",
-        "SU & studielån", "Børnepenge", "Underholds- & børnebidrag",
-        "Feriepenge", "Renteindtægter", "Udbytte & afkast",
-        "Overskydende skat", "Boligstøtte", "Anden indkomst",
+        "Løn",
+        "Pensionsudbetaling",
+        "Dagpenge/overførselsindkomst",
+        "SU & studielån",
+        "Børnepenge",
+        "Underholds- & børnebidrag",
+        "Feriepenge",
+        "Renteindtægter",
+        "Udbytte & afkast",
+        "Overskydende skat",
+        "Boligstøtte",
+        "Anden indkomst",
     ],
     "Vis ikke": ["Kontooverførsel", "Udlæg", "Ignorer"],
 }
@@ -97,6 +152,7 @@ def make_category_id(main_name: str, sub_name: str) -> str:
 # Seed
 # ---------------------------------------------------------------------------
 
+
 def seed_categories() -> int:
     """Insert default taxonomy into the Category table. Idempotent."""
     count = 0
@@ -107,12 +163,14 @@ def seed_categories() -> int:
                 cat_id = make_category_id(main_name, sub_name)
                 existing = db.get(Category, cat_id)
                 if existing is None:
-                    db.add(Category(
-                        id=cat_id,
-                        main_name=main_name,
-                        sub_name=sub_name,
-                        category_type=cat_type,
-                    ))
+                    db.add(
+                        Category(
+                            id=cat_id,
+                            main_name=main_name,
+                            sub_name=sub_name,
+                            category_type=cat_type,
+                        )
+                    )
                     count += 1
         db.commit()
     return count
@@ -122,12 +180,11 @@ def seed_categories() -> int:
 # Query
 # ---------------------------------------------------------------------------
 
+
 def list_categories() -> list[dict[str, Any]]:
     """Return the full taxonomy grouped by main category."""
     with Session(_get_engine()) as db:
-        categories = db.exec(
-            select(Category).order_by(Category.main_name, Category.sub_name)
-        ).all()
+        categories = db.exec(select(Category).order_by(Category.main_name, Category.sub_name)).all()
 
     return [
         {
@@ -149,8 +206,7 @@ def get_taxonomy_response() -> dict[str, Any]:
     usage_counts: dict[str, int] = {}
     with Session(_get_engine()) as db:
         rows = db.exec(
-            select(PostingAllocation.category_id)
-            .where(PostingAllocation.category_id.is_not(None))  # type: ignore[union-attr]
+            select(PostingAllocation.category_id).where(PostingAllocation.category_id.is_not(None))  # type: ignore[union-attr]
         ).all()
         for cat_id in rows:
             if cat_id:

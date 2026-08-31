@@ -17,7 +17,13 @@ import {
   Inbox,
   Filter,
 } from 'lucide-react';
-import { useNotifications, useCreateCustomRule, useResolveDuplicates, useDuplicatePreview, AppNotification } from '../../api/client';
+import {
+  useNotifications,
+  useCreateCustomRule,
+  useResolveDuplicates,
+  useDuplicatePreview,
+  AppNotification,
+} from '../../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import DuplicateReviewModal from '../transactions/DuplicateReviewModal';
@@ -52,7 +58,9 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
   const createRuleMutation = useCreateCustomRule();
 
   const notifications = data?.notifications || [];
-  const hasDuplicates = (duplicatePreviewData?.total_groups || 0) > 0 || notifications.some((n) => n.type === 'duplicate_payment');
+  const hasDuplicates =
+    (duplicatePreviewData?.total_groups || 0) > 0 ||
+    notifications.some((n) => n.type === 'duplicate_payment');
 
   // Persist readIds to localStorage
   useEffect(() => {
@@ -181,7 +189,10 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                     </h2>
                     {unreadCount > 0 ? (
                       <span className="text-xs text-[hsl(var(--brand-primary))] font-medium">
-                        {t('notifications.unreadCount', { count: unreadCount, defaultValue: `${unreadCount} ulæste` })}
+                        {t('notifications.unreadCount', {
+                          count: unreadCount,
+                          defaultValue: `${unreadCount} ulæste`,
+                        })}
                       </span>
                     ) : (
                       <span className="text-xs text-muted">
@@ -199,7 +210,9 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                       title={t('notifications.markAllAsRead', 'Marker alle som læst')}
                     >
                       <CheckCheck size={14} />
-                      <span className="hidden sm:inline">{t('notifications.markAllAsRead', 'Marker alle som læst')}</span>
+                      <span className="hidden sm:inline">
+                        {t('notifications.markAllAsRead', 'Marker alle som læst')}
+                      </span>
                     </button>
                   )}
                   <button
@@ -233,7 +246,12 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                     }`}
                   >
                     {t('notifications.warnings', 'Advarsler')} (
-                    {notifications.filter((n) => n.severity === 'warning' || n.severity === 'danger').length})
+                    {
+                      notifications.filter(
+                        (n) => n.severity === 'warning' || n.severity === 'danger'
+                      ).length
+                    }
+                    )
                   </button>
                   <button
                     onClick={() => setActiveTab('suggestions')}
@@ -284,7 +302,10 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                 {isLoading ? (
                   <div className="space-y-3 py-4">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-24 bg-[hsl(var(--bg-secondary))] animate-pulse rounded-xl" />
+                      <div
+                        key={i}
+                        className="h-24 bg-[hsl(var(--bg-secondary))] animate-pulse rounded-xl"
+                      />
                     ))}
                   </div>
                 ) : filteredNotifications.length === 0 ? (
@@ -318,7 +339,8 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                         ? 'border-[hsl(var(--border-color))]'
                         : 'border-amber-500/40 bg-amber-500/5';
                       iconBg = 'bg-amber-500/15 text-amber-500';
-                      IconComponent = notif.type === 'consent_expiring' ? ShieldAlert : AlertTriangle;
+                      IconComponent =
+                        notif.type === 'consent_expiring' ? ShieldAlert : AlertTriangle;
                     } else if (isSuggestion) {
                       cardBorder = isRead
                         ? 'border-[hsl(var(--border-color))]'
@@ -344,7 +366,9 @@ export default function NotificationDrawer({ compact = false }: NotificationDraw
                         )}
 
                         <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${iconBg}`}>
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${iconBg}`}
+                          >
                             <IconComponent size={18} />
                           </div>
 

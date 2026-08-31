@@ -7,8 +7,10 @@ from pydantic import BaseModel, Field, field_validator
 class HouseholdCreateRequest(BaseModel):
     name: str = Field(..., min_length=1)
 
+
 class HouseholdUpdateRequest(BaseModel):
     name: str = Field(..., min_length=1)
+
 
 class HouseholdInviteRequest(BaseModel):
     email: str = Field(..., min_length=3)
@@ -21,14 +23,17 @@ class HouseholdInviteRequest(BaseModel):
             return v.strip().lower()
         return v
 
+
 class HouseholdMemberRoleUpdateRequest(BaseModel):
     role: Literal["owner", "member"]
+
 
 # Accounts
 class AccountUpdateRequest(BaseModel):
     name: str = Field(..., min_length=1)
     account_type: Optional[str] = None
     savings_category_id: Optional[str] = None
+
 
 # Transactions
 class TransactionPatch(BaseModel):
@@ -39,12 +44,15 @@ class TransactionPatch(BaseModel):
     custom_date: Optional[str] = None
     tags: Optional[list[str]] = None
 
+
 class TransactionsUpdateRequest(BaseModel):
     transaction_ids: list[str]
     patch: TransactionPatch
 
+
 class TransactionCategoryUpdateRequest(BaseModel):
     category_id: str
+
 
 class TransactionSplitItem(BaseModel):
     amount_minor: int
@@ -54,11 +62,14 @@ class TransactionSplitItem(BaseModel):
     item_cluster_id: Optional[str] = None
     is_extraordinary: Optional[bool] = False
 
+
 class TransactionSplitRequest(BaseModel):
     splits: list[TransactionSplitItem] = Field(..., min_length=1)
 
+
 class TransactionLinkReceiptRequest(BaseModel):
     receipt_id: str
+
 
 # Rules
 class RuleCreateRequest(BaseModel):
@@ -68,6 +79,7 @@ class RuleCreateRequest(BaseModel):
     partial_match: Optional[bool] = False
     priority: Optional[int] = 500
 
+
 class RuleUpdateRequest(BaseModel):
     match_pattern: Optional[str] = None
     category_id: Optional[str] = None
@@ -75,6 +87,7 @@ class RuleUpdateRequest(BaseModel):
     partial_match: Optional[bool] = None
     priority: Optional[int] = None
     is_active: Optional[bool] = None
+
 
 # Budgets
 class BudgetUpsertRequest(BaseModel):
@@ -85,26 +98,32 @@ class BudgetUpsertRequest(BaseModel):
     budget_type: Optional[str] = "limit"
     rollover: Optional[bool] = False
 
+
 class BudgetBillItem(BaseModel):
     name: str
     amount_minor: int
     months: list[int]
+
 
 class BudgetBillsUpsertRequest(BaseModel):
     category_id: str
     year: int
     bills: list[BudgetBillItem] = []
 
+
 # Sync & Bank
 class BankConnectRequest(BaseModel):
     redirect_url: str
     bank_name: str
 
+
 class BankCallbackRequest(BaseModel):
     code: str
 
+
 class StoreboxImportLinkRequest(BaseModel):
     url: str
+
 
 # Recurring
 class RecurringCreateRequest(BaseModel):
@@ -115,10 +134,10 @@ class RecurringCreateRequest(BaseModel):
     account_uid: Optional[str] = None
     match_pattern: str
 
+
 # Inbound Email
 class InboundEmailTestRequest(BaseModel):
     raw_content: Optional[str] = None
     url: Optional[str] = None
     subject: Optional[str] = None
     sender: Optional[str] = None
-

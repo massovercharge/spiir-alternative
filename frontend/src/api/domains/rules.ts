@@ -5,7 +5,7 @@ export async function createCustomRule(matchPattern: string, categoryId: string)
   const res = await fetch(`${API_BASE}/api/rules/custom`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ match_pattern: matchPattern, category_id: categoryId })
+    body: JSON.stringify({ match_pattern: matchPattern, category_id: categoryId }),
   });
   if (!res.ok) throw new Error('Failed to create custom rule');
   return res.json();
@@ -21,7 +21,7 @@ export async function fetchRules(source?: string) {
 export async function deleteRule(ruleId: string) {
   const res = await fetch(`${API_BASE}/api/rules/${ruleId}`, {
     method: 'DELETE',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) throw new Error('Failed to delete rule');
   return res.json();
@@ -38,7 +38,7 @@ export function useRules(source?: string) {
 export function useCreateCustomRule() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ matchPattern, categoryId }: { matchPattern: string, categoryId: string }) => 
+    mutationFn: ({ matchPattern, categoryId }: { matchPattern: string; categoryId: string }) =>
       createCustomRule(matchPattern, categoryId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -46,7 +46,7 @@ export function useCreateCustomRule() {
       queryClient.invalidateQueries({ queryKey: ['rules'] });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
-    }
+    },
   });
 }
 
@@ -56,6 +56,6 @@ export function useDeleteRule() {
     mutationFn: (ruleId: string) => deleteRule(ruleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rules'] });
-    }
+    },
   });
 }

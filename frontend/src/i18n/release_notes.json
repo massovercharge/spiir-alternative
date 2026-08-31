@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.8.0",
+    "date": "2026-08-29",
+    "changes": {
+      "en": [
+        "Added Coop digital receipts integration (Beta): Quick bookmarklet fetcher for medlem.coop.dk and direct JSON receipt ingestion in Settings",
+        "Multi-source receipt engine support: Storebox and Coop receipts coexist side-by-side with automatic deduplication, item clustering, and bank transaction linking"
+      ],
+      "da": [
+        "Tilføjet integration til digitale Coop-kvitteringer (Beta): Hurtig bookmarklet-henter til medlem.coop.dk og direkte JSON-kvitteringsimport under Indstillinger",
+        "Flerkilde-understøttelse i kvitteringsmotoren: Storebox- og Coop-kvitteringer eksisterer side om side med automatisk deduplikering, varegruppering og automatisk kobling til bankposteringer"
+      ]
+    }
+  },
+  {
     "version": "v1.7.11",
     "date": "2026-08-29",
     "changes": {

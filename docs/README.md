@@ -13,6 +13,7 @@ docs/
 ├── guides/                # How-to guides for users and developers
 │   ├── development.md     # Local development setup
 │   ├── enable-banking.md  # Bank connectivity configuration
+│   ├── coop-receipts.md   # Coop digital receipts integration & bookmarklet
 │   ├── self-hosting.md    # Docker deployment guide
 │   └── contributing.md    # Contribution guidelines
 ├── code_review/           # Phased full-stack code review & refactoring roadmap

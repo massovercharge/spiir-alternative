@@ -4,6 +4,7 @@ Replaces the V2 transaction_service. The key change is that monetary
 amounts are now integers in minor units (øre/cents) via ``amount_minor``,
 and API responses return amounts as strings (e.g. ``"100.50"``).
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -78,8 +79,14 @@ def list_transactions(
 
         # Pre-compute duplicate map for outgoing expenses in the household using robust date and description matching
         all_postings_for_dups = db.exec(
-            select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.amount_minor, Posting.original_description, Posting.account_uid)
-            .where(col(Posting.amount_minor) < 0)
+            select(
+                Posting.id,
+                Posting.booking_date,
+                Posting.custom_date,
+                Posting.amount_minor,
+                Posting.original_description,
+                Posting.account_uid,
+            ).where(col(Posting.amount_minor) < 0)
         ).all()
 
         dup_clusters: dict[int, list[tuple]] = {}
@@ -91,9 +98,13 @@ def list_transactions(
             dup_clusters.setdefault(amt, []).append((p_id, b_date, c_date, desc, acc_uid))
 
         dismissed = db.exec(select(DismissedDuplicate)).all()
-        dismissed_pairs = {(min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2)) for d in dismissed}
+        dismissed_pairs = {
+            (min(d.posting_id_1, d.posting_id_2), max(d.posting_id_1, d.posting_id_2))
+            for d in dismissed
+        }
 
         import itertools
+
         dup_info_map: dict[str, tuple[int, list[str]]] = {}
         dup_posting_ids: set[str] = set()
         for _amt, plist in dup_clusters.items():
@@ -108,13 +119,16 @@ def list_transactions(
                     if plist[j][0] in used_ids:
                         continue
                     for member in current_group:
-                        is_same = (member[4] == plist[j][4])
+                        is_same = member[4] == plist[j][4]
                         if dates_match(
-                            member[1], member[2],
-                            plist[j][1], plist[j][2],
+                            member[1],
+                            member[2],
+                            plist[j][1],
+                            plist[j][2],
                             is_same_account=is_same,
                         ) and descriptions_match(
-                            member[3], plist[j][3],
+                            member[3],
+                            plist[j][3],
                             is_same_account=is_same,
                         ):
                             current_group.append(plist[j])
@@ -131,14 +145,23 @@ def list_transactions(
                     if all_dismissed:
                         continue
                     for p_id in group_ids:
-                        siblings = [other_id for other_id in group_ids if other_id != p_id and (min(p_id, other_id), max(p_id, other_id)) not in dismissed_pairs]
+                        siblings = [
+                            other_id
+                            for other_id in group_ids
+                            if other_id != p_id
+                            and (min(p_id, other_id), max(p_id, other_id)) not in dismissed_pairs
+                        ]
                         if siblings:
                             dup_posting_ids.add(p_id)
                             dup_info_map[p_id] = (len(siblings) + 1, siblings)
 
-        query = select(Posting).distinct().order_by(
-            eff_date.desc(),
-            col(Posting.id).desc(),
+        query = (
+            select(Posting)
+            .distinct()
+            .order_by(
+                eff_date.desc(),
+                col(Posting.id).desc(),
+            )
         )
 
         if account_uid:
@@ -149,7 +172,12 @@ def list_transactions(
         if end_date:
             query = query.where(eff_date <= end_date)
 
-        if filter_type and filter_type.lower() in ("dubletter", "mulige-dubletter", "dublet", "mulige dubletter"):
+        if filter_type and filter_type.lower() in (
+            "dubletter",
+            "mulige-dubletter",
+            "dublet",
+            "mulige dubletter",
+        ):
             query = query.where(col(Posting.id).in_(dup_posting_ids))
 
         if amount_op and amount_value is not None:
@@ -162,26 +190,40 @@ def list_transactions(
                 query = query.where(Posting.amount_minor == amount_minor)
 
         # Joins for filtering
-        needs_alloc = filter_type in ("regninger", "forbrug", "ukategoriseret", "ekstraordinær") or tag or category_id or bool(search)
+        needs_alloc = (
+            filter_type in ("regninger", "forbrug", "ukategoriseret", "ekstraordinær")
+            or tag
+            or category_id
+            or bool(search)
+        )
         if needs_alloc:
-            query = query.join(PostingAllocation, PostingAllocation.posting_id == Posting.id, isouter=True)
+            query = query.join(
+                PostingAllocation, PostingAllocation.posting_id == Posting.id, isouter=True
+            )
 
             if filter_type == "ukategoriseret":
                 query = query.where(
-                    PostingAllocation.category_id.is_(None) |
-                    PostingAllocation.category_id.in_(["diverse|ikke-kategoriseret", "diverse|ukategoriseret"])
+                    PostingAllocation.category_id.is_(None)
+                    | PostingAllocation.category_id.in_(
+                        ["diverse|ikke-kategoriseret", "diverse|ukategoriseret"]
+                    )
                 )
             elif filter_type == "ekstraordinær":
                 query = query.where(PostingAllocation.is_extraordinary)
             elif filter_type in ("regninger", "forbrug"):
-                query = query.join(Category, PostingAllocation.category_id == Category.id, isouter=True)
+                query = query.join(
+                    Category, PostingAllocation.category_id == Category.id, isouter=True
+                )
                 if filter_type == "regninger":
                     query = query.where(Category.expense_type == "Fixed")
                 else:
                     query = query.where(Category.expense_type == "Variable")
 
             if tag:
-                query = query.join(PostingAllocationTagLink, PostingAllocationTagLink.allocation_id == PostingAllocation.id)
+                query = query.join(
+                    PostingAllocationTagLink,
+                    PostingAllocationTagLink.allocation_id == PostingAllocation.id,
+                )
                 query = query.join(Tag, Tag.id == PostingAllocationTagLink.tag_id)
                 query = query.where(Tag.name == tag)
 
@@ -195,9 +237,9 @@ def list_transactions(
             pattern = f"%{search}%"
             if needs_alloc:
                 query = query.where(
-                    col(Posting.original_description).ilike(pattern) |
-                    col(PostingAllocation.item_name).ilike(pattern) |
-                    col(PostingAllocation.note).ilike(pattern)
+                    col(Posting.original_description).ilike(pattern)
+                    | col(PostingAllocation.item_name).ilike(pattern)
+                    | col(PostingAllocation.note).ilike(pattern)
                 )
             else:
                 query = query.where(col(Posting.original_description).ilike(pattern))
@@ -262,9 +304,7 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
             return None
         account = db.get(Account, posting.account_uid)
         allocs = db.exec(
-            select(PostingAllocation).where(
-                PostingAllocation.posting_id == transaction_id
-            )
+            select(PostingAllocation).where(PostingAllocation.posting_id == transaction_id)
         ).all()
 
         tags_map = {}
@@ -284,28 +324,40 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
         is_statutory = any(kw in cdesc for kw in STATUTORY_SPLIT_KEYWORDS)
         if posting.amount_minor < 0 and not is_statutory:
             cands = db.exec(
-                select(Posting.id, Posting.booking_date, Posting.custom_date, Posting.original_description, Posting.account_uid)
+                select(
+                    Posting.id,
+                    Posting.booking_date,
+                    Posting.custom_date,
+                    Posting.original_description,
+                    Posting.account_uid,
+                )
                 .where(Posting.id != transaction_id)
                 .where(Posting.amount_minor == posting.amount_minor)
             ).all()
             for c_id, c_b_date, c_c_date, c_desc, c_acc_uid in cands:
-                is_same = (posting.account_uid == c_acc_uid)
+                is_same = posting.account_uid == c_acc_uid
                 if dates_match(
-                    posting.booking_date, posting.custom_date,
-                    c_b_date, c_c_date,
+                    posting.booking_date,
+                    posting.custom_date,
+                    c_b_date,
+                    c_c_date,
                     is_same_account=is_same,
                 ) and descriptions_match(
-                    posting.original_description, c_desc,
+                    posting.original_description,
+                    c_desc,
                     is_same_account=is_same,
                 ):
                     # Check dismissed
                     pair_key = (min(transaction_id, c_id), max(transaction_id, c_id))
-                    is_dismissed = db.exec(
-                        select(DismissedDuplicate).where(
-                            (DismissedDuplicate.posting_id_1 == pair_key[0]) &
-                            (DismissedDuplicate.posting_id_2 == pair_key[1])
-                        )
-                    ).first() is not None
+                    is_dismissed = (
+                        db.exec(
+                            select(DismissedDuplicate).where(
+                                (DismissedDuplicate.posting_id_1 == pair_key[0])
+                                & (DismissedDuplicate.posting_id_2 == pair_key[1])
+                            )
+                        ).first()
+                        is not None
+                    )
                     if not is_dismissed:
                         siblings.append(c_id)
 
@@ -318,10 +370,12 @@ def get_transaction(transaction_id: str) -> dict[str, Any] | None:
 # Write (overrides via allocations)
 # ---------------------------------------------------------------------------
 
+
 def list_tags() -> list[Tag]:
     """Return all tags ordered by name."""
     with Session(_get_engine()) as db:
         return db.exec(select(Tag).order_by(Tag.name)).all()
+
 
 def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> dict[str, Any]:
     """Apply a patch (category, note, etc.) to one or more postings.
@@ -343,13 +397,12 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
 
             # Find or create the default allocation (first one)
             alloc = db.exec(
-                select(PostingAllocation)
-                .where(PostingAllocation.posting_id == posting_id)
-                .limit(1)
+                select(PostingAllocation).where(PostingAllocation.posting_id == posting_id).limit(1)
             ).first()
 
             if alloc is None:
                 from app.models.all_models import current_household_id
+
                 alloc = PostingAllocation(
                     posting_id=posting_id,
                     household_id=current_household_id.get(),
@@ -364,13 +417,16 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
                 # Log the override for ML training
                 if new_cat != old_cat:
                     from app.models.all_models import current_household_id
-                    db.add(CategoryOverrideLog(
-                        household_id=current_household_id.get(),
-                        original_description=posting.original_description,
-                        old_category_id=old_cat,
-                        new_category_id=new_cat or "",
-                        merchant_category_code=posting.merchant_category_code,
-                    ))
+
+                    db.add(
+                        CategoryOverrideLog(
+                            household_id=current_household_id.get(),
+                            original_description=posting.original_description,
+                            old_category_id=old_cat,
+                            new_category_id=new_cat or "",
+                            merchant_category_code=posting.merchant_category_code,
+                        )
+                    )
 
                 alloc.category_id = new_cat
 
@@ -391,8 +447,9 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
                 if isinstance(tag_names, list):
                     # Delete existing tags for this allocation
                     db.exec(
-                        delete(PostingAllocationTagLink)
-                        .where(PostingAllocationTagLink.allocation_id == alloc.id)
+                        delete(PostingAllocationTagLink).where(
+                            PostingAllocationTagLink.allocation_id == alloc.id
+                        )
                     )
                     # Create or fetch tags
                     for name in tag_names:
@@ -403,7 +460,7 @@ def update_transactions(transaction_ids: list[str], patch: dict[str, Any]) -> di
                         if not tag_obj:
                             tag_obj = Tag(name=name)
                             db.add(tag_obj)
-                            db.commit() # commit to get tag_obj.id
+                            db.commit()  # commit to get tag_obj.id
                         link = PostingAllocationTagLink(allocation_id=alloc.id, tag_id=tag_obj.id)
                         db.add(link)
 
@@ -476,6 +533,7 @@ def split_allocation(posting_id: str, splits: list[dict[str, Any]]) -> dict[str,
 # Serialization
 # ---------------------------------------------------------------------------
 
+
 def _serialize_posting(
     posting: Posting,
     account: Account | None,
@@ -536,6 +594,7 @@ def _serialize_posting(
         ],
     }
 
+
 def update_transaction_category(posting_id: str, category_id: str) -> bool:
     """Update the primary category of a single transaction."""
     with Session(_get_engine()) as db:
@@ -543,7 +602,9 @@ def update_transaction_category(posting_id: str, category_id: str) -> bool:
         if not posting:
             return False
 
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting_id)).first()
+        alloc = db.exec(
+            select(PostingAllocation).where(PostingAllocation.posting_id == posting_id)
+        ).first()
         old_cat = alloc.category_id if alloc else None
 
         if not alloc:
@@ -561,16 +622,19 @@ def update_transaction_category(posting_id: str, category_id: str) -> bool:
 
         # Log category override for ML/rules
         if category_id != old_cat:
-            db.add(CategoryOverrideLog(
-                household_id=posting.household_id,
-                original_description=posting.original_description,
-                old_category_id=old_cat,
-                new_category_id=category_id or "",
-                merchant_category_code=posting.merchant_category_code,
-            ))
+            db.add(
+                CategoryOverrideLog(
+                    household_id=posting.household_id,
+                    original_description=posting.original_description,
+                    old_category_id=old_cat,
+                    new_category_id=category_id or "",
+                    merchant_category_code=posting.merchant_category_code,
+                )
+            )
 
         db.commit()
         return True
+
 
 def apply_rule_retroactively(rule_id: str) -> int:
     """Find all postings that match a categorization rule and update them.
@@ -591,15 +655,22 @@ def apply_rule_retroactively(rule_id: str) -> int:
             postings = db.exec(select(Posting)).all()
             for p in postings:
                 cleaned = preprocess_description(p.original_description or "")
-                extra_text = " ".join(filter(None, [
-                    p.creditor_name,
-                    p.remittance_information,
-                ])).lower()
+                extra_text = " ".join(
+                    filter(
+                        None,
+                        [
+                            p.creditor_name,
+                            p.remittance_information,
+                        ],
+                    )
+                ).lower()
                 search_text = f"{cleaned} {extra_text}".strip()
 
                 if search_text and compiled.search(search_text):
                     # Update it!
-                    alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == p.id)).first()
+                    alloc = db.exec(
+                        select(PostingAllocation).where(PostingAllocation.posting_id == p.id)
+                    ).first()
                     if alloc:
                         alloc.category_id = rule.category_id
                         alloc.updated_at = _utcnow_iso()
@@ -611,7 +682,10 @@ def apply_rule_retroactively(rule_id: str) -> int:
 
     return updated_count
 
-def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool = False) -> dict[str, Any]:
+
+def link_receipt_to_transaction(
+    posting_id: str, receipt_id: str, is_auto: bool = False
+) -> dict[str, Any]:
     from .kvitteringer_service import get_receipt, link_peng_transaction_to_receipt
 
     receipt_data = get_receipt(receipt_id)
@@ -625,13 +699,15 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
 
         # Save the link in the kvitteringer db using existing function
         if not is_auto:
-            link_peng_transaction_to_receipt({
-                "transaction_id": posting_id,
-                "receipt_id": receipt_id,
-                "confidence": "manual",
-                "reason": "user_linked",
-                "transaction_payload_json": "{}"
-            })
+            link_peng_transaction_to_receipt(
+                {
+                    "transaction_id": posting_id,
+                    "receipt_id": receipt_id,
+                    "confidence": "manual",
+                    "reason": "user_linked",
+                    "transaction_payload_json": "{}",
+                }
+            )
 
         # Calculate splits
         occurrences = receipt_data.get("occurrences", [])
@@ -640,36 +716,57 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
 
         # Preserve the original allocation's category as fallback for each split
         existing_alloc = db.exec(
-            select(PostingAllocation)
-            .where(PostingAllocation.posting_id == posting_id)
-            .limit(1)
+            select(PostingAllocation).where(PostingAllocation.posting_id == posting_id).limit(1)
         ).first()
         fallback_category_id = existing_alloc.category_id if existing_alloc else None
         # If there's no existing category, try the bank description via rules
         if not fallback_category_id or fallback_category_id in (
-            "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+            "diverse|ikke-kategoriseret",
+            "diverse|ukategoriseret",
         ):
             from app.services.rules_service import evaluate_posting
+
             fallback_category_id = evaluate_posting(posting) or fallback_category_id
 
         # Also try merchant from receipt metadata if still unknown
         receipt_info = receipt_data.get("receipt", {})
         if not fallback_category_id or fallback_category_id in (
-            "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+            "diverse|ikke-kategoriseret",
+            "diverse|ukategoriseret",
         ):
             from app.services.rules_service import evaluate_text
+
             merchant_name = receipt_info.get("merchant_name")
             merchant_key = str(receipt_info.get("merchant_key", "")).lower()
             if merchant_name:
                 fallback_category_id = evaluate_text(merchant_name) or fallback_category_id
             if not fallback_category_id or fallback_category_id in (
-                "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+                "diverse|ikke-kategoriseret",
+                "diverse|ukategoriseret",
             ):
                 if merchant_key in (
-                    "aldi", "bilka", "foetex", "fakta", "irma", "kvickly",
-                    "lidl", "meny", "nemlig", "netto", "rema1000", "rema",
-                    "superbrugsen", "daglibrugsen", "spar", "min koebmand", "min købmand",
-                    "coop", "coop365", "365discount", "loevbjerg", "løvbjerg"
+                    "aldi",
+                    "bilka",
+                    "foetex",
+                    "fakta",
+                    "irma",
+                    "kvickly",
+                    "lidl",
+                    "meny",
+                    "nemlig",
+                    "netto",
+                    "rema1000",
+                    "rema",
+                    "superbrugsen",
+                    "daglibrugsen",
+                    "spar",
+                    "min koebmand",
+                    "min købmand",
+                    "coop",
+                    "coop365",
+                    "365discount",
+                    "loevbjerg",
+                    "løvbjerg",
                 ):
                     fallback_category_id = "husholdning|dagligvarer"
 
@@ -699,16 +796,20 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             if not category_id:
                 category_id = fallback_category_id
 
-            splits.append({
-                "amount_minor": amt,
-                "item_name": item_name,
-                "item_cluster_id": occ.get("cluster_id"),
-                "category_id": category_id,
-                "note": None
-            })
+            splits.append(
+                {
+                    "amount_minor": amt,
+                    "item_name": item_name,
+                    "item_cluster_id": occ.get("cluster_id"),
+                    "category_id": category_id,
+                    "note": None,
+                }
+            )
 
         # Distribute unassigned discounts
-        unassigned_discount = receipt_data["receipt"].get("unassigned_discount_total_minor", 0) * multiplier
+        unassigned_discount = (
+            receipt_data["receipt"].get("unassigned_discount_total_minor", 0) * multiplier
+        )
         if unassigned_discount != 0 and splits:
             total_abs = sum(abs(s["amount_minor"]) for s in splits)
             if total_abs != 0:
@@ -726,24 +827,28 @@ def link_receipt_to_transaction(posting_id: str, receipt_id: str, is_auto: bool 
             diff = abs(posting.amount_minor) - abs(sum_items)
             diff_category_id = fallback_category_id
             if not diff_category_id or diff_category_id in (
-                "diverse|ikke-kategoriseret", "diverse|ukategoriseret"
+                "diverse|ikke-kategoriseret",
+                "diverse|ukategoriseret",
             ):
                 valid_split_cats = [
                     s["category_id"]
                     for s in splits
                     if s.get("category_id")
-                    and s["category_id"] not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                    and s["category_id"]
+                    not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
                 ]
                 if valid_split_cats:
                     diff_category_id = max(set(valid_split_cats), key=valid_split_cats.count)
 
-            splits.append({
-                "amount_minor": diff * multiplier,
-                "item_name": "Difference / Gebyr",
-                "item_cluster_id": None,
-                "category_id": diff_category_id,
-                "note": "Automatisk difference (fra kvittering)"
-            })
+            splits.append(
+                {
+                    "amount_minor": diff * multiplier,
+                    "item_name": "Difference / Gebyr",
+                    "item_cluster_id": None,
+                    "category_id": diff_category_id,
+                    "note": "Automatisk difference (fra kvittering)",
+                }
+            )
 
         return split_allocation(posting_id, splits)
 
@@ -779,7 +884,8 @@ def fix_receipt_difference_categories() -> int:
                 for s in siblings
                 if s.id != alloc.id
                 and (s.category_id or "").strip()
-                and (s.category_id or "").strip() not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                and (s.category_id or "").strip()
+                not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
             ]
 
             target_cat = None
@@ -798,9 +904,22 @@ def fix_receipt_difference_categories() -> int:
                         if any(
                             k in desc_lower
                             for k in (
-                                "coop", "netto", "rema", "foetex", "bilka", "meny",
-                                "lidl", "aldi", "brugsen", "365", "spar", "købmand",
-                                "loevbjerg", "løvbjerg", "irma", "nemlig",
+                                "coop",
+                                "netto",
+                                "rema",
+                                "foetex",
+                                "bilka",
+                                "meny",
+                                "lidl",
+                                "aldi",
+                                "brugsen",
+                                "365",
+                                "spar",
+                                "købmand",
+                                "loevbjerg",
+                                "løvbjerg",
+                                "irma",
+                                "nemlig",
                             )
                         ):
                             target_cat = "husholdning|dagligvarer"
@@ -855,7 +974,11 @@ def auto_link_receipts(
         token = current_household_id.set(hh_id)
         try:
             with Session(_get_engine()) as db:
-                query = select(Posting).where(col(Posting.amount_minor) < 0).options(selectinload(Posting.allocations))
+                query = (
+                    select(Posting)
+                    .where(col(Posting.amount_minor) < 0)
+                    .options(selectinload(Posting.allocations))
+                )
 
                 if min_date:
                     query = query.where(col(Posting.booking_date) >= min_date)
@@ -866,7 +989,9 @@ def auto_link_receipts(
 
                 for posting in postings:
                     # Check if it already has more than 1 allocation or any allocation with an item_name
-                    if len(posting.allocations) > 1 or any(a.item_name is not None for a in posting.allocations):
+                    if len(posting.allocations) > 1 or any(
+                        a.item_name is not None for a in posting.allocations
+                    ):
                         continue
 
                     payload = {
@@ -913,4 +1038,3 @@ def get_suggested_receipts_for_transaction(posting_id: str) -> list[dict[str, An
             description=posting.original_description,
             limit=10,
         )
-

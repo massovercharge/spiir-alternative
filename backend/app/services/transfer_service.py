@@ -25,9 +25,7 @@ def detect_internal_transfers() -> dict[str, Any]:
         accounts = db.exec(select(Account)).all()
         account_dict = {a.uid: a for a in accounts}
 
-        postings = db.exec(
-            select(Posting).order_by(col(Posting.booking_date).asc())
-        ).all()
+        postings = db.exec(select(Posting).order_by(col(Posting.booking_date).asc())).all()
 
         # Pre-fetch allocations
         allocations = db.exec(select(PostingAllocation)).all()
@@ -48,7 +46,12 @@ def detect_internal_transfers() -> dict[str, Any]:
         transfer_cat_id = make_category_id("Vis ikke", "Kontooverførsel")
         transfer_cat = db.get(Category, transfer_cat_id)
         if not transfer_cat:
-            transfer_cat = Category(id=transfer_cat_id, main_name="Vis ikke", sub_name="Kontooverførsel", expense_type="Variable")
+            transfer_cat = Category(
+                id=transfer_cat_id,
+                main_name="Vis ikke",
+                sub_name="Kontooverførsel",
+                expense_type="Variable",
+            )
             db.add(transfer_cat)
             db.commit()
 
@@ -104,16 +107,24 @@ def detect_internal_transfers() -> dict[str, Any]:
                             alloc_in = alloc_by_posting.get(p_in.id)
 
                             if not alloc_out:
-                                alloc_out = PostingAllocation(posting_id=p_out.id, amount_minor=p_out.amount_minor)
+                                alloc_out = PostingAllocation(
+                                    posting_id=p_out.id, amount_minor=p_out.amount_minor
+                                )
                                 db.add(alloc_out)
                             if not alloc_in:
-                                alloc_in = PostingAllocation(posting_id=p_in.id, amount_minor=p_in.amount_minor)
+                                alloc_in = PostingAllocation(
+                                    posting_id=p_in.id, amount_minor=p_in.amount_minor
+                                )
                                 db.add(alloc_in)
 
                             def can_overwrite(alloc: PostingAllocation) -> bool:
                                 if not alloc.category_id:
                                     return True
-                                return alloc.category_id.startswith("diverse|") or alloc.category_id.startswith("vis-ikke|") or alloc.category_id.startswith("pension-opsparing|")
+                                return (
+                                    alloc.category_id.startswith("diverse|")
+                                    or alloc.category_id.startswith("vis-ikke|")
+                                    or alloc.category_id.startswith("pension-opsparing|")
+                                )
 
                             def get_savings_category_id(account: Account | None) -> str:
                                 if account and account.savings_category_id:
@@ -143,7 +154,4 @@ def detect_internal_transfers() -> dict[str, Any]:
                         pass
 
         db.commit()
-        return {
-            "matched_pairs": matches_found,
-            "total_transfers_processed": matches_found * 2
-        }
+        return {"matched_pairs": matches_found, "total_transfers_processed": matches_found * 2}

@@ -27,6 +27,7 @@ def _get_active_household_id() -> str:
         return current_household_id.get()
     except LookupError:
         from app.services.notification_service import _get_default_household_id
+
         return _get_default_household_id()
 
 

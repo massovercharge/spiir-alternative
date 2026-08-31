@@ -15,10 +15,14 @@ from app.services.transaction_service import apply_rule_retroactively
 
 router = APIRouter(prefix="/api/rules", tags=["rules"])
 
+
 @router.get("")
-def rules_list(source: Optional[str] = None, category_id: Optional[str] = None) -> list[dict[str, Any]]:
+def rules_list(
+    source: Optional[str] = None, category_id: Optional[str] = None
+) -> list[dict[str, Any]]:
     """List categorization rules, optionally filtered by source or category."""
     return list_rules(source=source, category_id=category_id)
+
 
 @router.post("")
 def rules_create(payload: RuleCreateRequest) -> dict[str, Any]:
@@ -31,6 +35,7 @@ def rules_create(payload: RuleCreateRequest) -> dict[str, Any]:
         priority=payload.priority,
     )
 
+
 @router.put("/{rule_id}")
 def rules_update(rule_id: str, payload: RuleUpdateRequest) -> dict[str, Any]:
     """Update an existing categorization rule."""
@@ -39,6 +44,7 @@ def rules_update(rule_id: str, payload: RuleUpdateRequest) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="Rule not found")
     return result
 
+
 @router.delete("/{rule_id}")
 def rules_delete(rule_id: str) -> dict[str, str]:
     """Delete a categorization rule."""
@@ -46,10 +52,12 @@ def rules_delete(rule_id: str) -> dict[str, str]:
         raise HTTPException(status_code=404, detail="Rule not found")
     return {"status": "deleted"}
 
+
 @router.post("/apply")
 def rules_apply() -> dict[str, Any]:
     """Retroactively apply rules to uncategorized postings."""
     return apply_rules_to_uncategorized()
+
 
 @router.post("/custom")
 def create_custom_rule(payload: RuleCreateRequest) -> dict[str, Any]:
@@ -67,7 +75,7 @@ def create_custom_rule(payload: RuleCreateRequest) -> dict[str, Any]:
         category_id=payload.category_id,
         is_regex=is_regex,
         partial_match=payload.partial_match,
-        priority=payload.priority
+        priority=payload.priority,
     )
 
     updated_count = apply_rule_retroactively(rule["id"])

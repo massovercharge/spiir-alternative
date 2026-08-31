@@ -11,7 +11,7 @@ export async function createHousehold(name: string) {
   const res = await fetch(`${API_BASE}/api/households`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name }),
   });
   if (!res.ok) throw new Error('Failed to create household');
   return res.json();
@@ -21,7 +21,7 @@ export async function updateHousehold(householdId: string, name: string) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}`, {
     method: 'PATCH',
     headers: getHeaders(),
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name }),
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -31,16 +31,22 @@ export async function updateHousehold(householdId: string, name: string) {
 }
 
 export async function fetchHouseholdMembers(householdId: string) {
-  const res = await fetch(`${API_BASE}/api/households/${householdId}/members`, { headers: getHeaders() });
+  const res = await fetch(`${API_BASE}/api/households/${householdId}/members`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch household members');
   return res.json();
 }
 
-export async function inviteHouseholdMember(householdId: string, email: string, role: string = 'member') {
+export async function inviteHouseholdMember(
+  householdId: string,
+  email: string,
+  role: string = 'member'
+) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}/members`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ email, role })
+    body: JSON.stringify({ email, role }),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -52,7 +58,7 @@ export async function inviteHouseholdMember(householdId: string, email: string, 
 export async function removeHouseholdMember(householdId: string, userId: string) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}/members/${userId}`, {
     method: 'DELETE',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -65,7 +71,7 @@ export async function updateHouseholdMemberRole(householdId: string, userId: str
   const res = await fetch(`${API_BASE}/api/households/${householdId}/members/${userId}/role`, {
     method: 'PATCH',
     headers: getHeaders(),
-    body: JSON.stringify({ role })
+    body: JSON.stringify({ role }),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -77,7 +83,7 @@ export async function updateHouseholdMemberRole(householdId: string, userId: str
 export async function deleteHousehold(householdId: string) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}`, {
     method: 'DELETE',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -89,7 +95,7 @@ export async function deleteHousehold(householdId: string) {
 export async function restoreHousehold(householdId: string) {
   const res = await fetch(`${API_BASE}/api/households/${householdId}/restore`, {
     method: 'POST',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -118,21 +124,22 @@ export function useCreateHousehold() {
         return [...list, newHousehold];
       });
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }
 
 export function useUpdateHousehold() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, name }: { householdId: string, name: string }) => updateHousehold(householdId, name),
+    mutationFn: ({ householdId, name }: { householdId: string; name: string }) =>
+      updateHousehold(householdId, name),
     onSuccess: (updated) => {
       queryClient.setQueryData(['households'], (oldData: any[] | undefined) => {
         const list = oldData || [];
-        return list.map((h: any) => h.id === updated.id ? { ...h, name: updated.name } : h);
+        return list.map((h: any) => (h.id === updated.id ? { ...h, name: updated.name } : h));
       });
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }
 
@@ -147,32 +154,49 @@ export function useHouseholdMembers(householdId: string) {
 export function useInviteHouseholdMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, email, role = 'member' }: { householdId: string; email: string; role?: string }) => inviteHouseholdMember(householdId, email, role),
+    mutationFn: ({
+      householdId,
+      email,
+      role = 'member',
+    }: {
+      householdId: string;
+      email: string;
+      role?: string;
+    }) => inviteHouseholdMember(householdId, email, role),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
-    }
+    },
   });
 }
 
 export function useUpdateHouseholdMemberRole() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, userId, role }: { householdId: string; userId: string; role: string }) => updateHouseholdMemberRole(householdId, userId, role),
+    mutationFn: ({
+      householdId,
+      userId,
+      role,
+    }: {
+      householdId: string;
+      userId: string;
+      role: string;
+    }) => updateHouseholdMemberRole(householdId, userId, role),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }
 
 export function useRemoveHouseholdMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ householdId, userId }: { householdId: string; userId: string }) => removeHouseholdMember(householdId, userId),
+    mutationFn: ({ householdId, userId }: { householdId: string; userId: string }) =>
+      removeHouseholdMember(householdId, userId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['households', variables.householdId, 'members'] });
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }
 
@@ -182,7 +206,7 @@ export function useDeleteHousehold() {
     mutationFn: (householdId: string) => deleteHousehold(householdId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }
 
@@ -192,6 +216,6 @@ export function useRestoreHousehold() {
     mutationFn: (householdId: string) => restoreHousehold(householdId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['households'] });
-    }
+    },
   });
 }

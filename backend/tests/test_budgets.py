@@ -1,4 +1,5 @@
 """Tests for budget services, suggestions and persistence."""
+
 from sqlmodel import Session, select
 
 from app.models import (

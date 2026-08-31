@@ -45,7 +45,18 @@ describe('API Client & HTTP Configuration', () => {
     global.fetch = mockFetch;
 
     setHouseholdId('hh-abc');
-    await fetchTransactions(25, 50, 'Forbrug', 'dagligvarer', '2026-01-01', '2026-01-31', 'Netto', 'gt', 100, 'cat-1');
+    await fetchTransactions(
+      25,
+      50,
+      'Forbrug',
+      'dagligvarer',
+      '2026-01-01',
+      '2026-01-31',
+      'Netto',
+      'gt',
+      100,
+      'cat-1'
+    );
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const calledUrl = mockFetch.mock.calls[0][0];

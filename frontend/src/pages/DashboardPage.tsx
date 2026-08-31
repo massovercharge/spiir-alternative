@@ -25,33 +25,35 @@ type PeriodMode = 'last12' | 'month' | 'year';
 
 // Curated color palette - vibrant, distinguishable
 const CATEGORY_COLORS: Record<string, string> = {
-  'Bolig': '#6366f1',
-  'Transport': '#f59e0b',
+  Bolig: '#6366f1',
+  Transport: '#f59e0b',
   'Mad & Drikke': '#10b981',
-  'Underholdning': '#ec4899',
+  Underholdning: '#ec4899',
   'Tøj & Sko': '#8b5cf6',
-  'Sundhed': '#ef4444',
+  Sundhed: '#ef4444',
   'Pension & Opsparing': '#14b8a6',
-  'Børn': '#f97316',
-  'Forsikring': '#3b82f6',
+  Børn: '#f97316',
+  Forsikring: '#3b82f6',
   'Personlig pleje': '#a855f7',
-  'Diverse': '#6b7280',
+  Diverse: '#6b7280',
   'Hus & Have': '#84cc16',
-  'Elektronik': '#06b6d4',
+  Elektronik: '#06b6d4',
   'Ferie & Rejser': '#eab308',
   'Gaver & Donationer': '#e11d48',
-  'Abonnementer': '#7c3aed',
+  Abonnementer: '#7c3aed',
   'Andre leveomkostninger': '#64748b',
-  'Privatforbrug': '#0ea5e9',
+  Privatforbrug: '#0ea5e9',
 };
 
 function hslToHex(h: number, s: number, l: number): string {
   l /= 100;
-  const a = s * Math.min(l, 1 - l) / 100;
+  const a = (s * Math.min(l, 1 - l)) / 100;
   const f = (n: number) => {
     const k = (n + h / 30) % 12;
     const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
+    return Math.round(255 * color)
+      .toString(16)
+      .padStart(2, '0');
   };
   return `#${f(0)}${f(8)}${f(4)}`;
 }
@@ -97,7 +99,9 @@ export default function DashboardPage() {
   // Legend hover state
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   // Clicked/focused category for scorecards
-  const [focusedCategory, setFocusedCategory] = useState<{ name: string; value: number } | null>(null);
+  const [focusedCategory, setFocusedCategory] = useState<{ name: string; value: number } | null>(
+    null
+  );
   // Selected transaction for details sidebar
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
@@ -142,20 +146,20 @@ export default function DashboardPage() {
   const { data: sunburstData, isLoading } = useInsightsSunburst(sunburstParams);
 
   const { data: allCategories } = useCategories();
-  
+
   const focusedCategoryId = useMemo(() => {
     if (!focusedCategory || !allCategories) return undefined;
-    
-    const sub = allCategories.find(c => c.name === focusedCategory.name);
+
+    const sub = allCategories.find((c) => c.name === focusedCategory.name);
     if (sub) return sub.id;
-    
-    const main = allCategories.find(c => c.mainCategoryName === focusedCategory.name);
+
+    const main = allCategories.find((c) => c.mainCategoryName === focusedCategory.name);
     if (main) return main.id.split('|')[0];
-    
+
     return undefined;
   }, [focusedCategory, allCategories]);
 
-  const searchName = (!focusedCategoryId && focusedCategory) ? focusedCategory.name : undefined;
+  const searchName = !focusedCategoryId && focusedCategory ? focusedCategory.name : undefined;
 
   const txDateParams = useMemo(() => {
     if (periodMode === 'last12') {
@@ -185,10 +189,26 @@ export default function DashboardPage() {
   }, [periodMode, selectedDate]);
 
   const { data: focusedTxData, isLoading: isLoadingFocusedTx } = useQuery({
-    queryKey: ['focused-transactions', txDateParams.start_date, txDateParams.end_date, focusedCategoryId, searchName],
-    queryFn: () => fetchTransactions(
-      100, 0, undefined, undefined, txDateParams.start_date, txDateParams.end_date, searchName, undefined, undefined, focusedCategoryId
-    ),
+    queryKey: [
+      'focused-transactions',
+      txDateParams.start_date,
+      txDateParams.end_date,
+      focusedCategoryId,
+      searchName,
+    ],
+    queryFn: () =>
+      fetchTransactions(
+        100,
+        0,
+        undefined,
+        undefined,
+        txDateParams.start_date,
+        txDateParams.end_date,
+        searchName,
+        undefined,
+        undefined,
+        focusedCategoryId
+      ),
     enabled: !!focusedCategory,
   });
 
@@ -208,7 +228,11 @@ export default function DashboardPage() {
   const { totalExpense, categories } = useMemo(() => {
     const echartsData = sunburstData?.echarts_data || [];
     let total = 0;
-    const cats: { name: string; value: number; children: { name: string; value: number; children?: { name: string; value: number }[] }[] }[] = [];
+    const cats: {
+      name: string;
+      value: number;
+      children: { name: string; value: number; children?: { name: string; value: number }[] }[];
+    }[] = [];
 
     for (const item of echartsData) {
       const val = Math.abs(Number(item.value));
@@ -219,7 +243,9 @@ export default function DashboardPage() {
         children: (item.children || []).map((c: any) => ({
           name: c.name,
           value: Math.abs(Number(c.value)),
-          children: c.children ? c.children.map((i: any) => ({ name: i.name, value: Math.abs(Number(i.value)) })) : undefined,
+          children: c.children
+            ? c.children.map((i: any) => ({ name: i.name, value: Math.abs(Number(i.value)) }))
+            : undefined,
         })),
       });
     }
@@ -249,17 +275,19 @@ export default function DashboardPage() {
             borderColor: 'rgba(0,0,0,0.15)',
             borderWidth: 1,
           },
-          ...(sub.children && sub.children.length > 0 ? {
-            children: sub.children.map((item, iIdx) => ({
-              name: item.name,
-              value: item.value,
-              itemStyle: {
-                color: lightenHex(baseColor, 0.25 + iIdx * 0.04),
-                borderColor: 'rgba(0,0,0,0.1)',
-                borderWidth: 0.5,
-              },
-            })),
-          } : {}),
+          ...(sub.children && sub.children.length > 0
+            ? {
+                children: sub.children.map((item, iIdx) => ({
+                  name: item.name,
+                  value: item.value,
+                  itemStyle: {
+                    color: lightenHex(baseColor, 0.25 + iIdx * 0.04),
+                    borderColor: 'rgba(0,0,0,0.1)',
+                    borderWidth: 0.5,
+                  },
+                })),
+              }
+            : {}),
         })),
       };
     });
@@ -271,7 +299,7 @@ export default function DashboardPage() {
           const pct = totalExpense > 0 ? ((params.value / totalExpense) * 100).toFixed(1) : '0';
           return `<div style="font-family: Inter, sans-serif; padding: 4px 0;">
             <strong>${params.name}</strong><br/>
-            ${(params.value).toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr.<br/>
+            ${params.value.toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr.<br/>
             <span style="color: #999">${pct}%</span>
           </div>`;
         },
@@ -280,51 +308,53 @@ export default function DashboardPage() {
         textStyle: { color: '#f0f0f0', fontSize: 13 },
         extraCssText: 'border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);',
       },
-      series: [{
-        type: 'sunburst',
-        data,
-        radius: ['12%', '95%'],
-        sort: 'desc',
-        emphasis: {
-          focus: 'ancestor',
-          itemStyle: {
-            shadowBlur: 20,
-            shadowColor: 'rgba(0,0,0,0.3)',
-          },
-        },
-        levels: [
-          {},
-          {
-            r0: '12%',
-            r: '40%',
-            label: { show: false },
-            itemStyle: { borderRadius: 4 },
-          },
-          {
-            r0: '40%',
-            r: '68%',
-            label: { show: false },
-            itemStyle: { borderRadius: 3 },
-          },
-          {
-            r0: '68%',
-            r: '95%',
-            label: {
-              show: true,
-              position: 'outside',
-              fontSize: 9,
-              color: 'rgba(255,255,255,0.6)',
-              overflow: 'truncate',
-              ellipsis: '…',
-              minAngle: 8,
+      series: [
+        {
+          type: 'sunburst',
+          data,
+          radius: ['12%', '95%'],
+          sort: 'desc',
+          emphasis: {
+            focus: 'ancestor',
+            itemStyle: {
+              shadowBlur: 20,
+              shadowColor: 'rgba(0,0,0,0.3)',
             },
-            itemStyle: { borderRadius: 2 },
           },
-        ],
-        label: { show: false },
-        animationDuration: 800,
-        animationEasing: 'cubicInOut',
-      }],
+          levels: [
+            {},
+            {
+              r0: '12%',
+              r: '40%',
+              label: { show: false },
+              itemStyle: { borderRadius: 4 },
+            },
+            {
+              r0: '40%',
+              r: '68%',
+              label: { show: false },
+              itemStyle: { borderRadius: 3 },
+            },
+            {
+              r0: '68%',
+              r: '95%',
+              label: {
+                show: true,
+                position: 'outside',
+                fontSize: 9,
+                color: 'rgba(255,255,255,0.6)',
+                overflow: 'truncate',
+                ellipsis: '…',
+                minAngle: 8,
+              },
+              itemStyle: { borderRadius: 2 },
+            },
+          ],
+          label: { show: false },
+          animationDuration: 800,
+          animationEasing: 'cubicInOut',
+        },
+      ],
     };
   }, [categories, totalExpense]);
 
@@ -341,40 +371,51 @@ export default function DashboardPage() {
     instance.dispatchAction({ type: 'downplay', seriesIndex: 0, name });
   }, []);
 
-  const handleLegendHover = useCallback((catName: string) => {
-    setHoveredCategory(catName);
-    highlightCategory(catName);
-  }, [highlightCategory]);
+  const handleLegendHover = useCallback(
+    (catName: string) => {
+      setHoveredCategory(catName);
+      highlightCategory(catName);
+    },
+    [highlightCategory]
+  );
 
-  const handleLegendLeave = useCallback((catName: string) => {
-    setHoveredCategory(null);
-    downplayCategory(catName);
-  }, [downplayCategory]);
+  const handleLegendLeave = useCallback(
+    (catName: string) => {
+      setHoveredCategory(null);
+      downplayCategory(catName);
+    },
+    [downplayCategory]
+  );
 
   const handleLegendClick = useCallback((cat: { name: string; value: number }) => {
-    setFocusedCategory(prev => prev?.name === cat.name ? null : cat);
+    setFocusedCategory((prev) => (prev?.name === cat.name ? null : cat));
   }, []);
 
   // Handle click on sunburst segment
   const onChartClick = useCallback((params: any) => {
     if (params.data) {
-      setFocusedCategory(prev =>
-        prev?.name === params.data.name ? null : { name: params.data.name, value: Math.abs(params.data.value) }
+      setFocusedCategory((prev) =>
+        prev?.name === params.data.name
+          ? null
+          : { name: params.data.name, value: Math.abs(params.data.value) }
       );
     }
   }, []);
 
-  const onChartEvents = useMemo(() => ({
-    click: onChartClick,
-    sunburstroottochange: (params: any) => {
-      const nodeName = params.toNode?.name;
-      if (!nodeName || nodeName === 'Total') {
-        setFocusedCategory(null);
-      } else {
-        setFocusedCategory({ name: nodeName, value: Math.abs(params.toNode.value) });
-      }
-    }
-  }), [onChartClick]);
+  const onChartEvents = useMemo(
+    () => ({
+      click: onChartClick,
+      sunburstroottochange: (params: any) => {
+        const nodeName = params.toNode?.name;
+        if (!nodeName || nodeName === 'Total') {
+          setFocusedCategory(null);
+        } else {
+          setFocusedCategory({ name: nodeName, value: Math.abs(params.toNode.value) });
+        }
+      },
+    }),
+    [onChartClick]
+  );
 
   // Period navigation
   const handlePrev = () => {
@@ -392,14 +433,16 @@ export default function DashboardPage() {
 
   const periodLabel = useMemo(() => {
     if (periodMode === 'last12') return t('dashboard.last_12_months') || 'Seneste 12 måneder';
-    if (periodMode === 'month') return selectedDate.toLocaleString('da-DK', { month: 'long', year: 'numeric' });
+    if (periodMode === 'month')
+      return selectedDate.toLocaleString('da-DK', { month: 'long', year: 'numeric' });
     return selectedDate.getFullYear().toString();
   }, [periodMode, selectedDate, t]);
 
   // Focused category details
-  const focusedPct = focusedCategory && totalExpense > 0
-    ? ((focusedCategory.value / totalExpense) * 100).toFixed(1)
-    : null;
+  const focusedPct =
+    focusedCategory && totalExpense > 0
+      ? ((focusedCategory.value / totalExpense) * 100).toFixed(1)
+      : null;
 
   return (
     <motion.div
@@ -435,14 +478,29 @@ export default function DashboardPage() {
           className="flex items-center gap-2"
         >
           <div className="flex bg-[hsl(var(--bg-tertiary))] rounded-lg p-1 border border-[hsl(var(--border-color))]">
-            <Button variant={periodMode === 'last12' ? 'primary' : 'ghost'} size="sm" onClick={() => setPeriodMode('last12')} className="text-xs px-3">
+            <Button
+              variant={periodMode === 'last12' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setPeriodMode('last12')}
+              className="text-xs px-3"
+            >
               <CalendarDays size={14} className="mr-1" />
               {t('dashboard.last_12_months') || '12 mdr.'}
             </Button>
-            <Button variant={periodMode === 'month' ? 'primary' : 'ghost'} size="sm" onClick={() => setPeriodMode('month')} className="text-xs px-3">
+            <Button
+              variant={periodMode === 'month' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setPeriodMode('month')}
+              className="text-xs px-3"
+            >
               {t('dashboard.this_month') || 'Måned'}
             </Button>
-            <Button variant={periodMode === 'year' ? 'primary' : 'ghost'} size="sm" onClick={() => setPeriodMode('year')} className="text-xs px-3">
+            <Button
+              variant={periodMode === 'year' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setPeriodMode('year')}
+              className="text-xs px-3"
+            >
               {t('dashboard.year') || 'År'}
             </Button>
           </div>
@@ -453,21 +511,39 @@ export default function DashboardPage() {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-1 bg-[hsl(var(--bg-tertiary))] rounded-lg p-1 border border-[hsl(var(--border-color))]"
             >
-              <Button variant="ghost" size="sm" onClick={handlePrev} className="px-2">‹</Button>
-              <span className="font-medium text-sm min-w-[110px] text-center capitalize">{periodLabel}</span>
-              <Button variant="ghost" size="sm" onClick={handleNext} className="px-2" disabled={selectedDate > new Date()}>›</Button>
+              <Button variant="ghost" size="sm" onClick={handlePrev} className="px-2">
+                ‹
+              </Button>
+              <span className="font-medium text-sm min-w-[110px] text-center capitalize">
+                {periodLabel}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNext}
+                className="px-2"
+                disabled={selectedDate > new Date()}
+              >
+                ›
+              </Button>
             </motion.div>
           )}
         </motion.div>
       </div>
 
       {isFinishingConnection && (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6"
+        >
           <div className="bg-[hsl(var(--brand-primary))] text-white p-4 rounded-xl flex items-center gap-3 shadow-lg">
             <Loader2 className="animate-spin" size={24} />
             <div>
               <h3 className="font-semibold text-lg">Forbinder til bank...</h3>
-              <p className="text-sm opacity-80">Henter dine konti og overfører transaktioner sikkert.</p>
+              <p className="text-sm opacity-80">
+                Henter dine konti og overfører transaktioner sikkert.
+              </p>
             </div>
           </div>
         </motion.div>
@@ -486,17 +562,34 @@ export default function DashboardPage() {
               <CardContent className="py-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorForCategory(focusedCategory.name, categories.findIndex(c => c.name === focusedCategory.name)) }} />
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{
+                        backgroundColor: getColorForCategory(
+                          focusedCategory.name,
+                          categories.findIndex((c) => c.name === focusedCategory.name)
+                        ),
+                      }}
+                    />
                     <div>
-                      <p className="font-semibold text-lg text-[hsl(var(--text-primary))]">{focusedCategory.name}</p>
+                      <p className="font-semibold text-lg text-[hsl(var(--text-primary))]">
+                        {focusedCategory.name}
+                      </p>
                       <p className="text-sm text-muted">{focusedPct}% af samlet forbrug</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-[hsl(var(--brand-primary))]">
-                      {focusedCategory.value.toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr.
+                      {focusedCategory.value.toLocaleString('da-DK', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{' '}
+                      kr.
                     </p>
-                    <button className="text-xs text-muted hover:underline mt-1" onClick={() => setFocusedCategory(null)}>
+                    <button
+                      className="text-xs text-muted hover:underline mt-1"
+                      onClick={() => setFocusedCategory(null)}
+                    >
                       ← Luk
                     </button>
                   </div>
@@ -525,15 +618,24 @@ export default function DashboardPage() {
                 <Skeleton className="w-64 h-64 rounded-full" />
               </div>
             ) : categories.length === 0 ? (
-              <div className="w-full flex items-center justify-center text-muted text-lg" style={{ height: 420 }}>
+              <div
+                className="w-full flex items-center justify-center text-muted text-lg"
+                style={{ height: 420 }}
+              >
                 Ingen udgifter at vise for denne periode.
               </div>
             ) : (
-              <div className={`flex ${isMobile ? 'flex-col' : 'flex-row items-stretch'} gap-6 w-full`}>
+              <div
+                className={`flex ${isMobile ? 'flex-col' : 'flex-row items-stretch'} gap-6 w-full`}
+              >
                 {/* Sunburst */}
-                <div 
-                  className={isMobile ? 'w-full relative' : 'flex-1 min-w-0 relative'} 
-                  style={isMobile ? { height: 350 } : { aspectRatio: '1 / 1', maxHeight: 650, minHeight: 400 }}
+                <div
+                  className={isMobile ? 'w-full relative' : 'flex-1 min-w-0 relative'}
+                  style={
+                    isMobile
+                      ? { height: 350 }
+                      : { aspectRatio: '1 / 1', maxHeight: 650, minHeight: 400 }
+                  }
                 >
                   <div className="absolute inset-0">
                     <ReactEChartsCore
@@ -548,15 +650,16 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Legend */}
-                <div 
-                  className={`${isMobile ? 'w-full' : 'w-80'} flex flex-col gap-1 ${isMobile ? '' : 'py-4 overflow-y-auto pr-2'}`} 
+                <div
+                  className={`${isMobile ? 'w-full' : 'w-80'} flex flex-col gap-1 ${isMobile ? '' : 'py-4 overflow-y-auto pr-2'}`}
                   style={isMobile ? {} : { maxHeight: '100%' }}
                 >
                   <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 px-2">
                     Kategorier
                   </p>
                   {categories.map((cat, idx) => {
-                    const pct = totalExpense > 0 ? ((cat.value / totalExpense) * 100).toFixed(1) : '0';
+                    const pct =
+                      totalExpense > 0 ? ((cat.value / totalExpense) * 100).toFixed(1) : '0';
                     const isHovered = hoveredCategory === cat.name;
                     const isFocused = focusedCategory?.name === cat.name;
                     return (
@@ -631,30 +734,40 @@ export default function DashboardPage() {
                     <Skeleton className="h-12 w-full" />
                   </div>
                 ) : !focusedTxData?.transactions || focusedTxData.transactions.length === 0 ? (
-                  <div className="text-center text-muted py-8">
-                    Ingen transaktioner at vise.
-                  </div>
+                  <div className="text-center text-muted py-8">Ingen transaktioner at vise.</div>
                 ) : (
                   <div className="space-y-2">
                     {focusedTxData.transactions.map((tx: any) => (
-                      <div 
-                        key={tx.id} 
+                      <div
+                        key={tx.id}
                         className="flex items-center justify-between p-3 bg-[hsl(var(--bg-tertiary))] rounded-lg cursor-pointer hover:bg-[hsl(var(--bg-secondary))] transition-colors"
                         onClick={() => setSelectedTransaction(tx)}
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate text-[hsl(var(--text-primary))]">{tx.description}</p>
-                          <p className="text-xs text-muted">{formatTransactionDate(tx.booking_date, i18n.language)}</p>
+                          <p className="font-medium text-sm truncate text-[hsl(var(--text-primary))]">
+                            {tx.description}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {formatTransactionDate(tx.booking_date, i18n.language)}
+                          </p>
                         </div>
                         <div className="text-right flex-shrink-0 pl-4">
-                          <p className={`font-semibold ${tx.amount_minor > 0 ? "text-[hsl(var(--brand-success))]" : "text-[hsl(var(--text-primary))]"}`}>
-                            {tx.amount_minor > 0 ? '+' : ''}{(tx.amount_minor / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
+                          <p
+                            className={`font-semibold ${tx.amount_minor > 0 ? 'text-[hsl(var(--brand-success))]' : 'text-[hsl(var(--text-primary))]'}`}
+                          >
+                            {tx.amount_minor > 0 ? '+' : ''}
+                            {(tx.amount_minor / 100).toLocaleString('da-DK', {
+                              style: 'currency',
+                              currency: 'DKK',
+                            })}
                           </p>
                         </div>
                       </div>
                     ))}
                     {focusedTxData.transactions.length === 100 && (
-                      <p className="text-center text-xs text-muted pt-2">Viser de seneste 100 transaktioner.</p>
+                      <p className="text-center text-xs text-muted pt-2">
+                        Viser de seneste 100 transaktioner.
+                      </p>
                     )}
                   </div>
                 )}
@@ -663,7 +776,7 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <AnimatePresence>
         {selectedTransaction && (
           <TransactionDetailsSidebar

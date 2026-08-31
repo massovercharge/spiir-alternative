@@ -11,8 +11,15 @@ from tests.conftest import TEST_HOUSEHOLD_ID
 
 def test_consolidate_posting_pair_categories_and_notes():
     with Session(all_models.engine) as session:
-        acc_bank = Account(uid="acc_bank", name="SparD Plus", source="enablebanking", household_id=TEST_HOUSEHOLD_ID)
-        acc_csv = Account(uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID)
+        acc_bank = Account(
+            uid="acc_bank",
+            name="SparD Plus",
+            source="enablebanking",
+            household_id=TEST_HOUSEHOLD_ID,
+        )
+        acc_csv = Account(
+            uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID
+        )
         session.add_all([acc_bank, acc_csv])
         session.commit()
 
@@ -54,7 +61,9 @@ def test_consolidate_posting_pair_categories_and_notes():
         session.add_all([alloc_bank, alloc_csv])
         session.commit()
 
-        stats = consolidate_posting_pair(session, kept_posting_id=p_bank.id, removed_posting_id=p_csv.id)
+        stats = consolidate_posting_pair(
+            session, kept_posting_id=p_bank.id, removed_posting_id=p_csv.id
+        )
         session.commit()
 
         assert stats["categories_migrated"] is True
@@ -71,8 +80,15 @@ def test_consolidate_posting_pair_categories_and_notes():
 
 def test_consolidate_posting_pair_with_splits():
     with Session(all_models.engine) as session:
-        acc_bank = Account(uid="acc_bank", name="SparD Plus", source="enablebanking", household_id=TEST_HOUSEHOLD_ID)
-        acc_csv = Account(uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID)
+        acc_bank = Account(
+            uid="acc_bank",
+            name="SparD Plus",
+            source="enablebanking",
+            household_id=TEST_HOUSEHOLD_ID,
+        )
+        acc_csv = Account(
+            uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID
+        )
         session.add_all([acc_bank, acc_csv])
         session.commit()
 
@@ -119,7 +135,9 @@ def test_consolidate_posting_pair_with_splits():
         session.add_all([alloc_bank, alloc_csv_1, alloc_csv_2])
         session.commit()
 
-        stats = consolidate_posting_pair(session, kept_posting_id=p_bank.id, removed_posting_id=p_csv.id)
+        stats = consolidate_posting_pair(
+            session, kept_posting_id=p_bank.id, removed_posting_id=p_csv.id
+        )
         session.commit()
 
         assert stats["splits_migrated"] is True
@@ -127,14 +145,24 @@ def test_consolidate_posting_pair_with_splits():
             select(PostingAllocation).where(PostingAllocation.posting_id == p_bank.id)
         ).all()
         assert len(bank_allocs) == 2
-        assert {a.category_id for a in bank_allocs} == {"husholdning|dagligvarer", "transport|brændstof"}
+        assert {a.category_id for a in bank_allocs} == {
+            "husholdning|dagligvarer",
+            "transport|brændstof",
+        }
         assert sum(a.amount_minor for a in bank_allocs) == -20000
 
 
 def test_reconcile_incoming_postings():
     with Session(all_models.engine) as session:
-        acc_bank = Account(uid="acc_bank", name="SparD Plus", source="enablebanking", household_id=TEST_HOUSEHOLD_ID)
-        acc_csv = Account(uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID)
+        acc_bank = Account(
+            uid="acc_bank",
+            name="SparD Plus",
+            source="enablebanking",
+            household_id=TEST_HOUSEHOLD_ID,
+        )
+        acc_csv = Account(
+            uid="acc_csv", name="SparD Plus (Spiir)", source="csv", household_id=TEST_HOUSEHOLD_ID
+        )
         session.add_all([acc_bank, acc_csv])
         session.commit()
 
@@ -174,19 +202,31 @@ def test_reconcile_incoming_postings():
         session.add_all([p_bank, alloc_bank])
         session.commit()
 
-        summary = reconcile_incoming_postings(session, TEST_HOUSEHOLD_ID, incoming_posting_ids=[p_bank.id])
+        summary = reconcile_incoming_postings(
+            session, TEST_HOUSEHOLD_ID, incoming_posting_ids=[p_bank.id]
+        )
         session.commit()
 
         assert summary["reconciled_count"] == 1
         assert session.get(Posting, p_csv.id) is None
         assert session.get(Posting, p_bank.id) is not None
-        assert session.get(PostingAllocation, alloc_bank.id).category_id == "andre-leveomkostninger|behandling-læger"
+        assert (
+            session.get(PostingAllocation, alloc_bank.id).category_id
+            == "andre-leveomkostninger|behandling-læger"
+        )
 
 
 def test_merge_accounts():
     with Session(all_models.engine) as session:
-        acc_src = Account(uid="acc_src", name="Old CSV Account", source="csv", household_id=TEST_HOUSEHOLD_ID)
-        acc_tgt = Account(uid="acc_tgt", name="New Bank Account", source="enablebanking", household_id=TEST_HOUSEHOLD_ID)
+        acc_src = Account(
+            uid="acc_src", name="Old CSV Account", source="csv", household_id=TEST_HOUSEHOLD_ID
+        )
+        acc_tgt = Account(
+            uid="acc_tgt",
+            name="New Bank Account",
+            source="enablebanking",
+            household_id=TEST_HOUSEHOLD_ID,
+        )
         session.add_all([acc_src, acc_tgt])
         session.commit()
 
@@ -208,7 +248,9 @@ def test_merge_accounts():
         session.add_all([p_old, alloc_old])
         session.commit()
 
-        res = merge_accounts(session, TEST_HOUSEHOLD_ID, source_account_uid="acc_src", target_account_uid="acc_tgt")
+        res = merge_accounts(
+            session, TEST_HOUSEHOLD_ID, source_account_uid="acc_src", target_account_uid="acc_tgt"
+        )
 
         assert res["success"] is True
         assert res["postings_migrated"] == 1

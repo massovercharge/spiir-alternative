@@ -1,4 +1,5 @@
 """Tests for sync_service — Pydantic models, normalization, and error handling."""
+
 from __future__ import annotations
 
 import pytest
@@ -14,6 +15,7 @@ from app.services.sync_service import (
 # ---------------------------------------------------------------------------
 # Fixtures: representative bank transaction payloads
 # ---------------------------------------------------------------------------
+
 
 def _make_tx(**overrides) -> EnableBankingTransaction:
     """Build an EnableBankingTransaction with sensible defaults."""
@@ -37,6 +39,7 @@ def _make_tx(**overrides) -> EnableBankingTransaction:
 # ---------------------------------------------------------------------------
 # Pydantic Model Parsing
 # ---------------------------------------------------------------------------
+
 
 class TestEnableBankingTransaction:
     """Verify that the Pydantic model handles all flavours of bank JSON."""
@@ -103,6 +106,7 @@ class TestEnableBankingTransaction:
 # ---------------------------------------------------------------------------
 # _signed_amount_minor
 # ---------------------------------------------------------------------------
+
 
 class TestSignedAmountMinor:
     """Test amount extraction and signing from Pydantic models."""
@@ -182,6 +186,7 @@ class TestSignedAmountMinor:
 # EnableBankingAmount edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestEnableBankingAmount:
     """Verify the Amount sub-model handles edge cases."""
 
@@ -207,6 +212,7 @@ class TestEnableBankingAmount:
 # EnableBankingAccountID edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestEnableBankingAccountID:
     def test_iban_only(self):
         acc = EnableBankingAccountID(iban="DK1234567890")
@@ -227,6 +233,7 @@ class TestEnableBankingAccountID:
 # ---------------------------------------------------------------------------
 # RateLimitError
 # ---------------------------------------------------------------------------
+
 
 class TestRateLimitError:
     def test_is_exception(self):
@@ -252,6 +259,7 @@ class TestRateLimitError:
 # ---------------------------------------------------------------------------
 # Real-world payloads from Danish banks (regression tests)
 # ---------------------------------------------------------------------------
+
 
 class TestRealWorldPayloads:
     """Regression tests using realistic Danish bank transaction shapes."""

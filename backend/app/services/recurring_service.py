@@ -2,6 +2,7 @@
 
 Handles tracking, auto-detection, and linking of fixed expenses and income.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -29,6 +30,7 @@ def _utcnow_iso() -> str:
 # Matching Logic
 # ---------------------------------------------------------------------------
 
+
 def match_posting_to_recurring(
     posting: Posting,
     alloc: PostingAllocation,
@@ -44,18 +46,22 @@ def match_posting_to_recurring(
         return None
 
     cleaned = preprocess_description(raw_desc)
-    extra_text = " ".join(filter(None, [
-        posting.creditor_name,
-        posting.remittance_information,
-    ])).lower()
+    extra_text = " ".join(
+        filter(
+            None,
+            [
+                posting.creditor_name,
+                posting.remittance_information,
+            ],
+        )
+    ).lower()
 
     search_text = f"{cleaned} {extra_text}".strip()
 
     if recurring_txs is None:
         with Session(engine) as db:
             recurring_txs = db.exec(
-                select(RecurringTransaction)
-                .where(RecurringTransaction.status == "active")
+                select(RecurringTransaction).where(RecurringTransaction.status == "active")
             ).all()
 
     best_match = None
@@ -85,6 +91,7 @@ def match_posting_to_recurring(
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
+
 
 def list_recurring() -> list[dict[str, Any]]:
     with Session(engine) as db:
@@ -141,6 +148,7 @@ def delete_recurring(rtx_id: str) -> bool:
 # Auto-Detection
 # ---------------------------------------------------------------------------
 
+
 def detect_recurring() -> list[dict[str, Any]]:
     """Scan history and propose recurring transactions.
 
@@ -167,16 +175,19 @@ def detect_recurring() -> list[dict[str, Any]]:
             avg_amount = sum(amounts) / len(amounts)
 
             import statistics
+
             stddev = statistics.stdev(amounts) if len(amounts) > 1 else 0
             if abs(stddev) < abs(avg_amount) * 0.1:  # 10% tolerance
-                suggestions.append({
-                    "name": key.title(),
-                    "match_pattern": key,
-                    "avg_amount_minor": int(avg_amount),
-                    "avg_amount": format_amount(int(avg_amount)),
-                    "occurrences": len(group_postings),
-                    "interval": "monthly"
-                })
+                suggestions.append(
+                    {
+                        "name": key.title(),
+                        "match_pattern": key,
+                        "avg_amount_minor": int(avg_amount),
+                        "avg_amount": format_amount(int(avg_amount)),
+                        "occurrences": len(group_postings),
+                        "interval": "monthly",
+                    }
+                )
 
     suggestions.sort(key=lambda x: abs(x["avg_amount_minor"]), reverse=True)
     return suggestions

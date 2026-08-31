@@ -1,4 +1,5 @@
 """IMAP poller worker for inbound Storebox/Nexi receipt emails."""
+
 from __future__ import annotations
 
 import asyncio
@@ -77,7 +78,11 @@ def _poll_imap_once(config: dict[str, object]):
 
                 if raw_email and isinstance(raw_email, bytes):
                     result = process_inbound_email(raw_email, source_type="imap")
-                    logger.info("[IMAP] Processed email msg_id=%s -> result: %s", msg_id.decode(), result.get("status"))
+                    logger.info(
+                        "[IMAP] Processed email msg_id=%s -> result: %s",
+                        msg_id.decode(),
+                        result.get("status"),
+                    )
 
                 # Mark as seen
                 client.store(msg_id, "+FLAGS", "\\Seen")
@@ -87,6 +92,7 @@ def _poll_imap_once(config: dict[str, object]):
     finally:
         if client:
             import contextlib
+
             with contextlib.suppress(Exception):
                 client.close()
             with contextlib.suppress(Exception):

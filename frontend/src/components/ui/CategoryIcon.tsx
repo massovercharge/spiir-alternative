@@ -1,19 +1,19 @@
 import React from 'react';
-import { 
-  ShoppingCart, 
-  Car, 
-  Home, 
-  HeartPulse, 
-  MonitorPlay, 
-  Briefcase, 
-  Coins, 
+import {
+  ShoppingCart,
+  Car,
+  Home,
+  HeartPulse,
+  MonitorPlay,
+  Briefcase,
+  Coins,
   HelpCircle,
   Coffee,
   Train,
   Wrench,
   PiggyBank,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
 } from 'lucide-react';
 
 export function getCategoryIcon(categoryPath: string, size = 18) {
@@ -53,6 +53,6 @@ export function getCategoryIcon(categoryPath: string, size = 18) {
   if (path.includes('overførsel')) {
     return <TrendingDown size={size} className="text-muted" />;
   }
-  
+
   return <HelpCircle size={size} className="text-muted" />;
 }

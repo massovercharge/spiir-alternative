@@ -53,6 +53,37 @@ export interface InboundEmailLog {
   source_type: string;
 }
 
+export interface ImportRun {
+  id: number;
+  started_at: string;
+  completed_at?: string | null;
+  status: string;
+  source_path?: string;
+  source_type?: string;
+  notes?: string | null;
+  source_file_count: number;
+  deduplicated_receipt_count: number;
+}
+
+export interface ReceiptsStatus {
+  source_dir: string;
+  database_path: string;
+  database_exists: boolean;
+  source_file_count: number;
+  receipt_count: number;
+  matched_receipt_count: number;
+  matched_transaction_count: number;
+  match_rate_percent: number;
+  merchant_count: number;
+  item_cluster_count: number;
+  sources: {
+    storebox: number;
+    coop: number;
+  };
+  last_import_run?: ImportRun | null;
+  recent_import_runs: ImportRun[];
+}
+
 export interface InboundConfig {
   household_id: string;
   household_name: string;

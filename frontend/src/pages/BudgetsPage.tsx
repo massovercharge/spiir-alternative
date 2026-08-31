@@ -12,7 +12,12 @@ import { MonthGrid, MonthState } from '../components/ui/MonthGrid';
 import { BudgetResultView } from '../components/ui/BudgetResultView';
 import CategoryPicker from '../components/ui/CategoryPicker';
 
-function getMonthStates(months: any[], currentMonth: number, isCurrentYear: boolean, isIncome: boolean = false): MonthState[] {
+function getMonthStates(
+  months: any[],
+  currentMonth: number,
+  isCurrentYear: boolean,
+  isIncome: boolean = false
+): MonthState[] {
   return Array.from({ length: 12 }, (_, i) => {
     const monthNum = i + 1;
     // For current year, future months are inactive
@@ -32,7 +37,7 @@ function getMonthStates(months: any[], currentMonth: number, isCurrentYear: bool
       if (actual > budgeted && budgeted > 0) return 'over'; // Bad (Red)
       if (actual > 0 || budgeted > 0) return 'under'; // Good (Green)
     }
-    
+
     return 'inactive';
   });
 }
@@ -40,13 +45,15 @@ function getMonthStates(months: any[], currentMonth: number, isCurrentYear: bool
 function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: any) {
   const months = category.months || [];
   const currentMonthData = months.find((m: any) => m.month === currentMonth);
-  
+
   const used = Math.abs(currentMonthData?.actual_minor || 0) / 100;
-  const total = Math.abs(currentMonthData?.effective_budgeted_minor ?? currentMonthData?.budgeted_minor ?? 0) / 100;
-  
+  const total =
+    Math.abs(currentMonthData?.effective_budgeted_minor ?? currentMonthData?.budgeted_minor ?? 0) /
+    100;
+
   const percentage = total > 0 ? Math.min((used / total) * 100, 100) : 100;
   const isIncome = category.category_type === 'Income';
-  const isOver = isIncome ? (used < total && total > 0) : (used > total && total > 0);
+  const isOver = isIncome ? used < total && total > 0 : used > total && total > 0;
   const remaining = isIncome ? used - total : total - used;
 
   const monthStates = getMonthStates(months, currentMonth, isCurrentYear, isIncome);
@@ -71,7 +78,8 @@ function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: an
             </span>
           ) : (
             <span className="text-xs font-semibold text-[hsl(var(--brand-danger))] uppercase tracking-wide">
-              {t('budgets.over_budget', 'Overskredet')}: {Math.abs(remaining).toLocaleString('da-DK')} kr.
+              {t('budgets.over_budget', 'Overskredet')}:{' '}
+              {Math.abs(remaining).toLocaleString('da-DK')} kr.
             </span>
           )}
           <span className="text-[10px] text-muted">
@@ -80,10 +88,10 @@ function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: an
         </div>
       </div>
       <div className="h-2 w-full bg-[hsl(var(--bg-tertiary))] rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
           className={`h-full rounded-full ${isOver ? 'bg-[hsl(var(--brand-danger))]' : 'bg-[hsl(var(--brand-primary))]'}`}
         />
       </div>
@@ -93,7 +101,7 @@ function ProgressBarWithHistory({ category, currentMonth, isCurrentYear, t }: an
 
 function FixedExpenseRow({ category, isCurrentYear, currentMonth }: any) {
   const { t, i18n } = useTranslation();
-  const avgMonth = (Math.abs(category.total_budgeted_minor) / 100) / 12;
+  const avgMonth = Math.abs(category.total_budgeted_minor) / 100 / 12;
   const isIncome = category.category_type === 'Income';
   const monthStates = getMonthStates(category.months || [], currentMonth, isCurrentYear, isIncome);
 
@@ -102,7 +110,8 @@ function FixedExpenseRow({ category, isCurrentYear, currentMonth }: any) {
       <div className="flex flex-col gap-1">
         <span className="font-medium capitalize text-sm">{category.label}</span>
         <span className="text-xs text-muted">
-          {Math.round(avgMonth).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')} {t('budgets.kr_per_month', 'kr. / md.')}
+          {Math.round(avgMonth).toLocaleString(i18n.language === 'da' ? 'da-DK' : 'en-US')}{' '}
+          {t('budgets.kr_per_month', 'kr. / md.')}
         </span>
       </div>
       <div className="hidden sm:block">
@@ -113,7 +122,8 @@ function FixedExpenseRow({ category, isCurrentYear, currentMonth }: any) {
 }
 
 function RestenRow({ categories, isCurrentYear, currentMonth, t, onCategoryClick }: any) {
-  const totalActual = categories.reduce((sum: number, c: any) => sum + Math.abs(c.total_actual_minor), 0) / 100;
+  const totalActual =
+    categories.reduce((sum: number, c: any) => sum + Math.abs(c.total_actual_minor), 0) / 100;
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -133,7 +143,11 @@ function RestenRow({ categories, isCurrentYear, currentMonth, t, onCategoryClick
             </div>
           </div>
           <p className="text-xs text-muted">
-            {categories.map((c:any) => c.label).slice(0, 3).join(', ')} {categories.length > 3 ? `+ ${categories.length - 3} ${t('budgets.more')}` : ''}
+            {categories
+              .map((c: any) => c.label)
+              .slice(0, 3)
+              .join(', ')}{' '}
+            {categories.length > 3 ? `+ ${categories.length - 3} ${t('budgets.more')}` : ''}
           </p>
         </div>
       </div>
@@ -144,8 +158,21 @@ function RestenRow({ categories, isCurrentYear, currentMonth, t, onCategoryClick
   );
 }
 
-function BudgetSection({ title, categories, type, isCurrentYear, currentMonth, t, onCategoryClick, unbudgetedCategories = [] }: any) {
-  if ((!categories || categories.length === 0) && (!unbudgetedCategories || unbudgetedCategories.length === 0)) return null;
+function BudgetSection({
+  title,
+  categories,
+  type,
+  isCurrentYear,
+  currentMonth,
+  t,
+  onCategoryClick,
+  unbudgetedCategories = [],
+}: any) {
+  if (
+    (!categories || categories.length === 0) &&
+    (!unbudgetedCategories || unbudgetedCategories.length === 0)
+  )
+    return null;
 
   return (
     <div className="space-y-1 pt-4">
@@ -161,9 +188,18 @@ function BudgetSection({ title, categories, type, isCurrentYear, currentMonth, t
           >
             <div className="pr-6">
               {type === 'variable' && isCurrentYear ? (
-                <ProgressBarWithHistory category={cat} currentMonth={currentMonth} isCurrentYear={isCurrentYear} t={t} />
+                <ProgressBarWithHistory
+                  category={cat}
+                  currentMonth={currentMonth}
+                  isCurrentYear={isCurrentYear}
+                  t={t}
+                />
               ) : (
-                <FixedExpenseRow category={cat} currentMonth={currentMonth} isCurrentYear={isCurrentYear} />
+                <FixedExpenseRow
+                  category={cat}
+                  currentMonth={currentMonth}
+                  isCurrentYear={isCurrentYear}
+                />
               )}
             </div>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -174,12 +210,12 @@ function BudgetSection({ title, categories, type, isCurrentYear, currentMonth, t
       })}
 
       {type === 'variable' && unbudgetedCategories.length > 0 && (
-        <RestenRow 
-          categories={unbudgetedCategories} 
-          isCurrentYear={isCurrentYear} 
-          currentMonth={currentMonth} 
-          t={t} 
-          onCategoryClick={onCategoryClick} 
+        <RestenRow
+          categories={unbudgetedCategories}
+          isCurrentYear={isCurrentYear}
+          currentMonth={currentMonth}
+          t={t}
+          onCategoryClick={onCategoryClick}
         />
       )}
     </div>
@@ -193,7 +229,7 @@ export default function BudgetsPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('resultat');
-  
+
   const currentYear = selectedDate.getFullYear();
   const actualCurrentYear = new Date().getFullYear();
   const isCurrentYear = currentYear === actualCurrentYear;
@@ -203,68 +239,85 @@ export default function BudgetsPage() {
   const generateBudgets = useGenerateBudgets();
 
   const categoriesWithLabels = useMemo(() => {
-    return summary?.categories?.map((c: any) => {
-      const labelParts = c.category_id.split('|');
-      const mainLabel = labelParts[0].charAt(0).toUpperCase() + labelParts[0].slice(1);
-      const subLabel = labelParts[1] ? labelParts[1] : labelParts[0];
-      return {
-        ...c,
-        label: labelParts[1] ? `${mainLabel} - ${subLabel}` : subLabel
-      };
-    }) || [];
+    return (
+      summary?.categories?.map((c: any) => {
+        const labelParts = c.category_id.split('|');
+        const mainLabel = labelParts[0].charAt(0).toUpperCase() + labelParts[0].slice(1);
+        const subLabel = labelParts[1] ? labelParts[1] : labelParts[0];
+        return {
+          ...c,
+          label: labelParts[1] ? `${mainLabel} - ${subLabel}` : subLabel,
+        };
+      }) || []
+    );
   }, [summary?.categories]);
 
   const { allIncome, allBillsRaw, budgetedConsumption, unbudgetedConsumption } = useMemo(() => {
-    const hasData = (c: any) => Math.abs(c.total_budgeted_minor) > 0 || Math.abs(c.total_actual_minor) > 0;
-    
+    const hasData = (c: any) =>
+      Math.abs(c.total_budgeted_minor) > 0 || Math.abs(c.total_actual_minor) > 0;
+
     return {
-      allIncome: categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Income'),
-      allBillsRaw: categoriesWithLabels.filter((c: any) => hasData(c) && c.category_type === 'Expense' && c.expense_type === 'Fixed'),
-      budgetedConsumption: categoriesWithLabels.filter((c: any) => Math.abs(c.total_budgeted_minor) > 0 && c.category_type === 'Expense' && c.expense_type === 'Variable'),
-      unbudgetedConsumption: categoriesWithLabels.filter((c: any) => 
-        c.total_budgeted_minor === 0 && 
-        c.category_type === 'Expense' && 
-        c.expense_type === 'Variable' && 
-        Math.abs(c.total_actual_minor) > 0
-      ).sort((a: any, b: any) => Math.abs(b.total_actual_minor) - Math.abs(a.total_actual_minor))
+      allIncome: categoriesWithLabels.filter(
+        (c: any) => hasData(c) && c.category_type === 'Income'
+      ),
+      allBillsRaw: categoriesWithLabels.filter(
+        (c: any) => hasData(c) && c.category_type === 'Expense' && c.expense_type === 'Fixed'
+      ),
+      budgetedConsumption: categoriesWithLabels.filter(
+        (c: any) =>
+          Math.abs(c.total_budgeted_minor) > 0 &&
+          c.category_type === 'Expense' &&
+          c.expense_type === 'Variable'
+      ),
+      unbudgetedConsumption: categoriesWithLabels
+        .filter(
+          (c: any) =>
+            c.total_budgeted_minor === 0 &&
+            c.category_type === 'Expense' &&
+            c.expense_type === 'Variable' &&
+            Math.abs(c.total_actual_minor) > 0
+        )
+        .sort((a: any, b: any) => Math.abs(b.total_actual_minor) - Math.abs(a.total_actual_minor)),
     };
   }, [categoriesWithLabels]);
 
-  const TabButton = ({ id, label }: { id: TabType, label: string }) => (
+  const TabButton = ({ id, label }: { id: TabType; label: string }) => (
     <button
       onClick={() => setActiveTab(id)}
       className={`px-4 py-2 font-medium text-sm transition-colors relative shrink-0 ${
-        activeTab === id ? 'text-[hsl(var(--text-primary))]' : 'text-muted hover:text-[hsl(var(--text-primary))]'
+        activeTab === id
+          ? 'text-[hsl(var(--text-primary))]'
+          : 'text-muted hover:text-[hsl(var(--text-primary))]'
       }`}
     >
       {label}
       {activeTab === id && (
-        <motion.div 
+        <motion.div
           layoutId="activeTabIndicator"
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(var(--brand-primary))]" 
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(var(--brand-primary))]"
           initial={false}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
       )}
     </button>
   );
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 pb-28 md:pb-8"
     >
       <div className="mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <motion.h1 
+          <motion.h1
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className="text-3xl font-bold text-[hsl(var(--text-primary))]"
           >
             {t('app.budgets')}
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ y: -5, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -273,16 +326,16 @@ export default function BudgetsPage() {
             {t('budgets.description', { year: currentYear })}
           </motion.p>
         </div>
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="flex items-center gap-4"
         >
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            onClick={() => generateBudgets.mutate({ year: currentYear })} 
+            onClick={() => generateBudgets.mutate({ year: currentYear })}
             disabled={generateBudgets.isPending}
             className="hidden md:flex gap-2"
           >
@@ -300,7 +353,7 @@ export default function BudgetsPage() {
           </CardHeader>
           <CardContent className="space-y-8 pt-4">
             <div className="space-y-6">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="space-y-2">
                   <div className="flex justify-between">
                     <Skeleton className="h-4 w-24" />
@@ -318,9 +371,16 @@ export default function BudgetsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center text-muted">
             <FileWarning size={48} className="mb-4 text-[hsl(var(--text-secondary))] opacity-50" />
-            <p className="mb-4">{t('budgets.no_budgets', 'Du har ikke oprettet nogen budgetter endnu.')}</p>
-            <Button onClick={() => generateBudgets.mutate({ year: currentYear })} disabled={generateBudgets.isPending}>
-              {generateBudgets.isPending ? t('common.loading', 'Indlæser...') : t('budgets.generate', 'Autogenerer budget ud fra historik')}
+            <p className="mb-4">
+              {t('budgets.no_budgets', 'Du har ikke oprettet nogen budgetter endnu.')}
+            </p>
+            <Button
+              onClick={() => generateBudgets.mutate({ year: currentYear })}
+              disabled={generateBudgets.isPending}
+            >
+              {generateBudgets.isPending
+                ? t('common.loading', 'Indlæser...')
+                : t('budgets.generate', 'Autogenerer budget ud fra historik')}
             </Button>
           </CardContent>
         </Card>
@@ -344,19 +404,19 @@ export default function BudgetsPage() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === 'resultat' && (
-                <BudgetResultView 
+                <BudgetResultView
                   summary={summary}
                   currentYear={currentYear}
                   currentMonth={currentMonth}
                   isCurrentYear={isCurrentYear}
                 />
               )}
-              
+
               {activeTab === 'indkomst' && (
                 <div className="space-y-4">
-                  <BudgetSection 
-                    title={t('budgets.income_title', 'Mit budget for indkomst')} 
-                    categories={allIncome} 
+                  <BudgetSection
+                    title={t('budgets.income_title', 'Mit budget for indkomst')}
+                    categories={allIncome}
                     type="fixed"
                     isCurrentYear={isCurrentYear}
                     currentMonth={currentMonth}
@@ -364,9 +424,16 @@ export default function BudgetsPage() {
                     onCategoryClick={setSelectedCategory}
                   />
                   <div className="flex justify-center pt-4 pb-8">
-                    <CategoryPicker 
+                    <CategoryPicker
                       placeholder={t('budgets.add_category', '+ Tilføj kategori')}
-                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Income', expense_type: 'Fixed', months: [] })}
+                      onSelect={(id) =>
+                        setSelectedCategory({
+                          category_id: id,
+                          category_type: 'Income',
+                          expense_type: 'Fixed',
+                          months: [],
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -374,19 +441,28 @@ export default function BudgetsPage() {
 
               {activeTab === 'regninger' && (
                 <div className="space-y-4">
-                  <BudgetSection 
-                    title={t('budgets.bills_title', 'Mit budget for regninger i {{year}}', { year: currentYear })} 
-                    categories={allBillsRaw} 
-                    type="fixed" 
-                    isCurrentYear={isCurrentYear} 
-                    currentMonth={currentMonth} 
+                  <BudgetSection
+                    title={t('budgets.bills_title', 'Mit budget for regninger i {{year}}', {
+                      year: currentYear,
+                    })}
+                    categories={allBillsRaw}
+                    type="fixed"
+                    isCurrentYear={isCurrentYear}
+                    currentMonth={currentMonth}
                     t={t}
-                    onCategoryClick={setSelectedCategory} 
+                    onCategoryClick={setSelectedCategory}
                   />
                   <div className="flex justify-center pt-4 pb-8">
-                    <CategoryPicker 
+                    <CategoryPicker
                       placeholder={t('budgets.add_category', '+ Tilføj kategori')}
-                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Expense', expense_type: 'Fixed', months: [] })}
+                      onSelect={(id) =>
+                        setSelectedCategory({
+                          category_id: id,
+                          category_type: 'Expense',
+                          expense_type: 'Fixed',
+                          months: [],
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -394,9 +470,9 @@ export default function BudgetsPage() {
 
               {activeTab === 'forbrug' && (
                 <div className="space-y-4">
-                  <BudgetSection 
-                    title={t('budgets.consumption_title', 'Mit budget for forbrug')} 
-                    categories={budgetedConsumption} 
+                  <BudgetSection
+                    title={t('budgets.consumption_title', 'Mit budget for forbrug')}
+                    categories={budgetedConsumption}
                     unbudgetedCategories={unbudgetedConsumption}
                     type="variable"
                     isCurrentYear={isCurrentYear}
@@ -405,9 +481,16 @@ export default function BudgetsPage() {
                     onCategoryClick={setSelectedCategory}
                   />
                   <div className="flex justify-center pt-4 pb-8">
-                    <CategoryPicker 
+                    <CategoryPicker
                       placeholder={t('budgets.add_category', '+ Tilføj kategori')}
-                      onSelect={(id) => setSelectedCategory({ category_id: id, category_type: 'Expense', expense_type: 'Variable', months: [] })}
+                      onSelect={(id) =>
+                        setSelectedCategory({
+                          category_id: id,
+                          category_type: 'Expense',
+                          expense_type: 'Variable',
+                          months: [],
+                        })
+                      }
                     />
                   </div>
                 </div>

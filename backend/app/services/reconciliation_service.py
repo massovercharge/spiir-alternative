@@ -1,4 +1,5 @@
 """Reconciliation Service — Automatic deduplication, overlap merge, and cross-account reconciliation."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -36,7 +37,11 @@ def extract_reference_number(desc: Optional[str]) -> Optional[str]:
     if not desc:
         return None
     # Matches patterns like "Nota HFM3S6_1", "Notanr 45795", "Ref. 12345", "Kvittering #9876"
-    m = re.search(r"\b(?:notanr|nota|refnr|ref|transnr|kvit|kvittering)\.?\s*[:#]?\s*([a-z0-9_-]+)", desc, re.IGNORECASE)
+    m = re.search(
+        r"\b(?:notanr|nota|refnr|ref|transnr|kvit|kvittering)\.?\s*[:#]?\s*([a-z0-9_-]+)",
+        desc,
+        re.IGNORECASE,
+    )
     if m:
         return m.group(1).lower().strip()
     return None
@@ -62,7 +67,7 @@ def clean_description_for_matching(s: Optional[str]) -> str:
     ]
     for prefix in prefixes:
         if text.startswith(prefix):
-            text = text[len(prefix):].strip()
+            text = text[len(prefix) :].strip()
     return re.sub(r"[^a-z0-9æøå]", "", text).strip()
 
 
@@ -219,10 +224,12 @@ def find_duplicate_candidate_in_db(
     candidates = session.exec(query).all()
 
     for cand in candidates:
-        is_same = (target_posting.account_uid == cand.account_uid)
+        is_same = target_posting.account_uid == cand.account_uid
         if dates_match(
-            target_posting.booking_date, target_posting.custom_date,
-            cand.booking_date, cand.custom_date,
+            target_posting.booking_date,
+            target_posting.custom_date,
+            cand.booking_date,
+            cand.custom_date,
             is_same_account=is_same,
         ):
             if not are_accounts_duplicate_pair(
@@ -232,7 +239,11 @@ def find_duplicate_candidate_in_db(
                 allow_same_account=allow_same_account,
             ):
                 continue
-            if descriptions_match(target_posting.original_description, cand.original_description, is_same_account=is_same):
+            if descriptions_match(
+                target_posting.original_description,
+                cand.original_description,
+                is_same_account=is_same,
+            ):
                 return cand
 
     return None
@@ -285,9 +296,7 @@ def consolidate_posting_pair(
             ).all()
             for tl in tag_links:
                 session.delete(tl)
-            docs = session.exec(
-                select(Document).where(Document.allocation_id == ka.id)
-            ).all()
+            docs = session.exec(select(Document).where(Document.allocation_id == ka.id)).all()
             for doc in docs:
                 session.delete(doc)
             session.delete(ka)
@@ -320,9 +329,7 @@ def consolidate_posting_pair(
                 session.delete(tl)
 
             # Re-link docs
-            r_docs = session.exec(
-                select(Document).where(Document.allocation_id == ra.id)
-            ).all()
+            r_docs = session.exec(select(Document).where(Document.allocation_id == ra.id)).all()
             for doc in r_docs:
                 doc.allocation_id = new_alloc_id
                 session.add(doc)
@@ -369,9 +376,7 @@ def consolidate_posting_pair(
 
         # Re-link tags
         r_tags = session.exec(
-            select(PostingAllocationTagLink).where(
-                PostingAllocationTagLink.allocation_id == ra.id
-            )
+            select(PostingAllocationTagLink).where(PostingAllocationTagLink.allocation_id == ra.id)
         ).all()
         for tl in r_tags:
             existing = session.exec(
@@ -380,16 +385,12 @@ def consolidate_posting_pair(
                 .where(PostingAllocationTagLink.tag_id == tl.tag_id)
             ).first()
             if not existing:
-                session.add(
-                    PostingAllocationTagLink(allocation_id=ka.id, tag_id=tl.tag_id)
-                )
+                session.add(PostingAllocationTagLink(allocation_id=ka.id, tag_id=tl.tag_id))
                 stats["tags_migrated"] += 1
             session.delete(tl)
 
         # Re-link documents
-        r_docs = session.exec(
-            select(Document).where(Document.allocation_id == ra.id)
-        ).all()
+        r_docs = session.exec(select(Document).where(Document.allocation_id == ra.id)).all()
         for doc in r_docs:
             doc.allocation_id = ka.id
             session.add(doc)
@@ -499,7 +500,11 @@ def merge_accounts(
         p = session.get(Posting, pid)
         if not p:
             continue
-        key = (p.custom_date or p.booking_date, p.amount_minor, clean_description_for_matching(p.original_description))
+        key = (
+            p.custom_date or p.booking_date,
+            p.amount_minor,
+            clean_description_for_matching(p.original_description),
+        )
         if key in seen_pairs:
             # Duplicate found
             cand = find_duplicate_candidate_in_db(session, household_id, p, allow_same_account=True)
@@ -545,14 +550,17 @@ def dismiss_duplicate_pair(
     existing = get_dismissed_duplicate_pairs(session, household_id)
     added_count = 0
     import itertools
+
     for p1, p2 in itertools.combinations(posting_ids, 2):
         pair = (min(p1, p2), max(p1, p2))
         if pair not in existing:
-            session.add(DismissedDuplicate(
-                household_id=household_id,
-                posting_id_1=pair[0],
-                posting_id_2=pair[1],
-            ))
+            session.add(
+                DismissedDuplicate(
+                    household_id=household_id,
+                    posting_id_1=pair[0],
+                    posting_id_2=pair[1],
+                )
+            )
             existing.add(pair)
             added_count += 1
     session.commit()
@@ -593,7 +601,14 @@ def get_duplicate_groups_preview(
     dismissed_pairs = get_dismissed_duplicate_pairs(session, household_id)
 
     clusters: dict[int, list[Posting]] = {}
-    statutory_keywords = ("børne- og ungeydelse", "børneydelse", "børnepenge", "børnecheck", "børnetilskud", "ungeydelse")
+    statutory_keywords = (
+        "børne- og ungeydelse",
+        "børneydelse",
+        "børnepenge",
+        "børnecheck",
+        "børnetilskud",
+        "ungeydelse",
+    )
     for p in postings:
         if p.amount_minor >= 0:
             continue
@@ -604,6 +619,7 @@ def get_duplicate_groups_preview(
 
     preview_groups = []
     import itertools
+
     for amount_minor, plist in clusters.items():
         if len(plist) < 2:
             continue
@@ -618,13 +634,16 @@ def get_duplicate_groups_preview(
                     continue
                 matches = False
                 for member in current_group:
-                    is_same = (member.account_uid == plist[j].account_uid)
+                    is_same = member.account_uid == plist[j].account_uid
                     if dates_match(
-                        member.booking_date, member.custom_date,
-                        plist[j].booking_date, plist[j].custom_date,
+                        member.booking_date,
+                        member.custom_date,
+                        plist[j].booking_date,
+                        plist[j].custom_date,
                         is_same_account=is_same,
                     ) and descriptions_match(
-                        member.original_description, plist[j].original_description,
+                        member.original_description,
+                        plist[j].original_description,
                         is_same_account=is_same,
                     ):
                         matches = True
@@ -649,7 +668,13 @@ def get_duplicate_groups_preview(
                 if len(current_group) == 2:
                     acc1 = accounts_by_uid.get(current_group[0].account_uid)
                     acc2 = accounts_by_uid.get(current_group[1].account_uid)
-                    if acc1 and acc2 and are_accounts_duplicate_pair(session, acc1.uid, acc2.uid, allow_same_account=False):
+                    if (
+                        acc1
+                        and acc2
+                        and are_accounts_duplicate_pair(
+                            session, acc1.uid, acc2.uid, allow_same_account=False
+                        )
+                    ):
                         can_auto_merge = True
 
                 postings_data = []
@@ -661,31 +686,35 @@ def get_duplicate_groups_preview(
                     category_id = allocs[0].category_id if allocs else None
                     note = allocs[0].note if allocs else None
                     p_eff_date = p.custom_date or p.booking_date or ""
-                    postings_data.append({
-                        "id": p.id,
-                        "account_uid": p.account_uid,
-                        "account_name": acc.name if acc else p.account_uid,
-                        "account_source": acc.source if acc else "unknown",
-                        "original_description": p.original_description,
-                        "amount_minor": p.amount_minor,
-                        "amount": format_amount(abs(p.amount_minor)),
-                        "date": p_eff_date,
-                        "category_id": category_id,
-                        "note": note,
-                        "split_count": len(allocs),
-                    })
+                    postings_data.append(
+                        {
+                            "id": p.id,
+                            "account_uid": p.account_uid,
+                            "account_name": acc.name if acc else p.account_uid,
+                            "account_source": acc.source if acc else "unknown",
+                            "original_description": p.original_description,
+                            "amount_minor": p.amount_minor,
+                            "amount": format_amount(abs(p.amount_minor)),
+                            "date": p_eff_date,
+                            "category_id": category_id,
+                            "note": note,
+                            "split_count": len(allocs),
+                        }
+                    )
 
                 eff_date_rep = current_group[0].custom_date or current_group[0].booking_date or ""
                 clean_rep = clean_description_for_matching(current_group[0].original_description)
-                preview_groups.append({
-                    "group_id": f"{eff_date_rep}_{amount_minor}_{clean_rep[:12]}",
-                    "date": eff_date_rep,
-                    "amount_minor": amount_minor,
-                    "amount": format_amount(abs(amount_minor)),
-                    "description": current_group[0].original_description,
-                    "can_auto_merge": can_auto_merge,
-                    "postings": postings_data,
-                })
+                preview_groups.append(
+                    {
+                        "group_id": f"{eff_date_rep}_{amount_minor}_{clean_rep[:12]}",
+                        "date": eff_date_rep,
+                        "amount_minor": amount_minor,
+                        "amount": format_amount(abs(amount_minor)),
+                        "description": current_group[0].original_description,
+                        "can_auto_merge": can_auto_merge,
+                        "postings": postings_data,
+                    }
+                )
 
     return preview_groups
 

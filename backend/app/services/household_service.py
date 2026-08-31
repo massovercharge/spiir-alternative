@@ -1,4 +1,5 @@
 """Household service — manages households and members."""
+
 from typing import Any
 
 from fastapi import HTTPException
@@ -18,14 +19,17 @@ def list_households(user_id: str) -> list[dict[str, Any]]:
         for m in memberships:
             hh = db.get(Household, m.household_id)
             if hh:
-                result.append({
-                    "id": hh.id,
-                    "name": hh.name,
-                    "role": m.role,
-                    "created_at": hh.created_at,
-                    "deleted_at": hh.deleted_at,
-                })
+                result.append(
+                    {
+                        "id": hh.id,
+                        "name": hh.name,
+                        "role": m.role,
+                        "created_at": hh.created_at,
+                        "deleted_at": hh.deleted_at,
+                    }
+                )
         return result
+
 
 def create_household(user_id: str, name: str) -> dict[str, Any]:
     """Create a new household and assign the user as owner."""
@@ -46,13 +50,13 @@ def create_household(user_id: str, name: str) -> dict[str, Any]:
             "created_at": hh.created_at,
         }
 
+
 def update_household(household_id: str, user_id: str, name: str) -> dict[str, Any]:
     """Rename an existing household (requires owner role)."""
     with Session(engine) as db:
         membership = db.exec(
             select(HouseholdMember).where(
-                HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == user_id
+                HouseholdMember.household_id == household_id, HouseholdMember.user_id == user_id
             )
         ).first()
 
@@ -75,6 +79,7 @@ def update_household(household_id: str, user_id: str, name: str) -> dict[str, An
             "created_at": hh.created_at,
         }
 
+
 def get_household_members(household_id: str, requesting_user_id: str) -> list[dict[str, Any]]:
     """List all members of a household."""
     with Session(engine) as db:
@@ -82,7 +87,7 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
         membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
@@ -106,17 +111,24 @@ def get_household_members(household_id: str, requesting_user_id: str) -> list[di
                 else:
                     display_email = ""
 
-            display_name = user.name or (display_email.split("@")[0] if "@" in display_email else "")
-            result.append({
-                "id": user.id,
-                "email": display_email,
-                "name": display_name,
-                "role": m.role,
-                "is_me": (m.user_id == requesting_user_id),
-            })
+            display_name = user.name or (
+                display_email.split("@")[0] if "@" in display_email else ""
+            )
+            result.append(
+                {
+                    "id": user.id,
+                    "email": display_email,
+                    "name": display_name,
+                    "role": m.role,
+                    "is_me": (m.user_id == requesting_user_id),
+                }
+            )
         return result
 
-def invite_member(household_id: str, requesting_user_id: str, email: str, role: str = "member") -> dict[str, Any]:
+
+def invite_member(
+    household_id: str, requesting_user_id: str, email: str, role: str = "member"
+) -> dict[str, Any]:
     """Add a member to the household by email."""
     if role not in ("owner", "member"):
         raise HTTPException(status_code=400, detail="Invalid role")
@@ -126,7 +138,7 @@ def invite_member(household_id: str, requesting_user_id: str, email: str, role: 
         membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
@@ -135,6 +147,7 @@ def invite_member(household_id: str, requesting_user_id: str, email: str, role: 
 
         # Find user by email
         from sqlmodel import func
+
         email = email.lower().strip()
         user = db.exec(select(User).where(func.lower(User.email) == email)).first()
         if not user:
@@ -146,8 +159,7 @@ def invite_member(household_id: str, requesting_user_id: str, email: str, role: 
         # Check if already member
         existing = db.exec(
             select(HouseholdMember).where(
-                HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == user.id
+                HouseholdMember.household_id == household_id, HouseholdMember.user_id == user.id
             )
         ).first()
 
@@ -160,20 +172,23 @@ def invite_member(household_id: str, requesting_user_id: str, email: str, role: 
 
         return {"success": True, "email": user.email, "role": role}
 
-def remove_member(household_id: str, requesting_user_id: str, target_user_id: str) -> dict[str, Any]:
+
+def remove_member(
+    household_id: str, requesting_user_id: str, target_user_id: str
+) -> dict[str, Any]:
     """Remove a member from the household (or leave household if requesting_user_id == target_user_id)."""
     with Session(engine) as db:
         req_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
         if not req_membership:
             raise HTTPException(status_code=403, detail="Access denied")
 
-        is_self_removal = (requesting_user_id == target_user_id)
+        is_self_removal = requesting_user_id == target_user_id
         if not is_self_removal and req_membership.role != "owner":
             raise HTTPException(status_code=403, detail="Only owners can remove other members")
 
@@ -184,7 +199,7 @@ def remove_member(household_id: str, requesting_user_id: str, target_user_id: st
         target_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == user_to_remove.id
+                HouseholdMember.user_id == user_to_remove.id,
             )
         ).first()
 
@@ -193,28 +208,34 @@ def remove_member(household_id: str, requesting_user_id: str, target_user_id: st
 
         # Check if removing the last owner
         if target_membership.role == "owner":
-            owner_count = len(db.exec(
-                select(HouseholdMember).where(
-                    HouseholdMember.household_id == household_id,
-                    HouseholdMember.role == "owner"
-                )
-            ).all())
+            owner_count = len(
+                db.exec(
+                    select(HouseholdMember).where(
+                        HouseholdMember.household_id == household_id,
+                        HouseholdMember.role == "owner",
+                    )
+                ).all()
+            )
             if owner_count <= 1:
-                raise HTTPException(status_code=400, detail="Cannot leave or remove the last owner of the household")
+                raise HTTPException(
+                    status_code=400, detail="Cannot leave or remove the last owner of the household"
+                )
 
         db.delete(target_membership)
         db.commit()
 
         return {"success": True}
 
+
 def delete_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
     """Mark a household as deleted (soft delete)."""
     from app.models import _utcnow_iso
+
     with Session(engine) as db:
         req_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
@@ -231,14 +252,16 @@ def delete_household(household_id: str, requesting_user_id: str) -> dict[str, An
 
         return {"success": True, "deleted": True}
 
+
 def restore_household(household_id: str, requesting_user_id: str) -> dict[str, Any]:
     """Restore a soft-deleted household."""
     import datetime
+
     with Session(engine) as db:
         req_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
@@ -262,7 +285,10 @@ def restore_household(household_id: str, requesting_user_id: str) -> dict[str, A
 
         return {"success": True}
 
-def update_member_role(household_id: str, requesting_user_id: str, target_user_id: str, role: str) -> dict[str, Any]:
+
+def update_member_role(
+    household_id: str, requesting_user_id: str, target_user_id: str, role: str
+) -> dict[str, Any]:
     """Update a household member's role (requires owner role)."""
     if role not in ("owner", "member"):
         raise HTTPException(status_code=400, detail="Invalid role")
@@ -271,7 +297,7 @@ def update_member_role(household_id: str, requesting_user_id: str, target_user_i
         req_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == requesting_user_id
+                HouseholdMember.user_id == requesting_user_id,
             )
         ).first()
 
@@ -281,7 +307,7 @@ def update_member_role(household_id: str, requesting_user_id: str, target_user_i
         target_membership = db.exec(
             select(HouseholdMember).where(
                 HouseholdMember.household_id == household_id,
-                HouseholdMember.user_id == target_user_id
+                HouseholdMember.user_id == target_user_id,
             )
         ).first()
 
@@ -294,11 +320,14 @@ def update_member_role(household_id: str, requesting_user_id: str, target_user_i
                 select(HouseholdMember).where(
                     HouseholdMember.household_id == household_id,
                     HouseholdMember.role == "owner",
-                    HouseholdMember.user_id != target_user_id
+                    HouseholdMember.user_id != target_user_id,
                 )
             ).all()
             if not other_owners:
-                raise HTTPException(status_code=400, detail="Cannot change role: household must have at least one owner")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cannot change role: household must have at least one owner",
+                )
 
         target_membership.role = role
         db.add(target_membership)

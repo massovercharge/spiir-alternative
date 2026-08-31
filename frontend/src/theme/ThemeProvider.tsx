@@ -33,14 +33,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.add('light');
     }
-    
+
     setIsDark(isDarkMode);
   }, [theme]);
 
   // Listen for system preference changes if theme is "system"
   useEffect(() => {
     if (theme !== 'system') return;
-    
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
       const root = window.document.documentElement;
@@ -59,9 +59,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={{ theme, setTheme, isDark }}>{children}</ThemeContext.Provider>
   );
 }
 

@@ -40,8 +40,7 @@ def test_invite_member_and_pending_sync():
         # Verify membership was created
         membership = db.exec(
             select(HouseholdMember).where(
-                HouseholdMember.household_id == hh.id,
-                HouseholdMember.user_id == invited_user.id
+                HouseholdMember.household_id == hh.id, HouseholdMember.user_id == invited_user.id
             )
         ).first()
         assert membership is not None
@@ -63,6 +62,7 @@ def test_invite_member_and_pending_sync():
         # Verify logto_id updated
         db.refresh(invited_user)
         assert invited_user.logto_id == "logto_partner_456"
+
 
 def test_update_household():
     from app.services.household_service import update_household
@@ -87,6 +87,7 @@ def test_update_household():
 
         db.refresh(hh)
         assert hh.name == "Nyt Husstandsnavn"
+
 
 def test_list_households_bypasses_tenant_filter():
     from app.models import current_household_id
@@ -124,6 +125,7 @@ def test_list_households_bypasses_tenant_filter():
         finally:
             current_household_id.reset(token)
 
+
 def test_remove_member_self_removal_and_last_owner_protection():
     from app.services.household_service import remove_member
 
@@ -151,8 +153,7 @@ def test_remove_member_self_removal_and_last_owner_protection():
         # Verify member is removed
         remaining = db.exec(
             select(HouseholdMember).where(
-                HouseholdMember.household_id == hh.id,
-                HouseholdMember.user_id == member.id
+                HouseholdMember.household_id == hh.id, HouseholdMember.user_id == member.id
             )
         ).first()
         assert remaining is None
@@ -163,12 +164,14 @@ def test_remove_member_self_removal_and_last_owner_protection():
         assert exc_info.value.status_code == 400
         assert "last owner" in exc_info.value.detail
 
+
 def test_invite_member_email_normalization():
     from app.schemas.requests import HouseholdInviteRequest
 
     req = HouseholdInviteRequest(email="  MixedCase.User@Example.COM  ")
     assert req.email == "mixedcase.user@example.com"
     assert req.role == "member"
+
 
 def test_update_member_role_and_last_owner_protection():
     from app.services.household_service import update_member_role
@@ -214,6 +217,7 @@ def test_update_member_role_and_last_owner_protection():
         assert exc.value.status_code == 400
         assert "at least one owner" in exc.value.detail
 
+
 def test_update_transaction_category_creates_missing_allocation():
     from app.models import Account, BankConnection, Posting, PostingAllocation
     from app.services.transaction_service import update_transaction_category
@@ -229,7 +233,9 @@ def test_update_transaction_category_creates_missing_allocation():
         db.add(bc)
         db.commit()
 
-        acc = Account(household_id=hh.id, bank_connection_id=bc.id, account_number="1234", name="NemKonto")
+        acc = Account(
+            household_id=hh.id, bank_connection_id=bc.id, account_number="1234", name="NemKonto"
+        )
         db.add(acc)
         db.commit()
 
@@ -246,7 +252,9 @@ def test_update_transaction_category_creates_missing_allocation():
         db.commit()
 
         # Ensure NO PostingAllocation exists yet
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)).first()
+        alloc = db.exec(
+            select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)
+        ).first()
         assert alloc is None
 
         # Update category
@@ -254,9 +262,10 @@ def test_update_transaction_category_creates_missing_allocation():
         assert success is True
 
         # Verify allocation was automatically created with correct household_id and category
-        alloc = db.exec(select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)).first()
+        alloc = db.exec(
+            select(PostingAllocation).where(PostingAllocation.posting_id == posting.id)
+        ).first()
         assert alloc is not None
         assert alloc.category_id == "husholdning|dagligvarer"
         assert alloc.amount_minor == -15000
         assert alloc.household_id == hh.id
-

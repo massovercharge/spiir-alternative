@@ -17,7 +17,7 @@ export function getHouseholdId() {
 
 export function getHeaders() {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;

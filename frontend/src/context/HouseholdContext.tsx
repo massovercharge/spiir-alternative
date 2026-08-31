@@ -47,14 +47,22 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     setHouseholdId(id);
     // Reset all domain queries to prevent data leakage and stale data flashing
     queryClient.resetQueries({
-      predicate: (query) => query.queryKey[0] !== 'households'
+      predicate: (query) => query.queryKey[0] !== 'households',
     });
     // Ensure the households list is fresh
     queryClient.invalidateQueries({ queryKey: ['households'] });
   };
 
   return (
-    <HouseholdContext.Provider value={{ activeHouseholdId, setActiveHousehold, isLoadingHouseholds: isLoading, households: activeHouseholds, deletedHouseholds }}>
+    <HouseholdContext.Provider
+      value={{
+        activeHouseholdId,
+        setActiveHousehold,
+        isLoadingHouseholds: isLoading,
+        households: activeHouseholds,
+        deletedHouseholds,
+      }}
+    >
       {children}
     </HouseholdContext.Provider>
   );

@@ -25,13 +25,19 @@ from app.core.storage import create_backup, ensure_runtime_dirs
 SCHEMA_VERSION = "2026-04-12"
 SCHEMA_LOCK = threading.Lock()
 STOREBOX_UPLOAD_FILENAME = "receipts-upload.json"
+COOP_UPLOAD_FILENAME = "receipts-coop.json"
 STOREBOX_STATIC_SUPPLEMENT_FILENAMES = {"receipts-netto-dump-missing.json"}
 DISCOUNT_PREFIX = "RABAT"
 GROCERY_MERCHANT_KEYS = {
+    "365discount",
     "aldi",
     "bilka",
-    "foetex",
+    "brugsen",
+    "coop",
+    "coop-365",
+    "daglibrugsen",
     "fakta",
+    "foetex",
     "irma",
     "kvickly",
     "lidl",
@@ -46,6 +52,12 @@ MERCHANT_GROUP_RULES: list[tuple[str, re.Pattern[str]]] = [
     ("Netto", re.compile(r"\bnetto\b", re.I)),
     ("Rema 1000", re.compile(r"\brema\s*1000\b|\brema1000\b", re.I)),
     ("Meny", re.compile(r"\bmeny\b", re.I)),
+    ("Kvickly", re.compile(r"\bkvickly\b", re.I)),
+    ("SuperBrugsen", re.compile(r"\bsuper\s*brugsen\b|\bsuperbrugsen\b", re.I)),
+    ("Dagli'Brugsen", re.compile(r"\bdagli'?\s*brugsen\b|\bdaglibrugsen\b|\bbrugsen\b", re.I)),
+    ("365discount", re.compile(r"\b365\s*discount\b|\bcoop\s*365\b|\b365discount\b", re.I)),
+    ("Irma", re.compile(r"\birma\b", re.I)),
+    ("Coop", re.compile(r"\bcoop\b", re.I)),
 ]
 VARIANT_PATTERNS = [
     re.compile(r"\b\d+(?:[.,]\d+)?\s?(?:KG|G|GRAM|GR)\b", re.I),
@@ -340,7 +352,9 @@ def _slugify(value: str | None) -> str:
     if not value:
         return "unknown"
     normalized = unicodedata.normalize("NFKD", value)
-    ascii_like = "".join(character for character in normalized if not unicodedata.combining(character))
+    ascii_like = "".join(
+        character for character in normalized if not unicodedata.combining(character)
+    )
     slug = re.sub(r"[^A-Za-z0-9]+", "-", ascii_like).strip("-").lower()
     return slug or "unknown"
 
@@ -403,7 +417,9 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
         return "semantic:BANANER"
 
     # 4. Pærer (undgå lyspærer som Philips Pære E27)
-    if (token_set & {"PÆRE", "PÆRER"}) and not (token_set & {"PHILIPS", "LED", "E27", "E14", "W", "DÆMPBAR"}):
+    if (token_set & {"PÆRE", "PÆRER"}) and not (
+        token_set & {"PHILIPS", "LED", "E27", "E14", "W", "DÆMPBAR"}
+    ):
         if token_set & ECO_MARKERS:
             return "semantic:ØKO PÆRER"
         return "semantic:PÆRER"
@@ -417,7 +433,9 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
         return "semantic:HAVREDRIK"
 
     # 7. Tomater (undgå suppe, puré, pasta, pesto)
-    if (token_set & {"TOMAT", "TOMATER"}) and not (token_set & {"PURE", "TUBE", "PESTO", "SUPPE", "PASTA", "RISENGRØD", "TOMATPASTA"}):
+    if (token_set & {"TOMAT", "TOMATER"}) and not (
+        token_set & {"PURE", "TUBE", "PESTO", "SUPPE", "PASTA", "RISENGRØD", "TOMATPASTA"}
+    ):
         if token_set & ECO_MARKERS:
             return "semantic:ØKO TOMATER"
         return "semantic:TOMATER"
@@ -431,13 +449,15 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
         return "semantic:PANT"
 
     # 10. Æg
-    if (token_set & EGG_ECO_MARKERS and "ÆG" in token_set) and not (token_set & DISQUALIFY_EGG_TOKENS):
+    if (token_set & EGG_ECO_MARKERS and "ÆG" in token_set) and not (
+        token_set & DISQUALIFY_EGG_TOKENS
+    ):
         count = next((token for token in tokens if token in EGG_COUNT_TOKENS), None)
         if count:
             return f"semantic:ØKO ÆG:{count}"
 
     # 11. Gulerødder
-    if (token_set & {"GULERØDDER", "GULEROD"}):
+    if token_set & {"GULERØDDER", "GULEROD"}:
         if token_set & ECO_MARKERS:
             return "semantic:ØKO GULERØDDER"
         return "semantic:GULERØDDER"
@@ -481,7 +501,9 @@ def _high_confidence_semantic_key(normalized_name: str) -> str | None:
         return "semantic:AUBERGINE"
 
     # 18. Peberfrugt
-    if (token_set & {"PEBER", "PEBERFRUGT", "PEBERFRUGTER", "PEBERSNACK"}) and not (token_set & {"SALT", "KRYDDERI", "CHILI"}):
+    if (token_set & {"PEBER", "PEBERFRUGT", "PEBERFRUGTER", "PEBERSNACK"}) and not (
+        token_set & {"SALT", "KRYDDERI", "CHILI"}
+    ):
         if token_set & ECO_MARKERS:
             return "semantic:ØKO PEBERFRUGTER"
         return "semantic:PEBERFRUGTER"
@@ -600,7 +622,11 @@ def _extract_receipt_merchant_info(raw_receipt: dict[str, Any]) -> tuple[str, st
         m_id = merchant.get("merchantId") or merchant.get("storeId")
         if name:
             return str(name).strip(), str(m_id) if m_id is not None else None
-    name = raw_receipt.get("storeName") or raw_receipt.get("merchantName") or (merchant if isinstance(merchant, str) else None)
+    name = (
+        raw_receipt.get("storeName")
+        or raw_receipt.get("merchantName")
+        or (merchant if isinstance(merchant, str) else None)
+    )
     return str(name or "Ukendt butik").strip(), None
 
 
@@ -632,7 +658,9 @@ def _extract_receipt_lines(raw_receipt: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
-def _parse_purchase_timestamp(raw_receipt: dict[str, Any]) -> tuple[str, str, str | None, int | None]:
+def _parse_purchase_timestamp(
+    raw_receipt: dict[str, Any],
+) -> tuple[str, str, str | None, int | None]:
     purchase_date_str = raw_receipt.get("purchaseDate") or raw_receipt.get("purchaseDateTimeString")
     if not purchase_date_str:
         raise ValueError("Receipt is missing purchaseDate")
@@ -647,7 +675,11 @@ def _parse_purchase_timestamp(raw_receipt: dict[str, Any]) -> tuple[str, str, st
 def _merchant_group(display_name: str, merchant_key: str) -> str | None:
     normalized_name = _normalize_name(display_name)
     for group_name, pattern in MERCHANT_GROUP_RULES:
-        if pattern.search(display_name) or pattern.search(normalized_name) or pattern.search(merchant_key):
+        if (
+            pattern.search(display_name)
+            or pattern.search(normalized_name)
+            or pattern.search(merchant_key)
+        ):
             return group_name
     return display_name or None
 
@@ -674,7 +706,9 @@ def _coerce_quantity(count_raw: Any, total_price_minor: int, is_discount_line: b
 def _safe_unit_price_minor(net_total_minor: int, quantity: float) -> int | None:
     if quantity == 0:
         return None
-    decimal_value = (Decimal(net_total_minor) / Decimal(str(quantity))).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    decimal_value = (Decimal(net_total_minor) / Decimal(str(quantity))).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP
+    )
     return int(decimal_value)
 
 
@@ -682,7 +716,9 @@ def _occurrence_id(receipt_id: str, line_index: int) -> str:
     return f"{receipt_id}:{line_index}"
 
 
-def _cluster_key(product_number: str | None, normalized_name: str, variant_signature: str) -> tuple[str, str, str]:
+def _cluster_key(
+    product_number: str | None, normalized_name: str, variant_signature: str
+) -> tuple[str, str, str]:
     semantic_key = _high_confidence_semantic_key(normalized_name)
     if semantic_key:
         return semantic_key, "semantic_name", "high"
@@ -695,7 +731,9 @@ def _cluster_id(cluster_key: str) -> str:
     return hashlib.sha1(cluster_key.encode("utf-8")).hexdigest()[:16]
 
 
-def _item_key(merchant_key: str, product_number: str | None, normalized_name: str, variant_signature: str) -> str:
+def _item_key(
+    merchant_key: str, product_number: str | None, normalized_name: str, variant_signature: str
+) -> str:
     if product_number:
         return product_number
     return f"{merchant_key}|{normalized_name}|{variant_signature}"
@@ -1048,7 +1086,10 @@ def _deduplicated_receipts(source_dir: Path) -> tuple[dict[str, ReceiptCandidate
                     raw_receipt=raw_receipt,
                 )
             )
-    selected_by_id = {receipt_id: _best_candidate(candidates) for receipt_id, candidates in candidates_by_id.items()}
+    selected_by_id = {
+        receipt_id: _best_candidate(candidates)
+        for receipt_id, candidates in candidates_by_id.items()
+    }
 
     semantic_candidates: dict[tuple[str, str, int, str], list[ReceiptCandidate]] = {}
     selected: dict[str, ReceiptCandidate] = {}
@@ -1084,7 +1125,15 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
     connection = _connect()
     import_run_id = connection.execute(
         "INSERT INTO import_run(started_at, source_path, source_type, status, notes, source_file_count, deduplicated_receipt_count) VALUES(?, ?, ?, ?, ?, ?, ?)",
-        (_utc_now(), str(source_dir), "storebox_json", "running", None, source_file_count, len(selected_receipts)),
+        (
+            _utc_now(),
+            str(source_dir),
+            "storebox_json",
+            "running",
+            None,
+            source_file_count,
+            len(selected_receipts),
+        ),
     ).lastrowid
 
     cluster_stats: dict[str, dict[str, Any]] = {}
@@ -1100,7 +1149,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
             (source_file_count, len(selected_receipts), import_run_id),
         )
 
-        for receipt_id, candidate in sorted(selected_receipts.items(), key=lambda item: item[1].receipt_id):
+        for receipt_id, candidate in sorted(
+            selected_receipts.items(), key=lambda item: item[1].receipt_id
+        ):
             raw_receipt = candidate.raw_receipt
             merchant_name_raw, merchant_id_raw = _extract_receipt_merchant_info(raw_receipt)
             merchant_key = _slugify(merchant_name_raw)
@@ -1117,18 +1168,24 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     1 if _is_grocery_merchant(merchant_key, display_name) else 0,
                 ),
             )
-            merchant_alias_key = hashlib.sha1(f"{merchant_key}|{merchant_id_raw}|{display_name}".encode()).hexdigest()[:16]
+            merchant_alias_key = hashlib.sha1(
+                f"{merchant_key}|{merchant_id_raw}|{display_name}".encode()
+            ).hexdigest()[:16]
             merchant_alias_stats[merchant_alias_key] = {
                 "alias_key": merchant_alias_key,
                 "merchant_key": merchant_key,
                 "raw_merchant_id": merchant_id_raw,
                 "raw_name": display_name,
                 "normalized_name": normalized_merchant_name,
-                "first_seen_receipt_id": merchant_alias_stats.get(merchant_alias_key, {}).get("first_seen_receipt_id", receipt_id),
+                "first_seen_receipt_id": merchant_alias_stats.get(merchant_alias_key, {}).get(
+                    "first_seen_receipt_id", receipt_id
+                ),
                 "last_seen_receipt_id": receipt_id,
             }
 
-            purchase_timestamp, purchase_date, purchase_datetime_raw, purchase_date_epoch_raw = _parse_purchase_timestamp(raw_receipt)
+            purchase_timestamp, purchase_date, purchase_datetime_raw, purchase_date_epoch_raw = (
+                _parse_purchase_timestamp(raw_receipt)
+            )
             receipt_total_minor = _extract_receipt_total_minor(raw_receipt)
             currency = _extract_receipt_currency(raw_receipt)
             receipt_lines = _extract_receipt_lines(raw_receipt)
@@ -1157,7 +1214,15 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 name_raw = str(raw_line.get("name") or raw_line.get("description") or "").strip()
                 extracted_qty, cleaned_name = extract_quantity_and_clean_name(name_raw)
                 normalized_name = _normalize_name(cleaned_name)
-                product_number = str(raw_line.get("productNumber") or raw_line.get("ean") or raw_line.get("sku") or "").strip() or None
+                product_number = (
+                    str(
+                        raw_line.get("productNumber")
+                        or raw_line.get("ean")
+                        or raw_line.get("sku")
+                        or ""
+                    ).strip()
+                    or None
+                )
 
                 tot_p = raw_line.get("totalPrice")
                 if isinstance(tot_p, dict):
@@ -1173,15 +1238,20 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 elif itm_p is not None:
                     item_price_minor = _to_minor(itm_p)
                 else:
-                    item_price_minor = _to_minor(raw_line.get("unitPrice") or raw_line.get("price") or total_price_minor)
+                    item_price_minor = _to_minor(
+                        raw_line.get("unitPrice") or raw_line.get("price") or total_price_minor
+                    )
 
                 is_discount_line = DISCOUNT_PREFIX in normalized_name
-                count_raw = raw_line.get("count") if raw_line.get("count") is not None else raw_line.get("quantity")
+                count_raw = (
+                    raw_line.get("count")
+                    if raw_line.get("count") is not None
+                    else raw_line.get("quantity")
+                )
                 if count_raw is None and extracted_qty is not None:
                     count_raw = extracted_qty
                 is_negative_non_discount_line = (not is_discount_line) and (
-                    (count_raw is not None and float(count_raw) < 0)
-                    or total_price_minor < 0
+                    (count_raw is not None and float(count_raw) < 0) or total_price_minor < 0
                 )
                 line_rows.append(
                     {
@@ -1201,7 +1271,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
 
                 quantity = _coerce_quantity(count_raw, total_price_minor, is_discount_line)
                 variant_signature = _variant_signature(normalized_name)
-                cluster_key, collapse_strategy, confidence = _cluster_key(product_number, normalized_name, variant_signature)
+                cluster_key, collapse_strategy, confidence = _cluster_key(
+                    product_number, normalized_name, variant_signature
+                )
                 cluster_id = _cluster_id(cluster_key)
                 occurrence = {
                     "occurrence_id": _occurrence_id(receipt_id, line_index),
@@ -1214,7 +1286,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     "display_name": cleaned_name,
                     "normalized_name": normalized_name,
                     "variant_signature": variant_signature,
-                    "item_key": _item_key(merchant_key, product_number, normalized_name, variant_signature),
+                    "item_key": _item_key(
+                        merchant_key, product_number, normalized_name, variant_signature
+                    ),
                     "cluster_id": cluster_id,
                     "quantity": quantity,
                     "gross_total_minor": total_price_minor,
@@ -1232,7 +1306,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     {
                         "cluster_id": cluster_id,
                         "cluster_key": cluster_key,
-                        "product_number": product_number if collapse_strategy != "semantic_name" else None,
+                        "product_number": product_number
+                        if collapse_strategy != "semantic_name"
+                        else None,
                         "normalized_name": normalized_name,
                         "variant_signature": variant_signature,
                         "collapse_strategy": collapse_strategy,
@@ -1240,9 +1316,13 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                         "display_name_counts": {},
                     },
                 )
-                cluster_state["display_name_counts"][cleaned_name] = cluster_state["display_name_counts"].get(cleaned_name, 0) + 1
+                cluster_state["display_name_counts"][cleaned_name] = (
+                    cluster_state["display_name_counts"].get(cleaned_name, 0) + 1
+                )
 
-                alias_key = hashlib.sha1(f"{cluster_id}|{product_number}|{cleaned_name}|{normalized_name}|{variant_signature}".encode()).hexdigest()[:16]
+                alias_key = hashlib.sha1(
+                    f"{cluster_id}|{product_number}|{cleaned_name}|{normalized_name}|{variant_signature}".encode()
+                ).hexdigest()[:16]
                 alias_state = alias_stats.setdefault(
                     alias_key,
                     {
@@ -1263,10 +1343,20 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     category_key = str(raw_line.get("category"))
                     category_counts[category_key] = category_counts.get(category_key, 0) + 1
 
-            attributed_discount_total_minor = sum(item["amount_minor"] for item in discounts if item["attribution_status"] == "attributed")
-            unassigned_discount_total_minor = sum(item["amount_minor"] for item in discounts if item["attribution_status"] == "unassigned")
+            attributed_discount_total_minor = sum(
+                item["amount_minor"]
+                for item in discounts
+                if item["attribution_status"] == "attributed"
+            )
+            unassigned_discount_total_minor = sum(
+                item["amount_minor"]
+                for item in discounts
+                if item["attribution_status"] == "unassigned"
+            )
             parsed_item_total_minor = sum(item["net_total_minor"] for item in occurrences)
-            gap_minor = receipt_total_minor - (parsed_item_total_minor - unassigned_discount_total_minor)
+            gap_minor = receipt_total_minor - (
+                parsed_item_total_minor - unassigned_discount_total_minor
+            )
 
             connection.execute(
                 "INSERT INTO receipt(receipt_id, merchant_key, purchase_timestamp, purchase_date, currency, receipt_total_minor, parsed_item_total_minor, attributed_discount_total_minor, unassigned_discount_total_minor, gap_minor, source_type, has_ambiguous_discount_block, raw_receipt_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1311,12 +1401,24 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                     (
                         occurrence["cluster_id"],
                         occurrence["display_name"],
-                        _cluster_key(occurrence["product_number"], occurrence["normalized_name"], occurrence["variant_signature"])[0],
+                        _cluster_key(
+                            occurrence["product_number"],
+                            occurrence["normalized_name"],
+                            occurrence["variant_signature"],
+                        )[0],
                         occurrence["product_number"],
                         occurrence["normalized_name"],
                         occurrence["variant_signature"],
-                        _cluster_key(occurrence["product_number"], occurrence["normalized_name"], occurrence["variant_signature"])[1],
-                        _cluster_key(occurrence["product_number"], occurrence["normalized_name"], occurrence["variant_signature"])[2],
+                        _cluster_key(
+                            occurrence["product_number"],
+                            occurrence["normalized_name"],
+                            occurrence["variant_signature"],
+                        )[1],
+                        _cluster_key(
+                            occurrence["product_number"],
+                            occurrence["normalized_name"],
+                            occurrence["variant_signature"],
+                        )[2],
                     ),
                 )
 
@@ -1388,7 +1490,9 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
                 "UPDATE item_occurrence SET cluster_id = ? WHERE cluster_id = ?",
                 (merged_cluster_id, original_cluster_id),
             )
-            connection.execute("DELETE FROM item_cluster WHERE cluster_id = ?", (original_cluster_id,))
+            connection.execute(
+                "DELETE FROM item_cluster WHERE cluster_id = ?", (original_cluster_id,)
+            )
 
         for cluster_id, cluster_state in cluster_stats.items():
             preferred_display_name = _get_display_name_for_cluster(cluster_state)
@@ -1460,7 +1564,7 @@ def import_storebox_folder(path: str | None = None) -> dict[str, object]:
         connection.execute(
             "UPDATE import_run SET completed_at = ?, status = ?, notes = ? WHERE id = ?",
             (_utc_now(), "failed", str(exc), import_run_id),
-            )
+        )
         connection.commit()
         connection.close()
         raise
@@ -1487,14 +1591,15 @@ def rebuild_kvitteringer_indexes() -> dict[str, object]:
 def replace_storebox_upload(content: bytes, filename: str | None = None) -> dict[str, object]:
     ensure_runtime_dirs()
     source_dir = get_storebox_source_dir().resolve()
-    uploaded_original_filename = (filename or STOREBOX_UPLOAD_FILENAME).strip() or STOREBOX_UPLOAD_FILENAME
+    source_dir.mkdir(parents=True, exist_ok=True)
+    uploaded_original_filename = (
+        filename or STOREBOX_UPLOAD_FILENAME
+    ).strip() or STOREBOX_UPLOAD_FILENAME
     validated_receipts = _validate_uploaded_storebox_receipts(content, uploaded_original_filename)
-    replaceable_source_files = [path for path in _storebox_files(source_dir) if path.name not in STOREBOX_STATIC_SUPPLEMENT_FILENAMES]
-    replaced_source_files = [path.name for path in replaceable_source_files]
     target_path = source_dir / STOREBOX_UPLOAD_FILENAME
 
-    for path in replaceable_source_files:
-        path.unlink()
+    if target_path.exists():
+        target_path.unlink()
 
     with tempfile.NamedTemporaryFile("wb", dir=source_dir, delete=False) as handle:
         handle.write(content)
@@ -1507,7 +1612,35 @@ def replace_storebox_upload(content: bytes, filename: str | None = None) -> dict
             "validated_receipt_count": len(validated_receipts),
             "uploaded_original_filename": uploaded_original_filename,
             "uploaded_source_file": target_path.name,
-            "replaced_source_files": replaced_source_files,
+            "replaced_source_files": [STOREBOX_UPLOAD_FILENAME],
+        }
+    )
+    return result
+
+
+def replace_coop_upload(content: bytes, filename: str | None = None) -> dict[str, object]:
+    ensure_runtime_dirs()
+    source_dir = get_storebox_source_dir().resolve()
+    source_dir.mkdir(parents=True, exist_ok=True)
+    uploaded_original_filename = (filename or COOP_UPLOAD_FILENAME).strip() or COOP_UPLOAD_FILENAME
+    validated_receipts = _validate_uploaded_storebox_receipts(content, uploaded_original_filename)
+    target_path = source_dir / COOP_UPLOAD_FILENAME
+
+    if target_path.exists():
+        target_path.unlink()
+
+    with tempfile.NamedTemporaryFile("wb", dir=source_dir, delete=False) as handle:
+        handle.write(content)
+        temp_path = Path(handle.name)
+    temp_path.replace(target_path)
+
+    result = import_storebox_folder()
+    result.update(
+        {
+            "validated_receipt_count": len(validated_receipts),
+            "uploaded_original_filename": uploaded_original_filename,
+            "uploaded_source_file": target_path.name,
+            "replaced_source_files": [COOP_UPLOAD_FILENAME],
         }
     )
     return result
@@ -1525,6 +1658,17 @@ def _last_import_run() -> dict[str, Any] | None:
         return dict(row)
 
 
+def _recent_import_runs(limit: int = 10) -> list[dict[str, Any]]:
+    if not _database_exists():
+        return []
+    with _connect() as connection:
+        rows = connection.execute(
+            "SELECT id, started_at, completed_at, source_path, source_type, status, notes, source_file_count, deduplicated_receipt_count FROM import_run ORDER BY id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
 def get_kvitteringer_status() -> dict[str, object]:
     source_dir = get_storebox_source_dir().resolve()
     database_path = get_kvitteringer_db_path().resolve()
@@ -1536,24 +1680,52 @@ def get_kvitteringer_status() -> dict[str, object]:
             "database_exists": False,
             "source_file_count": source_file_count,
             "receipt_count": 0,
+            "matched_receipt_count": 0,
+            "matched_transaction_count": 0,
+            "match_rate_percent": 0.0,
             "merchant_count": 0,
             "item_cluster_count": 0,
+            "sources": {"storebox": 0, "coop": 0},
             "last_import_run": None,
+            "recent_import_runs": [],
         }
 
     with _connect() as connection:
-        counts = {
-            "receipt_count": connection.execute("SELECT COUNT(*) FROM receipt").fetchone()[0],
-            "merchant_count": connection.execute("SELECT COUNT(*) FROM merchant").fetchone()[0],
-            "item_cluster_count": connection.execute("SELECT COUNT(*) FROM item_cluster").fetchone()[0],
-        }
+        receipt_count = connection.execute("SELECT COUNT(*) FROM receipt").fetchone()[0]
+        merchant_count = connection.execute("SELECT COUNT(*) FROM merchant").fetchone()[0]
+        item_cluster_count = connection.execute("SELECT COUNT(*) FROM item_cluster").fetchone()[0]
+        matched_receipt_count = connection.execute(
+            "SELECT COUNT(DISTINCT receipt_id) FROM peng_receipt_link"
+        ).fetchone()[0]
+        matched_transaction_count = connection.execute(
+            "SELECT COUNT(DISTINCT transaction_id) FROM peng_receipt_link"
+        ).fetchone()[0]
+
+        coop_count = connection.execute(
+            "SELECT COUNT(*) FROM receipt WHERE source_type LIKE '%coop%' OR merchant_key LIKE '%365%' OR merchant_key LIKE '%kvickly%' OR merchant_key LIKE '%brugsen%'"
+        ).fetchone()[0]
+        storebox_count = max(0, receipt_count - coop_count)
+        match_rate = (
+            round((matched_receipt_count / receipt_count * 100), 1) if receipt_count > 0 else 0.0
+        )
+
     return {
         "source_dir": str(source_dir),
         "database_path": str(database_path),
         "database_exists": True,
         "source_file_count": source_file_count,
-        **counts,
+        "receipt_count": receipt_count,
+        "matched_receipt_count": matched_receipt_count,
+        "matched_transaction_count": matched_transaction_count,
+        "match_rate_percent": match_rate,
+        "merchant_count": merchant_count,
+        "item_cluster_count": item_cluster_count,
+        "sources": {
+            "storebox": storebox_count,
+            "coop": coop_count,
+        },
         "last_import_run": _last_import_run(),
+        "recent_import_runs": _recent_import_runs(10),
     }
 
 
@@ -1673,17 +1845,25 @@ def _merge_uncategorized_exact_name_clusters(
             continue
         preferred_display_name = _get_display_name_for_cluster(cluster_state)
         merge_groups.setdefault(
-            (preferred_display_name, cluster_state["normalized_name"], cluster_state["variant_signature"]),
+            (
+                preferred_display_name,
+                cluster_state["normalized_name"],
+                cluster_state["variant_signature"],
+            ),
             [],
         ).append(cluster_id)
 
     cluster_remap: dict[str, str] = {}
     created_cluster_ids: set[str] = set()
     for preferred_display_name, normalized_name, variant_signature in sorted(merge_groups):
-        group_cluster_ids = merge_groups[(preferred_display_name, normalized_name, variant_signature)]
+        group_cluster_ids = merge_groups[
+            (preferred_display_name, normalized_name, variant_signature)
+        ]
         if len(group_cluster_ids) < 2:
             continue
-        merged_cluster_key = f"exact_name:{preferred_display_name}|{normalized_name}|{variant_signature}"
+        merged_cluster_key = (
+            f"exact_name:{preferred_display_name}|{normalized_name}|{variant_signature}"
+        )
         merged_cluster_id = _cluster_id(merged_cluster_key)
         merged_state = {
             "cluster_id": merged_cluster_id,
@@ -1701,9 +1881,13 @@ def _merge_uncategorized_exact_name_clusters(
             cluster_remap[cluster_id] = merged_cluster_id
             cluster_state = cluster_stats.pop(cluster_id)
             for display_name, count in cluster_state["display_name_counts"].items():
-                merged_state["display_name_counts"][display_name] = merged_state["display_name_counts"].get(display_name, 0) + count
+                merged_state["display_name_counts"][display_name] = (
+                    merged_state["display_name_counts"].get(display_name, 0) + count
+                )
             for category_key, count in category_stats.pop(cluster_id, {}).items():
-                merged_category_counts[category_key] = merged_category_counts.get(category_key, 0) + count
+                merged_category_counts[category_key] = (
+                    merged_category_counts.get(category_key, 0) + count
+                )
 
         cluster_stats[merged_cluster_id] = merged_state
         if merged_category_counts:
@@ -1712,7 +1896,9 @@ def _merge_uncategorized_exact_name_clusters(
 
     if cluster_remap:
         for alias_state in alias_stats.values():
-            alias_state["cluster_id"] = cluster_remap.get(alias_state["cluster_id"], alias_state["cluster_id"])
+            alias_state["cluster_id"] = cluster_remap.get(
+                alias_state["cluster_id"], alias_state["cluster_id"]
+            )
 
     return cluster_remap, created_cluster_ids
 
@@ -1732,7 +1918,9 @@ def _set_category_assignment(
     )
 
 
-def _category_override_record(cluster_id: str, preferred_display_name: str, category_key: str) -> dict[str, str]:
+def _category_override_record(
+    cluster_id: str, preferred_display_name: str, category_key: str
+) -> dict[str, str]:
     return {
         "cluster_id": cluster_id,
         "preferred_display_name": preferred_display_name,
@@ -1757,8 +1945,12 @@ def _read_category_override_file() -> dict[str, dict[str, str]]:
         category_key = _validated_category_override_key(item.get("category_key"))
         if not cluster_id or category_key is None:
             continue
-        preferred_display_name = str(item.get("preferred_display_name") or cluster_id).strip() or cluster_id
-        result[cluster_id] = _category_override_record(cluster_id, preferred_display_name, category_key)
+        preferred_display_name = (
+            str(item.get("preferred_display_name") or cluster_id).strip() or cluster_id
+        )
+        result[cluster_id] = _category_override_record(
+            cluster_id, preferred_display_name, category_key
+        )
     return result
 
 
@@ -1770,10 +1962,15 @@ def _write_category_override_file(overrides: dict[str, dict[str, str]]) -> None:
         "updated_at": _utc_now(),
         "overrides": sorted(
             overrides.values(),
-            key=lambda item: (str(item.get("preferred_display_name") or ""), str(item.get("cluster_id") or "")),
+            key=lambda item: (
+                str(item.get("preferred_display_name") or ""),
+                str(item.get("cluster_id") or ""),
+            ),
         ),
     }
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=path.parent, delete=False
+    ) as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2, sort_keys=False)
         handle.write("\n")
         temp_path = Path(handle.name)
@@ -1843,7 +2040,9 @@ def list_receipts(
 ) -> list[dict[str, object]]:
     if not _database_exists():
         return []
-    where_clause, args = _build_filters(table_alias="r", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys)
+    where_clause, args = _build_filters(
+        table_alias="r", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys
+    )
     query = (
         "SELECT r.receipt_id, r.merchant_key, m.display_name AS merchant_name, r.purchase_timestamp, r.purchase_date, r.currency, "
         "r.receipt_total_minor, r.parsed_item_total_minor, r.attributed_discount_total_minor, r.unassigned_discount_total_minor, "
@@ -1974,7 +2173,9 @@ def list_merchants(
 ) -> list[dict[str, object]]:
     if not _database_exists():
         return []
-    where_clause, args = _build_filters(table_alias="r", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys)
+    where_clause, args = _build_filters(
+        table_alias="r", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys
+    )
     query = (
         "WITH merchant_receipts AS ("
         "SELECT r.merchant_key, COUNT(*) AS receipt_count, SUM(r.receipt_total_minor) AS spend_minor, "
@@ -2142,8 +2343,12 @@ def kvitteringer_overview(
         "totals": {
             "receipt_count": sum(item["receipt_count"] for item in period_summaries),
             "total_spend_minor": sum(item["total_spend_minor"] for item in period_summaries),
-            "attributed_discount_minor": sum(item["attributed_discount_minor"] for item in period_summaries),
-            "unassigned_discount_minor": sum(item["unassigned_discount_minor"] for item in period_summaries),
+            "attributed_discount_minor": sum(
+                item["attributed_discount_minor"] for item in period_summaries
+            ),
+            "unassigned_discount_minor": sum(
+                item["unassigned_discount_minor"] for item in period_summaries
+            ),
             "gap_minor": sum(item["gap_minor"] for item in period_summaries),
             "values": {item["period"]: item["total_spend_minor"] for item in period_summaries},
         },
@@ -2205,11 +2410,11 @@ def kvitteringer_overview_sunburst(
         "JOIN item_cluster c ON c.cluster_id = o.cluster_id "
         "LEFT JOIN category_assignment ca ON ca.cluster_id = c.cluster_id "
         f"WHERE {occurrence_period_expr} IN ({period_placeholders}) AND o.net_total_minor > 0{merchant_occurrence_clause} "
-            "GROUP BY o.merchant_key, m.display_name, COALESCE(ca.category_key, 'uncategorized'), c.cluster_id, c.preferred_display_name "
-            "ORDER BY m.display_name, COALESCE(ca.category_key, 'uncategorized'), spend_minor DESC, c.preferred_display_name"
+        "GROUP BY o.merchant_key, m.display_name, COALESCE(ca.category_key, 'uncategorized'), c.cluster_id, c.preferred_display_name "
+        "ORDER BY m.display_name, COALESCE(ca.category_key, 'uncategorized'), spend_minor DESC, c.preferred_display_name"
     )
     receipt_totals_query = (
-            f"SELECT SUM(r.receipt_total_minor) AS receipt_total_minor, SUM(r.unassigned_discount_total_minor) AS unassigned_discount_total_minor "
+        f"SELECT SUM(r.receipt_total_minor) AS receipt_total_minor, SUM(r.unassigned_discount_total_minor) AS unassigned_discount_total_minor "
         "FROM receipt r "
         f"WHERE {receipt_period_expr} IN ({period_placeholders}){merchant_receipt_clause}"
     )
@@ -2302,13 +2507,21 @@ def kvitteringer_overview_sunburst(
         nodes.extend(
             sorted(
                 category_nodes.values(),
-                key=lambda item: (-int(item["value_minor"]), str(item["label"]), str(item["merchant_key"])),
+                key=lambda item: (
+                    -int(item["value_minor"]),
+                    str(item["label"]),
+                    str(item["merchant_key"]),
+                ),
             )
         )
         nodes.extend(
             sorted(
                 item_nodes,
-                key=lambda item: (-int(item["value_minor"]), str(item["label"]), str(item["merchant_key"])),
+                key=lambda item: (
+                    -int(item["value_minor"]),
+                    str(item["label"]),
+                    str(item["merchant_key"]),
+                ),
             )
         )
 
@@ -2316,9 +2529,19 @@ def kvitteringer_overview_sunburst(
         "granularity": granularity,
         "periods": normalized_periods,
         "positive_net_spend_minor": positive_net_spend_minor,
-        "receipt_total_minor": int((receipt_totals_row["receipt_total_minor"] or 0) if receipt_totals_row else 0),
-        "unassigned_discount_minor": int((receipt_totals_row["unassigned_discount_total_minor"] or 0) if receipt_totals_row else 0),
-        "excluded_negative_net_spend_minor": int((negative_totals_row["excluded_negative_net_spend_minor"] or 0) if negative_totals_row else 0),
+        "receipt_total_minor": int(
+            (receipt_totals_row["receipt_total_minor"] or 0) if receipt_totals_row else 0
+        ),
+        "unassigned_discount_minor": int(
+            (receipt_totals_row["unassigned_discount_total_minor"] or 0)
+            if receipt_totals_row
+            else 0
+        ),
+        "excluded_negative_net_spend_minor": int(
+            (negative_totals_row["excluded_negative_net_spend_minor"] or 0)
+            if negative_totals_row
+            else 0
+        ),
         "nodes": nodes,
     }
 
@@ -2332,10 +2555,16 @@ def list_item_clusters(
 ) -> list[dict[str, object]]:
     if not _database_exists():
         return []
-    where_clause, args = _build_filters(table_alias="o", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys)
+    where_clause, args = _build_filters(
+        table_alias="o", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys
+    )
     search_clause = ""
     if search:
-        search_clause = " AND (UPPER(c.preferred_display_name) LIKE ? OR UPPER(c.normalized_name) LIKE ?)" if where_clause else " WHERE (UPPER(c.preferred_display_name) LIKE ? OR UPPER(c.normalized_name) LIKE ?)"
+        search_clause = (
+            " AND (UPPER(c.preferred_display_name) LIKE ? OR UPPER(c.normalized_name) LIKE ?)"
+            if where_clause
+            else " WHERE (UPPER(c.preferred_display_name) LIKE ? OR UPPER(c.normalized_name) LIKE ?)"
+        )
         search_term = f"%{search.upper()}%"
         args.extend([search_term, search_term])
     query = (
@@ -2405,7 +2634,9 @@ def get_item_cluster(cluster_id: str) -> dict[str, object] | None:
     }
 
 
-def set_item_cluster_category_override(cluster_id: str, category_key: str | None) -> dict[str, object] | None:
+def set_item_cluster_category_override(
+    cluster_id: str, category_key: str | None
+) -> dict[str, object] | None:
     normalized_category_key = _validated_category_override_key(category_key)
     if not _database_exists():
         return None
@@ -2467,7 +2698,9 @@ def item_purchase_history(
 ) -> list[dict[str, object]]:
     if not _database_exists():
         return []
-    where_clause, args = _build_filters(table_alias="o", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys)
+    where_clause, args = _build_filters(
+        table_alias="o", date_from=date_from, date_to=date_to, merchant_keys=merchant_keys
+    )
     cluster_clause = " AND o.cluster_id = ?" if where_clause else " WHERE o.cluster_id = ?"
     args.append(cluster_id)
     query = (
@@ -2499,7 +2732,9 @@ def item_price_history(
 ) -> list[dict[str, object]]:
     return [
         item
-        for item in item_purchase_history(cluster_id, date_from=date_from, date_to=date_to, merchant_keys=merchant_keys)
+        for item in item_purchase_history(
+            cluster_id, date_from=date_from, date_to=date_to, merchant_keys=merchant_keys
+        )
         if (item.get("unit_price_minor") or 0) > 0 and not item.get("is_return")
     ]
 
@@ -2614,7 +2849,11 @@ def _basket_outliers() -> list[dict[str, object]]:
             if len(values) < 3:
                 continue
             baseline = int(round(statistics.median(values)))
-            threshold = int((Decimal(baseline) * RECEIPT_BASKET_OUTLIER_FACTOR).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            threshold = int(
+                (Decimal(baseline) * RECEIPT_BASKET_OUTLIER_FACTOR).quantize(
+                    Decimal("1"), rounding=ROUND_HALF_UP
+                )
+            )
             for row in receipt_rows:
                 if row["receipt_total_minor"] <= threshold:
                     continue
@@ -2641,7 +2880,7 @@ def kvitteringer_outliers() -> dict[str, object]:
 
 
 def _transaction_date(payload: dict[str, Any]) -> date | None:
-    booking_date = payload.get("booking_date")
+    booking_date = payload.get("booking_date") or payload.get("date")
     if isinstance(booking_date, date):
         return booking_date
     if booking_date:
@@ -2666,7 +2905,13 @@ RETAIL_BRAND_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("NEMLIG", re.compile(r"\bnemlig\b", re.IGNORECASE)),
     ("WOLT", re.compile(r"\bwolt\b", re.IGNORECASE)),
     ("JUST_EAT", re.compile(r"\bjust\s*eat\b", re.IGNORECASE)),
-    ("COOP", re.compile(r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta)\b", re.IGNORECASE)),
+    (
+        "COOP",
+        re.compile(
+            r"\b(?:coop|kvickly|superbrugsen|daglibrugsen|365\s*discount|coop\s*365|irma|fakta)\b",
+            re.IGNORECASE,
+        ),
+    ),
     ("MATAS", re.compile(r"\bmatas\b", re.IGNORECASE)),
     ("NORMAL", re.compile(r"\bnormal\b", re.IGNORECASE)),
     ("7ELEVEN", re.compile(r"\b(?:7\s*eleven|7eleven|seven\s*eleven)\b", re.IGNORECASE)),
@@ -2703,12 +2948,28 @@ RETAIL_BRAND_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 GENERIC_MERCHANT_NOISE_TOKENS = {
-    "NOTANR", "DK", "DANMARK", "KORT", "DANKORT", "VISA", "MASTERCARD",
-    "KOEB", "KOB", "BUTIK", "SUPERMARKED", "AFDELING", "STORE", "SHOP", "PAY", "MOBILEPAY"
+    "NOTANR",
+    "DK",
+    "DANMARK",
+    "KORT",
+    "DANKORT",
+    "VISA",
+    "MASTERCARD",
+    "KOEB",
+    "KOB",
+    "BUTIK",
+    "SUPERMARKED",
+    "AFDELING",
+    "STORE",
+    "SHOP",
+    "PAY",
+    "MOBILEPAY",
 }
 
 
-def _description_matches_merchant(description: str | None, merchant_name: str, merchant_key: str) -> bool:
+def _description_matches_merchant(
+    description: str | None, merchant_name: str, merchant_key: str
+) -> bool:
     if not description:
         return False
     norm_desc = _normalize_name(description)
@@ -2717,7 +2978,11 @@ def _description_matches_merchant(description: str | None, merchant_name: str, m
 
     # 1. Retail brand match
     for _, pattern in RETAIL_BRAND_PATTERNS:
-        in_merchant = bool(pattern.search(merchant_name) or pattern.search(norm_merchant) or pattern.search(merchant_key))
+        in_merchant = bool(
+            pattern.search(merchant_name)
+            or pattern.search(norm_merchant)
+            or pattern.search(merchant_key)
+        )
         in_desc = bool(pattern.search(description) or pattern.search(norm_desc))
         if in_merchant and in_desc:
             return True
@@ -2726,19 +2991,23 @@ def _description_matches_merchant(description: str | None, merchant_name: str, m
     clean_desc = re.sub(r"[^A-Z0-9]+", "", norm_desc)
     clean_merchant = re.sub(r"[^A-Z0-9]+", "", norm_merchant)
     clean_key = re.sub(r"[^A-Z0-9]+", "", norm_key)
-    if clean_merchant and len(clean_merchant) >= 3 and (clean_merchant in clean_desc or clean_desc in clean_merchant):
+    if (
+        clean_merchant
+        and len(clean_merchant) >= 3
+        and (clean_merchant in clean_desc or clean_desc in clean_merchant)
+    ):
         return True
     if clean_key and len(clean_key) >= 3 and (clean_key in clean_desc or clean_desc in clean_key):
         return True
 
     # 3. Word Token Overlap (store/city/brand tokens >= 3 letters)
     merchant_tokens = {
-        t for t in re.findall(r"[A-Z0-9]{3,}", norm_merchant + " " + norm_key)
+        t
+        for t in re.findall(r"[A-Z0-9]{3,}", norm_merchant + " " + norm_key)
         if t not in GENERIC_MERCHANT_NOISE_TOKENS
     }
     desc_tokens = {
-        t for t in re.findall(r"[A-Z0-9]{3,}", norm_desc)
-        if t not in GENERIC_MERCHANT_NOISE_TOKENS
+        t for t in re.findall(r"[A-Z0-9]{3,}", norm_desc) if t not in GENERIC_MERCHANT_NOISE_TOKENS
     }
     return bool(merchant_tokens and desc_tokens and (merchant_tokens & desc_tokens))
 
@@ -2800,7 +3069,9 @@ def link_peng_transaction_to_receipt(payload: dict[str, Any]) -> dict[str, objec
         strong_candidates = [
             row
             for row in rows
-            if _description_matches_merchant(payload.get("description"), row["merchant_name"], row["merchant_key"])
+            if _description_matches_merchant(
+                payload.get("description"), row["merchant_name"], row["merchant_key"]
+            )
         ]
         if not strong_candidates:
             return {
@@ -2883,7 +3154,9 @@ def find_suggested_receipts(
                 (min_date, max_date),
             ).fetchall()
             for row in all_nearby:
-                if _description_matches_merchant(description, row["merchant_name"], row["merchant_key"]):
+                if _description_matches_merchant(
+                    description, row["merchant_name"], row["merchant_key"]
+                ):
                     merchant_rows.append(row)
 
         # Merge and deduplicate candidates by receipt_id
@@ -2903,8 +3176,12 @@ def find_suggested_receipts(
                 (rid,),
             ).fetchall()
 
-            desc_match = _description_matches_merchant(description, r["merchant_name"], r["merchant_key"]) if description else False
-            amt_match = (r["receipt_total_minor"] == target_amount_minor)
+            desc_match = (
+                _description_matches_merchant(description, r["merchant_name"], r["merchant_key"])
+                if description
+                else False
+            )
+            amt_match = r["receipt_total_minor"] == target_amount_minor
 
             date_diff = 999
             if transaction_date and r["purchase_date"]:
@@ -2929,20 +3206,22 @@ def find_suggested_receipts(
                 for occ in occ_rows
             ]
 
-            results.append({
-                "receipt_id": rid,
-                "merchant_name": r["merchant_name"],
-                "merchant_key": r["merchant_key"],
-                "purchase_date": r["purchase_date"],
-                "purchase_timestamp": r["purchase_timestamp"],
-                "total_price_minor": r["receipt_total_minor"],
-                "currency": r["currency"] or "DKK",
-                "confidence": confidence,
-                "date_diff_days": date_diff if date_diff != 999 else None,
-                "is_exact_amount": amt_match,
-                "is_merchant_match": desc_match,
-                "items_preview": items_preview,
-            })
+            results.append(
+                {
+                    "receipt_id": rid,
+                    "merchant_name": r["merchant_name"],
+                    "merchant_key": r["merchant_key"],
+                    "purchase_date": r["purchase_date"],
+                    "purchase_timestamp": r["purchase_timestamp"],
+                    "total_price_minor": r["receipt_total_minor"],
+                    "currency": r["currency"] or "DKK",
+                    "confidence": confidence,
+                    "date_diff_days": date_diff if date_diff != 999 else None,
+                    "is_exact_amount": amt_match,
+                    "is_merchant_match": desc_match,
+                    "items_preview": items_preview,
+                }
+            )
 
         def sort_key(item: dict[str, Any]) -> tuple[int, int, int]:
             conf_rank = {"high": 0, "medium": 1, "suggested": 2}.get(str(item.get("confidence")), 3)
@@ -2952,4 +3231,3 @@ def find_suggested_receipts(
 
         results.sort(key=sort_key)
         return results[:limit]
-

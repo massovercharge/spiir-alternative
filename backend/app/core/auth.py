@@ -10,6 +10,7 @@ The `get_auth_dependency` now not only verifies the JWT but also ensures
 the user exists in the database, has a default Household, and sets the
 `current_household_id` contextvar based on the `X-Household-Id` header.
 """
+
 from __future__ import annotations
 
 import os
@@ -31,9 +32,13 @@ AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "none").strip().lower()
 # Core User/Household Sync
 # ---------------------------------------------------------------------------
 
-def _sync_user_and_household(request: Request, logto_id: str, email: str = "", name: str = "") -> dict[str, Any]:
+
+def _sync_user_and_household(
+    request: Request, logto_id: str, email: str = "", name: str = ""
+) -> dict[str, Any]:
     """Ensure user exists, validate household access, and set contextvar."""
     from sqlmodel import func
+
     email = email.lower().strip() if email else ""
     try:
         with Session(models.engine) as session:
@@ -74,22 +79,23 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
                 if email:
                     pending_users = session.exec(
                         select(User).where(
-                            func.lower(User.email) == email,
-                            User.logto_id.startswith("pending:")
+                            func.lower(User.email) == email, User.logto_id.startswith("pending:")
                         )
                     ).all()
 
                     for pending_user in pending_users:
                         # Transfer memberships from pending to real user
                         memberships = session.exec(
-                            select(HouseholdMember).where(HouseholdMember.user_id == pending_user.id)
+                            select(HouseholdMember).where(
+                                HouseholdMember.user_id == pending_user.id
+                            )
                         ).all()
                         for m in memberships:
                             # Avoid duplicate memberships
                             existing = session.exec(
                                 select(HouseholdMember).where(
                                     HouseholdMember.user_id == user.id,
-                                    HouseholdMember.household_id == m.household_id
+                                    HouseholdMember.household_id == m.household_id,
                                 )
                             ).first()
                             if not existing:
@@ -124,7 +130,7 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
                 membership = session.exec(
                     select(HouseholdMember).where(
                         HouseholdMember.user_id == user.id,
-                        HouseholdMember.household_id == requested_hh_id
+                        HouseholdMember.household_id == requested_hh_id,
                     )
                 ).first()
                 if not membership:
@@ -158,8 +164,10 @@ def _sync_user_and_household(request: Request, logto_id: str, email: str = "", n
             }
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         raise e
+
 
 # ---------------------------------------------------------------------------
 # Provider: none (no authentication)
@@ -221,14 +229,15 @@ LOGTO_ENDPOINT = os.getenv("LOGTO_ENDPOINT", "").rstrip("/")
 LOGTO_API_RESOURCE = os.getenv("LOGTO_API_RESOURCE", "")
 JWKS_URL = os.getenv("LOGTO_JWKS_URL", f"{LOGTO_ENDPOINT}/oidc/jwks" if LOGTO_ENDPOINT else "")
 
-jwks_client = PyJWKClient(
-    JWKS_URL,
-    headers={"User-Agent": "Mozilla/5.0 (compatible; Peng/1.0)"}
-) if JWKS_URL else None
+jwks_client = (
+    PyJWKClient(JWKS_URL, headers={"User-Agent": "Mozilla/5.0 (compatible; Peng/1.0)"})
+    if JWKS_URL
+    else None
+)
+
 
 async def _verify_logto(
-    request: Request,
-    token: HTTPBasicCredentials | None = Depends(_bearer_scheme)
+    request: Request, token: HTTPBasicCredentials | None = Depends(_bearer_scheme)
 ) -> dict[str, Any]:
     """Validate JWT token issued by Logto."""
     if not LOGTO_ENDPOINT or not LOGTO_API_RESOURCE:
@@ -253,27 +262,46 @@ async def _verify_logto(
             audience=LOGTO_API_RESOURCE,
             issuer=f"{LOGTO_ENDPOINT}/oidc",
         )
-        email = payload.get("email") or payload.get("primary_email") or payload.get("username") or payload.get("preferred_username") or ""
-        name = payload.get("name") or payload.get("username") or payload.get("preferred_username") or ""
+        email = (
+            payload.get("email")
+            or payload.get("primary_email")
+            or payload.get("username")
+            or payload.get("preferred_username")
+            or ""
+        )
+        name = (
+            payload.get("name")
+            or payload.get("username")
+            or payload.get("preferred_username")
+            or ""
+        )
 
         if (not email or not name) and LOGTO_ENDPOINT and token.credentials:
             try:
                 import httpx
+
                 resp = httpx.get(
                     f"{LOGTO_ENDPOINT}/oidc/me",
                     headers={"Authorization": f"Bearer {token.credentials}"},
-                    timeout=3.0
+                    timeout=3.0,
                 )
                 if resp.status_code == 200:
                     info = resp.json()
                     email = email or info.get("email") or info.get("primary_email") or ""
-                    name = name or info.get("name") or info.get("username") or info.get("preferred_username") or ""
+                    name = (
+                        name
+                        or info.get("name")
+                        or info.get("username")
+                        or info.get("preferred_username")
+                        or ""
+                    )
             except Exception:
                 pass
 
         return _sync_user_and_household(request, payload.get("sub"), email, name)
     except jwt.PyJWKClientError as e:
         import traceback
+
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Could not fetch JWKS") from e
     except jwt.ExpiredSignatureError as e:
@@ -282,6 +310,7 @@ async def _verify_logto(
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -298,8 +327,7 @@ _PROVIDERS = {
 
 
 def get_auth_dependency():
-    """Return the appropriate auth dependency based on AUTH_PROVIDER.
-    """
+    """Return the appropriate auth dependency based on AUTH_PROVIDER."""
     provider = _PROVIDERS.get(AUTH_PROVIDER)
     if provider is None:
         raise ValueError(

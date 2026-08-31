@@ -14,14 +14,14 @@ try:
     bills = cur.fetchall()
 
     for cat_id, amount_minor in bills:
-        parts = cat_id.split('|')
+        parts = cat_id.split("|")
         main_name = parts[0].capitalize()
-        sub_name = parts[1].replace('-', ' ').capitalize() if len(parts) > 1 else main_name
+        sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
         cat_type = "Income" if amount_minor > 0 else "Expense"
 
         cur.execute(
             "INSERT INTO category (id, main_name, sub_name, category_type, expense_type) VALUES (?, ?, ?, ?, ?)",
-            (cat_id, main_name, sub_name, cat_type, "Fixed")
+            (cat_id, main_name, sub_name, cat_type, "Fixed"),
         )
         print(f"Inserted Category from Bill: {cat_id}")
 
@@ -35,14 +35,14 @@ try:
     budgets = cur.fetchall()
 
     for cat_id, amount_minor in budgets:
-        parts = cat_id.split('|')
+        parts = cat_id.split("|")
         main_name = parts[0].capitalize()
-        sub_name = parts[1].replace('-', ' ').capitalize() if len(parts) > 1 else main_name
+        sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
         cat_type = "Income" if amount_minor > 0 else "Expense"
 
         cur.execute(
             "INSERT INTO category (id, main_name, sub_name, category_type, expense_type) VALUES (?, ?, ?, ?, ?)",
-            (cat_id, main_name, sub_name, cat_type, "Variable")
+            (cat_id, main_name, sub_name, cat_type, "Variable"),
         )
         print(f"Inserted Category from Budget: {cat_id}")
 

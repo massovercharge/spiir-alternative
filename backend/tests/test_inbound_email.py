@@ -256,7 +256,12 @@ def test_merchant_matching_variations():
     assert _description_matches_merchant(desc1, "REMA1000", "rema1000") is True
     assert _description_matches_merchant(desc1, "REMA 1000", "rema-1000") is True
     assert _description_matches_merchant(desc1, "REMA 1000 Tommerup", "rema-1000-tommerup") is True
-    assert _description_matches_merchant(desc1, "REMA1000, Tallerupvej 18-20, 5690, Tommerup", "rema1000") is True
+    assert (
+        _description_matches_merchant(
+            desc1, "REMA1000, Tallerupvej 18-20, 5690, Tommerup", "rema1000"
+        )
+        is True
+    )
 
     # Netto, Føtex, Meny, Matas, Coop
     assert _description_matches_merchant("Dankort-nota NETTO 4321", "Netto", "netto") is True
@@ -310,5 +315,3 @@ def test_suggested_receipts_endpoint(test_client):
     res = test_client.get(f"/api/transactions/{posting.id}/suggested-receipts")
     assert res.status_code == 200
     assert isinstance(res.json(), list)
-
-

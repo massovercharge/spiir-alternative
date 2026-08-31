@@ -1,4 +1,5 @@
 """Inbound email router — Webhooks and household inbound receipt email endpoints."""
+
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -20,6 +21,7 @@ router = APIRouter(tags=["inbound"])
 
 def _verify_webhook_secret(request: Request) -> None:
     from app.core.config import get_inbound_email_webhook_secret
+
     secret = get_inbound_email_webhook_secret()
     if not secret:
         return
@@ -35,6 +37,7 @@ def _verify_webhook_secret(request: Request) -> None:
 # ---------------------------------------------------------------------------
 # Public Inbound Webhooks (Unauthenticated / Token-routed)
 # ---------------------------------------------------------------------------
+
 
 @router.post("/api/inbound/email")
 async def inbound_email_webhook(request: Request) -> dict[str, Any]:
@@ -67,7 +70,9 @@ async def inbound_email_webhook_with_token(token: str, request: Request) -> dict
     from app.models import Household
 
     with Session(models.engine) as db:
-        hh = db.exec(select(Household).where(Household.inbound_email_token == token.lower())).first()
+        hh = db.exec(
+            select(Household).where(Household.inbound_email_token == token.lower())
+        ).first()
         if not hh:
             raise HTTPException(status_code=404, detail="Invalid household token")
         household_id = hh.id
@@ -87,9 +92,38 @@ async def inbound_email_webhook_with_token(token: str, request: Request) -> dict
     return process_inbound_email(body_bytes, household_id=household_id, source_type="webhook")
 
 
+@router.post("/api/inbound/coop/{token}")
+async def inbound_coop_webhook_with_token(token: str, request: Request) -> dict[str, Any]:
+    """Public endpoint for Coop bookmarklet to push receipts directly using household token."""
+    import json
+
+    from sqlmodel import Session, select
+
+    import app.models as models
+    from app.models import Household
+    from app.services.coop_service import process_coop_file
+
+    with Session(models.engine) as db:
+        hh = db.exec(
+            select(Household).where(Household.inbound_email_token == token.lower())
+        ).first()
+        if not hh:
+            raise HTTPException(status_code=404, detail="Invalid household token")
+
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON body") from exc
+
+    raw_bytes = json.dumps(payload).encode("utf-8")
+    return process_coop_file(raw_bytes)
+
+
+
 # ---------------------------------------------------------------------------
 # Authenticated Household Inbound Email Endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.get("/api/households/{household_id}/inbound-config")
 def household_inbound_config(
@@ -176,4 +210,3 @@ def household_inbound_emails_clear(
         return clear_inbound_emails(household_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-

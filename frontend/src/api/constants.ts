@@ -8,5 +8,5 @@ export const SUPPORTED_BANKS = [
   'Spar Nord',
   'Lunar',
   'Revolut',
-  'Revolut (LT)'
+  'Revolut (LT)',
 ];

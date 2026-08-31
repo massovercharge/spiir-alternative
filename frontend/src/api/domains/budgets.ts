@@ -13,7 +13,9 @@ export async function fetchBudgets(year: number, month?: number, categoryId?: st
   params.append('year', year.toString());
   if (month !== undefined) params.append('month', month.toString());
   if (categoryId) params.append('category_id', categoryId);
-  const res = await fetch(`${API_BASE}/api/budgets?${params.toString()}`, { headers: getHeaders() });
+  const res = await fetch(`${API_BASE}/api/budgets?${params.toString()}`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch budgets');
   return res.json();
 }
@@ -29,7 +31,7 @@ export async function upsertBudget(payload: {
   const res = await fetch(`${API_BASE}/api/budgets`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Failed to upsert budget');
   return res.json();
@@ -42,7 +44,7 @@ export async function generateBudgets(months = 12, year?: number) {
   }
   const res = await fetch(url, {
     method: 'POST',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) throw new Error('Failed to generate budgets');
   return res.json();
@@ -55,23 +57,29 @@ export async function applyBudgetSuggestions(months = 12, year?: number) {
   }
   const res = await fetch(url, {
     method: 'POST',
-    headers: getHeaders()
+    headers: getHeaders(),
   });
   if (!res.ok) throw new Error('Failed to apply budget suggestions');
   return res.json();
 }
 
 export async function fetchBudgetBills(categoryId: string, year: number) {
-  const res = await fetch(`${API_BASE}/api/budgets/bills/${categoryId}/${year}`, { headers: getHeaders() });
+  const res = await fetch(`${API_BASE}/api/budgets/bills/${categoryId}/${year}`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch budget bills');
   return res.json();
 }
 
-export async function upsertBudgetBills(payload: { category_id: string; year: number; bills: any[] }) {
+export async function upsertBudgetBills(payload: {
+  category_id: string;
+  year: number;
+  bills: any[];
+}) {
   const res = await fetch(`${API_BASE}/api/budgets/bills`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Failed to upsert budget bills');
   return res.json();
@@ -92,7 +100,7 @@ export function useUpsertBudget() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
-    }
+    },
   });
 }
 
@@ -107,21 +115,23 @@ export function useBudgetsSummary(year: number) {
 export function useGenerateBudgets() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ months, year }: { months?: number, year?: number } = {}) => generateBudgets(months, year),
+    mutationFn: ({ months, year }: { months?: number; year?: number } = {}) =>
+      generateBudgets(months, year),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
-    }
+    },
   });
 }
 
 export function useApplyBudgetSuggestions() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ months, year }: { months?: number, year?: number } = {}) => applyBudgetSuggestions(months, year),
+    mutationFn: ({ months, year }: { months?: number; year?: number } = {}) =>
+      applyBudgetSuggestions(months, year),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
-    }
+    },
   });
 }
 
@@ -139,9 +149,11 @@ export function useSaveBudgetBills() {
   return useMutation({
     mutationFn: upsertBudgetBills,
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['budget-bills', variables.category_id, variables.year] });
+      queryClient.invalidateQueries({
+        queryKey: ['budget-bills', variables.category_id, variables.year],
+      });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-summary'] });
-    }
+    },
   });
 }

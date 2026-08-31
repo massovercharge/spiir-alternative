@@ -133,6 +133,7 @@ def complete_auth_session(code: str) -> dict[str, Any]:
     # Automatisk start synkronisering af transaktioner
     try:
         from app.services.sync_service import start_sync_job
+
         start_sync_job()
     except Exception as e:
         logger.warning("Failed to auto-start sync job: %s", e)

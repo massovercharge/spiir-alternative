@@ -14,6 +14,7 @@ Key concepts:
 - **CategoryOverrideLog**: Anonymous log of user category corrections,
   used as training data for future ML-based auto-categorization.
 """
+
 import contextvars
 import os
 import sys
@@ -54,6 +55,7 @@ def _utcnow_iso() -> str:
     """Return the current UTC timestamp as an ISO string."""
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
+
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     """Enable SQLite foreign keys and WAL mode for high concurrency."""
@@ -73,12 +75,15 @@ def create_db_and_tables() -> None:
         import contextlib
 
         from sqlalchemy import text
+
         with contextlib.suppress(Exception):
             session.exec(text("ALTER TABLE posting ADD COLUMN custom_date VARCHAR;"))
             session.commit()
 
         with contextlib.suppress(Exception):
-            session.exec(text("ALTER TABLE category ADD COLUMN expense_type VARCHAR DEFAULT 'Variable';"))
+            session.exec(
+                text("ALTER TABLE category ADD COLUMN expense_type VARCHAR DEFAULT 'Variable';")
+            )
             session.commit()
 
         with contextlib.suppress(Exception):
@@ -86,7 +91,9 @@ def create_db_and_tables() -> None:
             session.commit()
 
         with contextlib.suppress(Exception):
-            session.exec(text("ALTER TABLE categorizationrule ADD COLUMN partial_match BOOLEAN DEFAULT 0;"))
+            session.exec(
+                text("ALTER TABLE categorizationrule ADD COLUMN partial_match BOOLEAN DEFAULT 0;")
+            )
             session.commit()
 
         with contextlib.suppress(Exception):
@@ -107,7 +114,10 @@ def create_db_and_tables() -> None:
 
         with contextlib.suppress(Exception):
             from sqlmodel import select
-            households = session.exec(select(Household).where(Household.inbound_email_token == None)).all()  # noqa: E711
+
+            households = session.exec(
+                select(Household).where(Household.inbound_email_token.is_(None))
+            ).all()
             for hh in households:
                 hh.inbound_email_token = _generate_inbound_token()
                 session.add(hh)
@@ -130,25 +140,46 @@ def create_db_and_tables() -> None:
         try:
             # Data migration for category expense_type
             from sqlalchemy import text
+
             fixed_categories = [
-                ("indkomst", "løn"), ("indkomst", "pensionsudbetaling"), ("indkomst", "dagpenge/overførselsindkomst"),
-                ("indkomst", "su & studielån"), ("indkomst", "børnepenge"), ("indkomst", "underholds- & børnebidrag"),
-                ("bolig", "boliglån/husleje"), ("bolig", "el, vand, varme & renovation"), ("bolig", "ejerforening"),
-                ("bolig", "ejendomsskat"), ("bolig", "husforsikring"), ("bolig", "indbo- & familieforsikring"),
-                ("bolig", "alarmsystem"), ("bolig", "udgifter fritidshus"), ("transport", "bil-, mc-, bådlån o.l."),
-                ("transport", "bilforsikring & autohjælp"), ("transport", "ejerafgift/grøn afgift"),
-                ("andre leveomkostninger", "underholds- & børnebidrag"), ("andre leveomkostninger", "institution"),
-                ("andre leveomkostninger", "fagforening & a-kasse"), ("andre leveomkostninger", "livs- & ulykkesforsikring"),
-                ("andre leveomkostninger", "sundheds- & sygeforsikring"), ("andre leveomkostninger", "tv & streaming"),
-                ("andre leveomkostninger", "telefoni & internet"), ("lån & gæld", "studielån"),
-                ("lån & gæld", "forbrugslån"), ("lån & gæld", "private lån (venner & familie)"),
-                ("pension & opsparing", "pensionsopsparing"), ("pension & opsparing", "børneopsparing"),
-                ("pension & opsparing", "anden opsparing"), ("indkomst", "boligstøtte"),
+                ("indkomst", "løn"),
+                ("indkomst", "pensionsudbetaling"),
+                ("indkomst", "dagpenge/overførselsindkomst"),
+                ("indkomst", "su & studielån"),
+                ("indkomst", "børnepenge"),
+                ("indkomst", "underholds- & børnebidrag"),
+                ("bolig", "boliglån/husleje"),
+                ("bolig", "el, vand, varme & renovation"),
+                ("bolig", "ejerforening"),
+                ("bolig", "ejendomsskat"),
+                ("bolig", "husforsikring"),
+                ("bolig", "indbo- & familieforsikring"),
+                ("bolig", "alarmsystem"),
+                ("bolig", "udgifter fritidshus"),
+                ("transport", "bil-, mc-, bådlån o.l."),
+                ("transport", "bilforsikring & autohjælp"),
+                ("transport", "ejerafgift/grøn afgift"),
+                ("andre leveomkostninger", "underholds- & børnebidrag"),
+                ("andre leveomkostninger", "institution"),
+                ("andre leveomkostninger", "fagforening & a-kasse"),
+                ("andre leveomkostninger", "livs- & ulykkesforsikring"),
+                ("andre leveomkostninger", "sundheds- & sygeforsikring"),
+                ("andre leveomkostninger", "tv & streaming"),
+                ("andre leveomkostninger", "telefoni & internet"),
+                ("lån & gæld", "studielån"),
+                ("lån & gæld", "forbrugslån"),
+                ("lån & gæld", "private lån (venner & familie)"),
+                ("pension & opsparing", "pensionsopsparing"),
+                ("pension & opsparing", "børneopsparing"),
+                ("pension & opsparing", "anden opsparing"),
+                ("indkomst", "boligstøtte"),
                 ("andre leveomkostninger", "foreninger & kontingenter"),
             ]
             for main_name, sub_name in fixed_categories:
                 session.exec(
-                    text(f"UPDATE category SET expense_type = 'Fixed' WHERE lower(main_name) = '{main_name}' AND lower(sub_name) = '{sub_name}'")
+                    text(
+                        f"UPDATE category SET expense_type = 'Fixed' WHERE lower(main_name) = '{main_name}' AND lower(sub_name) = '{sub_name}'"
+                    )
                 )
         except Exception:
             pass
@@ -158,7 +189,9 @@ def create_db_and_tables() -> None:
 
             from app.core.item_utils import clean_item_name
 
-            allocs = session.exec(select(PostingAllocation).where(PostingAllocation.item_name != None)).all()  # noqa: E711
+            allocs = session.exec(
+                select(PostingAllocation).where(PostingAllocation.item_name.is_not(None))
+            ).all()
             for alloc in allocs:
                 if alloc.item_name:
                     cleaned = clean_item_name(alloc.item_name)
@@ -177,18 +210,28 @@ def create_db_and_tables() -> None:
                 conn = sqlite3.connect(str(kv_path))
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                rows = cur.execute("SELECT occurrence_id, display_name FROM item_occurrence").fetchall()
+                rows = cur.execute(
+                    "SELECT occurrence_id, display_name FROM item_occurrence"
+                ).fetchall()
                 for r in rows:
                     if r["display_name"]:
                         c = clean_item_name(r["display_name"])
                         if c != r["display_name"]:
-                            cur.execute("UPDATE item_occurrence SET display_name = ? WHERE occurrence_id = ?", (c, r["occurrence_id"]))
-                rows_cl = cur.execute("SELECT cluster_id, preferred_display_name FROM item_cluster").fetchall()
+                            cur.execute(
+                                "UPDATE item_occurrence SET display_name = ? WHERE occurrence_id = ?",
+                                (c, r["occurrence_id"]),
+                            )
+                rows_cl = cur.execute(
+                    "SELECT cluster_id, preferred_display_name FROM item_cluster"
+                ).fetchall()
                 for r in rows_cl:
                     if r["preferred_display_name"]:
                         c = clean_item_name(r["preferred_display_name"])
                         if c != r["preferred_display_name"]:
-                            cur.execute("UPDATE item_cluster SET preferred_display_name = ? WHERE cluster_id = ?", (c, r["cluster_id"]))
+                            cur.execute(
+                                "UPDATE item_cluster SET preferred_display_name = ? WHERE cluster_id = ?",
+                                (c, r["cluster_id"]),
+                            )
                 conn.commit()
                 conn.close()
 
@@ -205,6 +248,7 @@ def get_session():
 # Multi-Tenant Isolation Hooks
 # ---------------------------------------------------------------------------
 
+
 @event.listens_for(SASession, "do_orm_execute")
 def _add_tenant_filter(execute_state):
     """Automatically filter SELECT queries by the active household."""
@@ -217,10 +261,16 @@ def _add_tenant_filter(execute_state):
         execute_state.statement = execute_state.statement.options(
             with_loader_criteria(
                 SQLModel,
-                lambda cls: cls.household_id == bindparam("hh_id", callable_=lambda: current_household_id.get()) if hasattr(cls, "household_id") and cls.__name__ != "HouseholdMember" else True,
-                include_aliases=True
+                lambda cls: (
+                    cls.household_id
+                    == bindparam("hh_id", callable_=lambda: current_household_id.get())
+                    if hasattr(cls, "household_id") and cls.__name__ != "HouseholdMember"
+                    else True
+                ),
+                include_aliases=True,
             )
         )
+
 
 @event.listens_for(Mapper, "before_insert")
 def _receive_before_insert(mapper, connection, target):
@@ -238,9 +288,13 @@ def _receive_before_insert(mapper, connection, target):
 # Link tables (must be defined before models that reference them)
 # ---------------------------------------------------------------------------
 
+
 class PostingAllocationTagLink(SQLModel, table=True):
     """Link table for the many-to-many relationship between allocations and tags."""
-    allocation_id: str = Field(foreign_key="postingallocation.id", ondelete="CASCADE", primary_key=True)
+
+    allocation_id: str = Field(
+        foreign_key="postingallocation.id", ondelete="CASCADE", primary_key=True
+    )
     tag_id: str = Field(foreign_key="tag.id", ondelete="CASCADE", primary_key=True)
 
 
@@ -248,21 +302,26 @@ class PostingAllocationTagLink(SQLModel, table=True):
 # Models: Multi-Tenant Identity
 # ---------------------------------------------------------------------------
 
+
 def _generate_inbound_token() -> str:
     return uuid.uuid4().hex[:12]
 
 
 class Household(SQLModel, table=True):
     """A Household groups multiple users and their financial data."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str
-    inbound_email_token: str = Field(default_factory=_generate_inbound_token, unique=True, index=True)
+    inbound_email_token: str = Field(
+        default_factory=_generate_inbound_token, unique=True, index=True
+    )
     created_at: str = Field(default_factory=_utcnow_iso)
     deleted_at: Optional[str] = Field(default=None)
 
 
 class User(SQLModel, table=True):
     """A registered user mapped to Logto."""
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     logto_id: str = Field(index=True, unique=True)
     email: str = Field(index=True)
@@ -272,6 +331,7 @@ class User(SQLModel, table=True):
 
 class HouseholdMember(SQLModel, table=True):
     """Membership mapping a User to a Household."""
+
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", primary_key=True)
     user_id: str = Field(foreign_key="user.id", ondelete="CASCADE", primary_key=True)
     role: str = Field(default="owner")  # owner, member
@@ -281,6 +341,7 @@ class HouseholdMember(SQLModel, table=True):
 # ---------------------------------------------------------------------------
 # Models: Category (no FK dependencies — define early)
 # ---------------------------------------------------------------------------
+
 
 class Category(SQLModel, table=True):
     """A category from the taxonomy (e.g. 'Bolig|Boliglån/husleje').
@@ -294,6 +355,7 @@ class Category(SQLModel, table=True):
         sub_name: Subcategory display name (e.g. "Boliglån/husleje").
         category_type: Either "Expense" or "Income".
     """
+
     id: str = Field(primary_key=True)
     main_name: str = Field(index=True)
     sub_name: str = Field(index=True)
@@ -310,6 +372,7 @@ class Category(SQLModel, table=True):
 # Models: Tag
 # ---------------------------------------------------------------------------
 
+
 class Tag(SQLModel, table=True):
     """A user-defined tag for organizing allocations.
 
@@ -320,6 +383,7 @@ class Tag(SQLModel, table=True):
         id: Auto-generated UUID.
         name: Display name (without the ``#`` prefix).
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     name: str = Field(index=True)
@@ -335,6 +399,7 @@ class Tag(SQLModel, table=True):
 # Models: Bank Infrastructure
 # ---------------------------------------------------------------------------
 
+
 class BankConnection(SQLModel, table=True):
     """A configured connection to a bank via Enable Banking or other provider.
 
@@ -349,6 +414,7 @@ class BankConnection(SQLModel, table=True):
         consent_expires_at: ISO timestamp when the consent expires.
         status: Connection lifecycle status.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     provider: str = Field(default="enablebanking", index=True)
@@ -374,6 +440,7 @@ class Account(SQLModel, table=True):
         currency: ISO 4217 currency code.
         source: Data source identifier (e.g. "enablebanking", "csv").
     """
+
     uid: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     bank_connection_id: Optional[str] = Field(
@@ -387,9 +454,7 @@ class Account(SQLModel, table=True):
     account_type: str = Field(default="Indlån")
     balance_minor: int = Field(default=0)
     owner_name: Optional[str] = None
-    savings_category_id: Optional[str] = Field(
-        default=None, foreign_key="category.id", index=True
-    )
+    savings_category_id: Optional[str] = Field(default=None, foreign_key="category.id", index=True)
 
     # Relationships
     bank_connection: Optional[BankConnection] = Relationship(back_populates="accounts")
@@ -404,6 +469,7 @@ class Account(SQLModel, table=True):
 # Models: Payee
 # ---------------------------------------------------------------------------
 
+
 class Payee(SQLModel, table=True):
     """A consolidated payment recipient or sender.
 
@@ -417,6 +483,7 @@ class Payee(SQLModel, table=True):
         raw_names: Newline-separated list of raw bank descriptions that map here.
         default_category_id: Suggested category for new transactions from this payee.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     display_name: str = Field(index=True)
@@ -432,6 +499,7 @@ class Payee(SQLModel, table=True):
 # ---------------------------------------------------------------------------
 # Models: Posting (immutable bank data)
 # ---------------------------------------------------------------------------
+
 
 class Posting(SQLModel, table=True):
     """An immutable bank transaction record.
@@ -452,10 +520,13 @@ class Posting(SQLModel, table=True):
         amount_minor: Transaction amount in minor units (negative = debit).
         currency: ISO 4217 currency code.
     """
+
     id: str = Field(primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     account_uid: str = Field(foreign_key="account.uid", ondelete="CASCADE", index=True)
-    payee_id: Optional[str] = Field(default=None, foreign_key="payee.id", ondelete="SET NULL", index=True)
+    payee_id: Optional[str] = Field(
+        default=None, foreign_key="payee.id", ondelete="SET NULL", index=True
+    )
 
     booking_date: str = Field(index=True)
     booking_date_time: Optional[str] = None
@@ -493,6 +564,7 @@ class Posting(SQLModel, table=True):
 # Models: PostingAllocation (mutable categorization / splits)
 # ---------------------------------------------------------------------------
 
+
 class PostingAllocation(SQLModel, table=True):
     """A mutable categorization record for a posting.
 
@@ -508,10 +580,13 @@ class PostingAllocation(SQLModel, table=True):
         note: User-provided note or memo.
         is_extraordinary: Excluded from budget calculations.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     posting_id: str = Field(foreign_key="posting.id", ondelete="CASCADE", index=True)
-    category_id: Optional[str] = Field(default=None, foreign_key="category.id", ondelete="SET NULL", index=True)
+    category_id: Optional[str] = Field(
+        default=None, foreign_key="category.id", ondelete="SET NULL", index=True
+    )
 
     amount_minor: int  # Must sum to parent posting's amount_minor
     note: Optional[str] = None
@@ -522,12 +597,16 @@ class PostingAllocation(SQLModel, table=True):
     created_at: str = Field(default_factory=_utcnow_iso)
     updated_at: str = Field(default_factory=_utcnow_iso)
 
-    recurring_transaction_id: Optional[str] = Field(default=None, foreign_key="recurringtransaction.id", index=True)
+    recurring_transaction_id: Optional[str] = Field(
+        default=None, foreign_key="recurringtransaction.id", index=True
+    )
 
     # Relationships
     posting: Posting = Relationship(back_populates="allocations")
     category: Optional[Category] = Relationship(back_populates="allocations")
-    recurring_transaction: Optional["RecurringTransaction"] = Relationship(back_populates="allocations")
+    recurring_transaction: Optional["RecurringTransaction"] = Relationship(
+        back_populates="allocations"
+    )
     tags: list[Tag] = Relationship(
         back_populates="allocations", link_model=PostingAllocationTagLink
     )
@@ -536,6 +615,7 @@ class PostingAllocation(SQLModel, table=True):
 # ---------------------------------------------------------------------------
 # Models: RecurringTransaction (faste udgifter / løn)
 # ---------------------------------------------------------------------------
+
 
 class RecurringTransaction(SQLModel, table=True):
     """A recurring fixed expense or income (e.g. rent, Netflix, salary).
@@ -551,13 +631,18 @@ class RecurringTransaction(SQLModel, table=True):
         match_pattern: Pattern used to auto-match future postings (like rules).
         status: "active" or "inactive".
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     name: str
     amount_minor: int
     interval: str = Field(default="monthly")
-    category_id: Optional[str] = Field(default=None, foreign_key="category.id", ondelete="SET NULL", index=True)
-    account_uid: Optional[str] = Field(default=None, foreign_key="account.uid", ondelete="CASCADE", index=True)
+    category_id: Optional[str] = Field(
+        default=None, foreign_key="category.id", ondelete="SET NULL", index=True
+    )
+    account_uid: Optional[str] = Field(
+        default=None, foreign_key="account.uid", ondelete="CASCADE", index=True
+    )
 
     next_date: Optional[str] = None
     match_pattern: str = Field(index=True)
@@ -576,6 +661,7 @@ class RecurringTransaction(SQLModel, table=True):
 # Models: Budget
 # ---------------------------------------------------------------------------
 
+
 class Budget(SQLModel, table=True):
     """Monthly budget configuration for a category.
 
@@ -592,6 +678,7 @@ class Budget(SQLModel, table=True):
         budget_type: 'bill' (fixed, predictable) or 'limit' (spending cap).
         rollover: Whether unused budget rolls forward.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
@@ -616,6 +703,7 @@ class BudgetBill(SQLModel, table=True):
     For fixed expenses ("regninger"), users can add multiple bills
     per category that apply to specific months.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
@@ -630,9 +718,11 @@ class BudgetBill(SQLModel, table=True):
     # Relationships
     category: Category = Relationship(back_populates="bills")
 
+
 # ---------------------------------------------------------------------------
 # Models: CategoryOverrideLog (anonymous learning data)
 # ---------------------------------------------------------------------------
+
 
 class CategoryOverrideLog(SQLModel, table=True):
     """Anonymous log of user category corrections.
@@ -651,6 +741,7 @@ class CategoryOverrideLog(SQLModel, table=True):
         new_category_id: The category the user chose.
         merchant_category_code: MCC from the bank (if available).
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     original_description: str = Field(index=True)
@@ -664,6 +755,7 @@ class CategoryOverrideLog(SQLModel, table=True):
 # Models: Document (placeholder for receipts/attachments)
 # ---------------------------------------------------------------------------
 
+
 class Document(SQLModel, table=True):
     """A receipt or document attached to a posting allocation.
 
@@ -674,6 +766,7 @@ class Document(SQLModel, table=True):
         content_type: MIME type.
         storage_path: Path to the file on disk (relative to data dir).
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     allocation_id: str = Field(foreign_key="postingallocation.id", ondelete="CASCADE", index=True)
@@ -687,6 +780,7 @@ class Document(SQLModel, table=True):
 # Models: SyncJob (unchanged from V2)
 # ---------------------------------------------------------------------------
 
+
 class SyncJob(SQLModel, table=True):
     """Tracks the status of an Enable Banking retrieval job.
 
@@ -698,6 +792,7 @@ class SyncJob(SQLModel, table=True):
         error_message: Error details if the job failed.
         result_json: JSON blob with the final result payload.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     status: str = Field(default="queued")  # queued, running, succeeded, failed
@@ -712,6 +807,7 @@ class SyncJob(SQLModel, table=True):
 # ---------------------------------------------------------------------------
 # Models: CategorizationRule (rule-based auto-categorization)
 # ---------------------------------------------------------------------------
+
 
 class CategorizationRule(SQLModel, table=True):
     """A keyword or regex rule for automatic transaction categorization.
@@ -731,8 +827,11 @@ class CategorizationRule(SQLModel, table=True):
         source: Origin of the rule — "system" (seeded from Spiir) or "user".
         is_active: Whether the rule is currently enabled.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
-    household_id: Optional[str] = Field(default=None, foreign_key="household.id", ondelete="CASCADE", index=True)
+    household_id: Optional[str] = Field(
+        default=None, foreign_key="household.id", ondelete="CASCADE", index=True
+    )
     category_id: str = Field(foreign_key="category.id", ondelete="CASCADE", index=True)
     match_pattern: str = Field(index=True)
     is_regex: bool = Field(default=False)
@@ -748,15 +847,19 @@ class CategorizationRule(SQLModel, table=True):
 # Models: InboundEmail (Receipt Email Ingestion Log)
 # ---------------------------------------------------------------------------
 
+
 class InboundEmail(SQLModel, table=True):
     """Log of incoming forwarded receipt emails for a household."""
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     household_id: str = Field(foreign_key="household.id", ondelete="CASCADE", index=True)
     received_at: str = Field(default_factory=_utcnow_iso)
     sender: str = Field(default="")
     recipient: Optional[str] = Field(default=None)
     subject: Optional[str] = Field(default=None)
-    status: str = Field(default="pending")  # "success", "failed", "pending", "no_link", "invalid_file"
+    status: str = Field(
+        default="pending"
+    )  # "success", "failed", "pending", "no_link", "invalid_file"
     download_url: Optional[str] = Field(default=None)
     error_message: Optional[str] = Field(default=None)
     raw_receipt_count: int = Field(default=0)
@@ -770,8 +873,10 @@ class InboundEmail(SQLModel, table=True):
 # Models: DismissedDuplicate (Explicit User Not-Duplicate Approvals)
 # ---------------------------------------------------------------------------
 
+
 class DismissedDuplicate(SQLModel, table=True):
     """Stores pairs of postings that the user has explicitly dismissed as NOT being duplicates."""
+
     __tablename__ = "dismissed_duplicate"
 
     id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
@@ -788,4 +893,3 @@ class DismissedDuplicate(SQLModel, table=True):
 # The V2 code used `Transaction` — this alias allows old service code
 # to keep working during the gradual migration. Remove after Phase 1 is complete.
 Transaction = Posting
-

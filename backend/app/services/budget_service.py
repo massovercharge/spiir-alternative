@@ -3,6 +3,7 @@
 Also provides auto-generation of budgets based on historical spending,
 and annual summaries combining budgeted vs actual realized spending.
 """
+
 from __future__ import annotations
 
 import statistics
@@ -34,6 +35,7 @@ def _utcnow_iso() -> str:
 # CRUD
 # ---------------------------------------------------------------------------
 
+
 def upsert_budget(
     category_id: str,
     year: int,
@@ -51,13 +53,15 @@ def upsert_budget(
             parts = category_id.split("|")
             main_name = parts[0].capitalize()
             sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
-            db.add(Category(
-                id=category_id,
-                main_name=main_name,
-                sub_name=sub_name,
-                category_type="Income" if amount_minor > 0 else "Expense",
-                expense_type="Variable"
-            ))
+            db.add(
+                Category(
+                    id=category_id,
+                    main_name=main_name,
+                    sub_name=sub_name,
+                    category_type="Income" if amount_minor > 0 else "Expense",
+                    expense_type="Variable",
+                )
+            )
 
         budget = db.exec(
             select(Budget)
@@ -99,7 +103,9 @@ def upsert_budget(
     }
 
 
-def list_budgets(year: int, month: int | None = None, category_id: str | None = None) -> list[dict[str, Any]]:
+def list_budgets(
+    year: int, month: int | None = None, category_id: str | None = None
+) -> list[dict[str, Any]]:
     """List budgets for a given year (and optionally month and category)."""
     with Session(_get_engine()) as db:
         query = select(Budget).where(Budget.year == year)
@@ -129,6 +135,7 @@ def list_budgets(year: int, month: int | None = None, category_id: str | None = 
 # Budget Bills
 # ---------------------------------------------------------------------------
 
+
 def get_budget_bills(category_id: str, year: int) -> list[dict[str, Any]]:
     """Get all specific bills for a category and year."""
     with Session(_get_engine()) as db:
@@ -151,7 +158,9 @@ def get_budget_bills(category_id: str, year: int) -> list[dict[str, Any]]:
     ]
 
 
-def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def upsert_budget_bills(
+    category_id: str, year: int, bills_data: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Replace all bills for a category/year and recalculate monthly budget sums."""
     with Session(_get_engine()) as db:
         # Auto-create category if missing
@@ -161,13 +170,15 @@ def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, 
             main_name = parts[0].capitalize()
             sub_name = parts[1].replace("-", " ").capitalize() if len(parts) > 1 else main_name
             is_income = any(b.get("amount_minor", 0) > 0 for b in bills_data)
-            db.add(Category(
-                id=category_id,
-                main_name=main_name,
-                sub_name=sub_name,
-                category_type="Income" if is_income else "Expense",
-                expense_type="Fixed"
-            ))
+            db.add(
+                Category(
+                    id=category_id,
+                    main_name=main_name,
+                    sub_name=sub_name,
+                    category_type="Income" if is_income else "Expense",
+                    expense_type="Fixed",
+                )
+            )
 
         # 1. Delete existing bills for this category/year
         existing_bills = db.exec(
@@ -197,9 +208,7 @@ def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, 
         # 3. Recalculate monthly budget limits based on new bills
         # First, zero out existing budgets for this category/year
         existing_budgets = db.exec(
-            select(Budget)
-            .where(Budget.category_id == category_id)
-            .where(Budget.year == year)
+            select(Budget).where(Budget.category_id == category_id).where(Budget.year == year)
         ).all()
 
         budget_map = {b.month: b for b in existing_budgets}
@@ -223,13 +232,15 @@ def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, 
             else:
                 # Create if > 0, or maybe create anyway so we have a record
                 if sum_minor > 0 or new_bills:
-                    db.add(Budget(
-                        category_id=category_id,
-                        year=year,
-                        month=m,
-                        amount_minor=sum_minor,
-                        budget_type="bill",
-                    ))
+                    db.add(
+                        Budget(
+                            category_id=category_id,
+                            year=year,
+                            month=m,
+                            amount_minor=sum_minor,
+                            budget_type="bill",
+                        )
+                    )
 
         db.commit()
 
@@ -240,7 +251,10 @@ def upsert_budget_bills(category_id: str, year: int, bills_data: list[dict[str, 
 # Auto-Generation
 # ---------------------------------------------------------------------------
 
-def generate_budget_suggestion(months: int = 12, target_year: int | None = None) -> list[dict[str, Any]]:
+
+def generate_budget_suggestion(
+    months: int = 12, target_year: int | None = None
+) -> list[dict[str, Any]]:
     """Analyze historical spending and suggest budget limits.
 
     Looks at the last `months` of data (excluding current month).
@@ -249,7 +263,7 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
     with Session(_get_engine()) as db:
         # Only look at the last 12 months of data so we don't bring back ancient categories
         now = datetime.now(UTC)
-        now.year - (1 if now.month >= 1 else 2) # simplified 1 year back
+        now.year - (1 if now.month >= 1 else 2)  # simplified 1 year back
         cutoff_key = f"{now.year - 1}-{now.month:02d}-01"
 
         rows = db.exec(
@@ -273,7 +287,9 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
         # We only look at negative (expense) postings for budget limits,
         # but if we want to suggest income budgets, we handle both.
         # For simplicity, we just take the raw amount.
-        monthly_totals[cat_id][month_key] = monthly_totals[cat_id].get(month_key, 0) + alloc.amount_minor
+        monthly_totals[cat_id][month_key] = (
+            monthly_totals[cat_id].get(month_key, 0) + alloc.amount_minor
+        )
 
     suggestions = []
 
@@ -295,7 +311,9 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
             target_historical_months.append(f"{y}-{m:02d}")
 
         for cat_id, month_data in monthly_totals.items():
-            historical_months_with_transactions = [m for m in target_historical_months if month_data.get(m, 0) != 0]
+            historical_months_with_transactions = [
+                m for m in target_historical_months if month_data.get(m, 0) != 0
+            ]
 
             if not historical_months_with_transactions:
                 continue
@@ -338,7 +356,11 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
                             target_months = list(historical_month_ints)
                             # Simple extrapolation for the rest of the year based on the last observed month
                             last_month = max(historical_month_ints)
-                            interval = span // len(historical_month_ints) if len(historical_month_ints) > 1 else 12
+                            interval = (
+                                span // len(historical_month_ints)
+                                if len(historical_month_ints) > 1
+                                else 12
+                            )
                             if interval in [2, 3, 6]:
                                 next_month = last_month + interval
                                 while next_month <= 12:
@@ -348,19 +370,21 @@ def generate_budget_suggestion(months: int = 12, target_year: int | None = None)
                     else:
                         target_months = list(historical_month_ints)
 
-            suggestions.append({
-                "category_id": cat_id,
-                "suggested_amount_minor": suggested_amount,
-                "suggested_amount": format_amount(suggested_amount),
-                "budget_type": budget_type,
-                "confidence": max(0.0, 1.0 - cv),
-                "historical_average_minor": int(avg),
-                "historical_stddev_minor": int(stddev),
-                "is_fixed": is_fixed,
-                "is_income": is_income,
-                "target_months": target_months,
-                "target_year": target_year,
-            })
+            suggestions.append(
+                {
+                    "category_id": cat_id,
+                    "suggested_amount_minor": suggested_amount,
+                    "suggested_amount": format_amount(suggested_amount),
+                    "budget_type": budget_type,
+                    "confidence": max(0.0, 1.0 - cv),
+                    "historical_average_minor": int(avg),
+                    "historical_stddev_minor": int(stddev),
+                    "is_fixed": is_fixed,
+                    "is_income": is_income,
+                    "target_months": target_months,
+                    "target_year": target_year,
+                }
+            )
 
     return suggestions
 
@@ -412,6 +436,7 @@ def apply_budget_suggestions(
 # ---------------------------------------------------------------------------
 # Annual Summary
 # ---------------------------------------------------------------------------
+
 
 def get_annual_summary(year: int) -> dict[str, Any]:
     """Combine budgets with realized spending for a full-year matrix."""
@@ -484,15 +509,17 @@ def get_annual_summary(year: int) -> dict[str, Any]:
                 effective_budgeted += carryover
                 carryover = effective_budgeted - actual
 
-            months_data.append({
-                "month": m,
-                "budgeted_minor": explicit_budgeted,
-                "effective_budgeted_minor": effective_budgeted,
-                "actual_minor": actual,
-                "budgeted": format_amount(explicit_budgeted),
-                "effective_budgeted": format_amount(effective_budgeted),
-                "actual": format_amount(actual),
-            })
+            months_data.append(
+                {
+                    "month": m,
+                    "budgeted_minor": explicit_budgeted,
+                    "effective_budgeted_minor": effective_budgeted,
+                    "actual_minor": actual,
+                    "budgeted": format_amount(explicit_budgeted),
+                    "effective_budgeted": format_amount(effective_budgeted),
+                    "actual": format_amount(actual),
+                }
+            )
 
         meta = cat_meta.get(cat_id)
         if not meta and "|" in cat_id:
@@ -501,15 +528,17 @@ def get_annual_summary(year: int) -> dict[str, Any]:
         elif not meta:
             meta = main_meta.get(cat_id)
 
-        matrix.append({
-            "category_id": cat_id,
-            "category_type": meta.category_type if meta else "Expense",
-            "expense_type": meta.expense_type if meta else "Variable",
-            "rollover": rollover_map.get(cat_id, False),
-            "months": months_data,
-            "total_budgeted_minor": sum(d["budgeted_minor"] for d in months_data),
-            "total_actual_minor": sum(d["actual_minor"] for d in months_data),
-        })
+        matrix.append(
+            {
+                "category_id": cat_id,
+                "category_type": meta.category_type if meta else "Expense",
+                "expense_type": meta.expense_type if meta else "Variable",
+                "rollover": rollover_map.get(cat_id, False),
+                "months": months_data,
+                "total_budgeted_minor": sum(d["budgeted_minor"] for d in months_data),
+                "total_actual_minor": sum(d["actual_minor"] for d in months_data),
+            }
+        )
 
     return {
         "year": year,

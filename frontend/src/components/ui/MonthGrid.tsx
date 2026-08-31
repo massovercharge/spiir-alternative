@@ -11,10 +11,14 @@ interface MonthGridProps {
 
 const MONTH_INITIALS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
-export function MonthGrid({ states, startMonth = 1, showOnlyPassedMonths = false }: MonthGridProps) {
+export function MonthGrid({
+  states,
+  startMonth = 1,
+  showOnlyPassedMonths = false,
+}: MonthGridProps) {
   // Ensure we always have exactly 12 states if not showOnlyPassedMonths
-  const displayStates = showOnlyPassedMonths 
-    ? states 
+  const displayStates = showOnlyPassedMonths
+    ? states
     : Array.from({ length: 12 }, (_, i) => states[i] || 'inactive');
 
   const getColor = (state: MonthState) => {
@@ -44,12 +48,9 @@ export function MonthGrid({ states, startMonth = 1, showOnlyPassedMonths = false
       </div>
       <div className="flex items-center gap-1">
         {displayStates.map((state, idx) => (
-          <div 
-            key={idx} 
-            className={clsx(
-              "w-3 h-3 rounded-full transition-colors duration-200",
-              getColor(state)
-            )}
+          <div
+            key={idx}
+            className={clsx('w-3 h-3 rounded-full transition-colors duration-200', getColor(state))}
             title={state}
           />
         ))}

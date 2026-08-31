@@ -13,6 +13,7 @@ Architecture:
 The system is designed so the app works FULLY without ML. ML is optional
 and pluggable via a simple interface in the decision logic.
 """
+
 import contextlib
 import functools
 import re
@@ -94,288 +95,903 @@ def preprocess_description(raw_desc: str) -> str:
 
 _SPIIR_HINTS: list[tuple[str, str, list[str]]] = [
     # === INDKOMST ===
-    ("Indkomst", "Løn", [
-        "løn", "lønoverførsel", "gage",
-    ]),
-    ("Indkomst", "Pensionsudbetaling", [
-        "tjenestemandspension", "førtidspension",
-    ]),
-    ("Indkomst", "Dagpenge/overførselsindkomst", [
-        "kontanthjælp",
-    ]),
-    ("Indkomst", "Børnepenge", [
-        "familieydelse", "børnecheck", "børne og ungeydelse", "ungeydelse",
-    ]),
-    ("Indkomst", "Udbytte & afkast", [
-        "bonus",
-    ]),
-    ("Indkomst", "Overskydende skat", [
-        "overskydende skat", "skat overskydende",
-    ]),
-    ("Indkomst", "Anden indkomst", [
-        "arveforskud", "pengegaver", "fødevarecheck",
-    ]),
-    ("Indkomst", "Boligstøtte", [
-        "boligsikring", "boligtilskud",
-    ]),
-
+    (
+        "Indkomst",
+        "Løn",
+        [
+            "løn",
+            "lønoverførsel",
+            "gage",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Pensionsudbetaling",
+        [
+            "tjenestemandspension",
+            "førtidspension",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Dagpenge/overførselsindkomst",
+        [
+            "kontanthjælp",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Børnepenge",
+        [
+            "familieydelse",
+            "børnecheck",
+            "børne og ungeydelse",
+            "ungeydelse",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Udbytte & afkast",
+        [
+            "bonus",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Overskydende skat",
+        [
+            "overskydende skat",
+            "skat overskydende",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Anden indkomst",
+        [
+            "arveforskud",
+            "pengegaver",
+            "fødevarecheck",
+        ],
+    ),
+    (
+        "Indkomst",
+        "Boligstøtte",
+        [
+            "boligsikring",
+            "boligtilskud",
+        ],
+    ),
     # === BOLIG ===
-    ("Bolig", "Boliglån/husleje", [
-        "pantebreve", "realkreditlån", "rent",
-    ]),
-    ("Bolig", "El, vand, varme & renovation", [
-        "gas", "oliefyr", "naturgas", "fjernvarme", "affald", "skrald",
-    ]),
-    ("Bolig", "Ejerforening", [
-        "grundejerforening", "parcelforening",
-    ]),
-    ("Bolig", "Ejendomsskat", [
-        "grundskyld",
-    ]),
-    ("Bolig", "Husforsikring", [
-        "villaforsikring",
-    ]),
-    ("Bolig", "Indbo- & familieforsikring", [
-        "basisforsikring", "tryg forsikring", "tryg",
-    ]),
-    ("Bolig", "Udgifter fritidshus", [
-        "udgifter sommerhus", "udgifter campingvogn",
-    ]),
-    ("Bolig", "Ombygning & vedligehold", [
-        "udbygning", "maler", "vvs", "tømrer", "murer", "elektriker",
-        "nyt køkken", "reparation", "arkitekt", "lavprisvvs", "lavprisvvs dk",
-    ]),
-    ("Bolig", "Andre boligudgifter", [
-        "flytning", "advokat", "ejendomsmægler", "ejerskifteforsikring",
-        "depositum", "møntvaskeri", "vaskeri", "tøjvask",
-    ]),
-    ("Bolig", "Have & planter", [
-        "blomster", "potter",
-    ]),
-
+    (
+        "Bolig",
+        "Boliglån/husleje",
+        [
+            "pantebreve",
+            "realkreditlån",
+            "rent",
+        ],
+    ),
+    (
+        "Bolig",
+        "El, vand, varme & renovation",
+        [
+            "gas",
+            "oliefyr",
+            "naturgas",
+            "fjernvarme",
+            "affald",
+            "skrald",
+        ],
+    ),
+    (
+        "Bolig",
+        "Ejerforening",
+        [
+            "grundejerforening",
+            "parcelforening",
+        ],
+    ),
+    (
+        "Bolig",
+        "Ejendomsskat",
+        [
+            "grundskyld",
+        ],
+    ),
+    (
+        "Bolig",
+        "Husforsikring",
+        [
+            "villaforsikring",
+        ],
+    ),
+    (
+        "Bolig",
+        "Indbo- & familieforsikring",
+        [
+            "basisforsikring",
+            "tryg forsikring",
+            "tryg",
+        ],
+    ),
+    (
+        "Bolig",
+        "Udgifter fritidshus",
+        [
+            "udgifter sommerhus",
+            "udgifter campingvogn",
+        ],
+    ),
+    (
+        "Bolig",
+        "Ombygning & vedligehold",
+        [
+            "udbygning",
+            "maler",
+            "vvs",
+            "tømrer",
+            "murer",
+            "elektriker",
+            "nyt køkken",
+            "reparation",
+            "arkitekt",
+            "lavprisvvs",
+            "lavprisvvs dk",
+        ],
+    ),
+    (
+        "Bolig",
+        "Andre boligudgifter",
+        [
+            "flytning",
+            "advokat",
+            "ejendomsmægler",
+            "ejerskifteforsikring",
+            "depositum",
+            "møntvaskeri",
+            "vaskeri",
+            "tøjvask",
+        ],
+    ),
+    (
+        "Bolig",
+        "Have & planter",
+        [
+            "blomster",
+            "potter",
+        ],
+    ),
     # === TRANSPORT ===
-    ("Transport", "Bil-, MC-, bådlån o.l.", [
-        "billån", "motorcykellån",
-    ]),
-    ("Transport", "Brændstof", [
-        "benzin", "diesel", "tankstation", "eon drive", "e on drive",
-    ]),
-    ("Transport", "Bilforsikring & autohjælp", [
-        "falck", "fdm", "vejhjælp",
-    ]),
-    ("Transport", "Ejerafgift/grøn afgift", [
-        "vægtafgift", "bilafgift",
-    ]),
-    ("Transport", "Bus, tog, færge o.l.", [
-        "brobizz", "metro", "s-tog", "arriva", "dsb", "dsb app", "broafgift",
-        "månedskort", "togkort", "buskort", "vejafgift", "pendlerkort",
-        "periodekort", "rejsekort", "klippekort",
-    ]),
-    ("Transport", "Taxi", [
-        "taxa", "hyrevogn", "uber",
-    ]),
-    ("Transport", "Parkering", [
-        "parkpark", "easypark", "qpark",
-    ]),
-    ("Transport", "Værksted & reservedele", [
-        "syn", "service", "vinterdæk", "fælge", "bilreparation", "bilvask",
-        "cykelgear", "cykelgear dk", "fri bikeshop", "fri bike shop",
-        "thansen", "t hansen",
-    ]),
-    ("Transport", "Anden transport", [
-        "ny bil", "ny motorcykel", "ny båd", "ny cykel", "ny mc",
-        "gomore", "cykel", "el-løbehjul",
-    ]),
-
+    (
+        "Transport",
+        "Bil-, MC-, bådlån o.l.",
+        [
+            "billån",
+            "motorcykellån",
+        ],
+    ),
+    (
+        "Transport",
+        "Brændstof",
+        [
+            "benzin",
+            "diesel",
+            "tankstation",
+            "eon drive",
+            "e on drive",
+        ],
+    ),
+    (
+        "Transport",
+        "Bilforsikring & autohjælp",
+        [
+            "falck",
+            "fdm",
+            "vejhjælp",
+        ],
+    ),
+    (
+        "Transport",
+        "Ejerafgift/grøn afgift",
+        [
+            "vægtafgift",
+            "bilafgift",
+        ],
+    ),
+    (
+        "Transport",
+        "Bus, tog, færge o.l.",
+        [
+            "brobizz",
+            "metro",
+            "s-tog",
+            "arriva",
+            "dsb",
+            "dsb app",
+            "broafgift",
+            "månedskort",
+            "togkort",
+            "buskort",
+            "vejafgift",
+            "pendlerkort",
+            "periodekort",
+            "rejsekort",
+            "klippekort",
+        ],
+    ),
+    (
+        "Transport",
+        "Taxi",
+        [
+            "taxa",
+            "hyrevogn",
+            "uber",
+        ],
+    ),
+    (
+        "Transport",
+        "Parkering",
+        [
+            "parkpark",
+            "easypark",
+            "qpark",
+        ],
+    ),
+    (
+        "Transport",
+        "Værksted & reservedele",
+        [
+            "syn",
+            "service",
+            "vinterdæk",
+            "fælge",
+            "bilreparation",
+            "bilvask",
+            "cykelgear",
+            "cykelgear dk",
+            "fri bikeshop",
+            "fri bike shop",
+            "thansen",
+            "t hansen",
+        ],
+    ),
+    (
+        "Transport",
+        "Anden transport",
+        [
+            "ny bil",
+            "ny motorcykel",
+            "ny båd",
+            "ny cykel",
+            "ny mc",
+            "gomore",
+            "cykel",
+            "el-løbehjul",
+        ],
+    ),
     # === HUSHOLDNING ===
-    ("Husholdning", "Dagligvarer", [
-        "mad", "supermarked", "madvarer",
-        # Additional well-known Danish grocery chains (from kvitteringer_service)
-        "netto", "rema", "rema 1000", "rema1000", "føtex", "bilka",
-        "aldi", "lidl", "meny", "irma", "fakta", "kvickly",
-        "superbrugsen", "nemlig", "365discount", "coop", "coop365", "min købmand", "re:\\b365\\s+[a-zæøå]",
-    ]),
-    ("Husholdning", "Kiosk, bager & specialbutikker", [
-        "brød", "kager", "frugt", "købmand", "slik", "friluftslageret",
-    ]),
-    ("Husholdning", "Kantine- & frokostordning", [
-        "madordning", "skolemad",
-    ]),
-
+    (
+        "Husholdning",
+        "Dagligvarer",
+        [
+            "mad",
+            "supermarked",
+            "madvarer",
+            # Additional well-known Danish grocery chains (from kvitteringer_service)
+            "netto",
+            "rema",
+            "rema 1000",
+            "rema1000",
+            "føtex",
+            "bilka",
+            "aldi",
+            "lidl",
+            "meny",
+            "irma",
+            "fakta",
+            "kvickly",
+            "superbrugsen",
+            "nemlig",
+            "365discount",
+            "coop",
+            "coop365",
+            "min købmand",
+            "re:\\b365\\s+[a-zæøå]",
+        ],
+    ),
+    (
+        "Husholdning",
+        "Kiosk, bager & specialbutikker",
+        [
+            "brød",
+            "kager",
+            "frugt",
+            "købmand",
+            "slik",
+            "friluftslageret",
+        ],
+    ),
+    (
+        "Husholdning",
+        "Kantine- & frokostordning",
+        [
+            "madordning",
+            "skolemad",
+        ],
+    ),
     # === ANDRE LEVEOMKOSTNINGER ===
-    ("Andre leveomkostninger", "Apotek & medicin", [
-        "creme", "personlig pleje", "astma", "apotek",
-    ]),
-    ("Andre leveomkostninger", "Institution", [
-        "klassekasse", "børnehave", "vuggestue", "sfo",
-        "fritidshjem", "dagpleje", "efterskole", "privatskole",
-        "daginstitution",
-    ]),
-    ("Andre leveomkostninger", "Fagforening & a-kasse", [
-        "fagligt kontingent", "akasse", "a-kasse", "hk", "3f", "prosa",
-        "danmarks lærerforening", "dlf", "ida ingeniørfore", "ingeniørforeningen", "ida",
-    ]),
-    ("Andre leveomkostninger", "Livs- & ulykkesforsikring", [
-        "gruppeliv",
-    ]),
-    ("Andre leveomkostninger", "Sundheds- & sygeforsikring", [
-        "forebygger",
-    ]),
-    ("Andre leveomkostninger", "TV & streaming", [
-        "kabel tv", "viasat", "sattelit", "antenneforening", "radio",
-        "netflix", "netflix.com", "hbo", "viaplay", "disney+", "disney plus",
-        "dr licens", "tv2 play", "tv 2 play", "tv2 dk", "tv 2", "amazon prime",
-    ]),
-    ("Andre leveomkostninger", "Telefoni & internet", [
-        "mobiltelefon", "taletidskort", "udlandstelefoni", "fastnet",
-        "fiber", "adsl", "bredbånd", "telia", "telenor", "3 mobil",
-        "yousee", "fullrate", "oister", "lebara", "lycamobile", "eesy",
-    ]),
-    ("Andre leveomkostninger", "Behandling & læger", [
-        "tandlæge", "øjenlæge", "speciallæge", "kiropraktor",
-        "fysioterapeut", "psykolog", "hypnotisør", "akupunktør",
-        "zoneterapeut",
-    ]),
-    ("Andre leveomkostninger", "Briller & kontaktlinser", [
-        "optiker",
-    ]),
-    ("Andre leveomkostninger", "Studieudgifter", [
-        "studiebøger", "kopier",
-    ]),
-    ("Andre leveomkostninger", "Foreninger & kontingenter", [
-        "medlemsskab", "ældre sagen", "ecykleklub",
-    ]),
-
+    (
+        "Andre leveomkostninger",
+        "Apotek & medicin",
+        [
+            "creme",
+            "personlig pleje",
+            "astma",
+            "apotek",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Institution",
+        [
+            "klassekasse",
+            "børnehave",
+            "vuggestue",
+            "sfo",
+            "fritidshjem",
+            "dagpleje",
+            "efterskole",
+            "privatskole",
+            "daginstitution",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Fagforening & a-kasse",
+        [
+            "fagligt kontingent",
+            "akasse",
+            "a-kasse",
+            "hk",
+            "3f",
+            "prosa",
+            "danmarks lærerforening",
+            "dlf",
+            "ida ingeniørfore",
+            "ingeniørforeningen",
+            "ida",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Livs- & ulykkesforsikring",
+        [
+            "gruppeliv",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Sundheds- & sygeforsikring",
+        [
+            "forebygger",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "TV & streaming",
+        [
+            "kabel tv",
+            "viasat",
+            "sattelit",
+            "antenneforening",
+            "radio",
+            "netflix",
+            "netflix.com",
+            "hbo",
+            "viaplay",
+            "disney+",
+            "disney plus",
+            "dr licens",
+            "tv2 play",
+            "tv 2 play",
+            "tv2 dk",
+            "tv 2",
+            "amazon prime",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Telefoni & internet",
+        [
+            "mobiltelefon",
+            "taletidskort",
+            "udlandstelefoni",
+            "fastnet",
+            "fiber",
+            "adsl",
+            "bredbånd",
+            "telia",
+            "telenor",
+            "3 mobil",
+            "yousee",
+            "fullrate",
+            "oister",
+            "lebara",
+            "lycamobile",
+            "eesy",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Behandling & læger",
+        [
+            "tandlæge",
+            "øjenlæge",
+            "speciallæge",
+            "kiropraktor",
+            "fysioterapeut",
+            "psykolog",
+            "hypnotisør",
+            "akupunktør",
+            "zoneterapeut",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Briller & kontaktlinser",
+        [
+            "optiker",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Studieudgifter",
+        [
+            "studiebøger",
+            "kopier",
+        ],
+    ),
+    (
+        "Andre leveomkostninger",
+        "Foreninger & kontingenter",
+        [
+            "medlemsskab",
+            "ældre sagen",
+            "ecykleklub",
+        ],
+    ),
     # === PRIVATFORBRUG ===
-    ("Privatforbrug", "Sport & fritid", [
-        "spejder", "fitness", "styrketræning", "aftenskole", "håndbold",
-        "fodbold", "basket", "badminton", "tennis", "svømning",
-        "squash", "golf", "bison boulders", "boulders", "familiespejd",
-    ]),
-    ("Privatforbrug", "Hus & havehjælp", [
-        "rengøring", "gartner", "vinduespudser",
-    ]),
-    ("Privatforbrug", "Fastfood & takeaway", [
-        "junkfood", "burger", "sushi", "pizzaria", "takeaway", "indisk",
-        "mcdonalds", "burger king", "subway", "dominos", "pizza",
-        "wolt", "just eat", "hungry", "bindia", "re:\\bmcd",
-    ]),
-    ("Privatforbrug", "Bar, cafe & restaurant", [
-        "diskotek", "værtshus", "disco", "fest", "middag",
-        "cafe", "restaurant",
-    ]),
-    ("Privatforbrug", "Tøj, sko & accessories", [
-        "smykker", "bukser", "bluse", "jeans", "kjole", "taske",
-        "jakke", "frakke", "støvler", "ring", "halskæde", "t-shirt",
-        "skjorte", "beklædning", "h&m", "zara", "zalando", "nielsens",
-    ]),
-    ("Privatforbrug", "Møbler & boligudstyr", [
-        "køkkenudstyr", "sofa", "seng", "bord", "stole", "hvidevarer",
-        "lamper", "malerier", "kunst", "inventar", "ikea", "jysk",
-        "idemøbler", "ilva", "imerco", "imerco dk",
-    ]),
-    ("Privatforbrug", "Elektronik & computerudstyr", [
-        "ny mobiltelefon", "playstation", "wii", "xbox", "konsol",
-        "pc", "nintendo", "elgiganten", "power", "proshop",
-        "computersalg",
-    ]),
-    ("Privatforbrug", "Spil & legetøj", [
-        "playstation spil", "xbox spil", "wii spil", "pc spil",
-        "br legetøj", "lego",
-    ]),
-    ("Privatforbrug", "Hobby & sportsudstyr", [
-        "skitøj", "golfudstyr", "surfudstyr", "løbesko", "løbetøj",
-        "pulsmåler", "sportmaster", "intersport",
-    ]),
-    ("Privatforbrug", "Frisør & personlig pleje", [
-        "parfume", "klipning", "hårklip", "massage",
-        "coaching", "wellness", "solcenter", "frisør", "økofamilien", "okofamilien",
-    ]),
-    ("Privatforbrug", "Film, musik & læsestof", [
-        "bøger", "blade", "aviser", "magasiner", "dvd", "cd", "mp3",
-        "itunes", "dameblade", "faglitteratur", "fagbøger",
-        "skønlitteratur", "spotify", "saxo", "saxo com", "audible", "blockbuster",
-    ]),
-    ("Privatforbrug", "Biograf, koncerter & forlystelser", [
-        "museum", "kultur", "biffen", "musik", "billetter",
-        "tivoli", "sommerland", "fyns sommerland", "legeland", "biograf", "kino",
-        "odense zoo", "zoo odense", "moesgaard museum", "moesgaardmuseum", "danmarks jernbanemuseum",
-        "dinoland", "minigolf",
-    ]),
-    ("Privatforbrug", "Tips & lotto", [
-        "poker", "klasselotteri", "casino", "odds", "kasino",
-        "lotteri", "banko", "bingo", "danske spil", "bet365",
-    ]),
-    ("Privatforbrug", "Babyudstyr", [
-        "barnevogn", "klapvogn", "barneseng",
-    ]),
-    ("Privatforbrug", "Kæledyr", [
-        "hund", "kat", "edderkop", "dyrlæge",
-    ]),
-    ("Privatforbrug", "Gaver & velgørenhed", [
-        "nødhjælp", "donationer", "røde kors", "red barnet",
-        "folkekirkens nødhjælp", "wwf verdensnaturfonden", "wspa",
-        "børnefonde", "læger uden grænser", "amnesty international",
-        "unicef", "gave", "dansk flygtningehjælp", "flygtningehjælp", "oxfam", "oxfam danmark",
-        "sos børnebyerne", "den danske naturfond", "foreningen sand",
-    ]),
-    ("Privatforbrug", "Tobak & alkohol", [
-        "spiritus", "cigaretter", "øl", "vin", "snus", "vape",
-    ]),
-    ("Privatforbrug", "Kontanthævning & check", [
-        "hæveautomat",
-    ]),
-    ("Privatforbrug", "Online services & software", [
-        "webhotel", "domæne", "apps", "apple", "google play", "10er dk", "10er",
-    ]),
-    ("Privatforbrug", "Andet privatforbrug", [
-        "barnepige", "frimærker", "babysitter", "fragt", "posthus",
-        "pakker", "lommepenge", "kontorartikler", "tøjrens", "renseri",
-        "kreditkort",
-    ]),
-    ("Privatforbrug", "Serviceydelser & rådgivning", [
-        "revisor", "privatøkonomisk rådgiver",
-    ]),
-
+    (
+        "Privatforbrug",
+        "Sport & fritid",
+        [
+            "spejder",
+            "fitness",
+            "styrketræning",
+            "aftenskole",
+            "håndbold",
+            "fodbold",
+            "basket",
+            "badminton",
+            "tennis",
+            "svømning",
+            "squash",
+            "golf",
+            "bison boulders",
+            "boulders",
+            "familiespejd",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Hus & havehjælp",
+        [
+            "rengøring",
+            "gartner",
+            "vinduespudser",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Fastfood & takeaway",
+        [
+            "junkfood",
+            "burger",
+            "sushi",
+            "pizzaria",
+            "takeaway",
+            "indisk",
+            "mcdonalds",
+            "burger king",
+            "subway",
+            "dominos",
+            "pizza",
+            "wolt",
+            "just eat",
+            "hungry",
+            "bindia",
+            "re:\\bmcd",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Bar, cafe & restaurant",
+        [
+            "diskotek",
+            "værtshus",
+            "disco",
+            "fest",
+            "middag",
+            "cafe",
+            "restaurant",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Tøj, sko & accessories",
+        [
+            "smykker",
+            "bukser",
+            "bluse",
+            "jeans",
+            "kjole",
+            "taske",
+            "jakke",
+            "frakke",
+            "støvler",
+            "ring",
+            "halskæde",
+            "t-shirt",
+            "skjorte",
+            "beklædning",
+            "h&m",
+            "zara",
+            "zalando",
+            "nielsens",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Møbler & boligudstyr",
+        [
+            "køkkenudstyr",
+            "sofa",
+            "seng",
+            "bord",
+            "stole",
+            "hvidevarer",
+            "lamper",
+            "malerier",
+            "kunst",
+            "inventar",
+            "ikea",
+            "jysk",
+            "idemøbler",
+            "ilva",
+            "imerco",
+            "imerco dk",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Elektronik & computerudstyr",
+        [
+            "ny mobiltelefon",
+            "playstation",
+            "wii",
+            "xbox",
+            "konsol",
+            "pc",
+            "nintendo",
+            "elgiganten",
+            "power",
+            "proshop",
+            "computersalg",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Spil & legetøj",
+        [
+            "playstation spil",
+            "xbox spil",
+            "wii spil",
+            "pc spil",
+            "br legetøj",
+            "lego",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Hobby & sportsudstyr",
+        [
+            "skitøj",
+            "golfudstyr",
+            "surfudstyr",
+            "løbesko",
+            "løbetøj",
+            "pulsmåler",
+            "sportmaster",
+            "intersport",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Frisør & personlig pleje",
+        [
+            "parfume",
+            "klipning",
+            "hårklip",
+            "massage",
+            "coaching",
+            "wellness",
+            "solcenter",
+            "frisør",
+            "økofamilien",
+            "okofamilien",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Film, musik & læsestof",
+        [
+            "bøger",
+            "blade",
+            "aviser",
+            "magasiner",
+            "dvd",
+            "cd",
+            "mp3",
+            "itunes",
+            "dameblade",
+            "faglitteratur",
+            "fagbøger",
+            "skønlitteratur",
+            "spotify",
+            "saxo",
+            "saxo com",
+            "audible",
+            "blockbuster",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Biograf, koncerter & forlystelser",
+        [
+            "museum",
+            "kultur",
+            "biffen",
+            "musik",
+            "billetter",
+            "tivoli",
+            "sommerland",
+            "fyns sommerland",
+            "legeland",
+            "biograf",
+            "kino",
+            "odense zoo",
+            "zoo odense",
+            "moesgaard museum",
+            "moesgaardmuseum",
+            "danmarks jernbanemuseum",
+            "dinoland",
+            "minigolf",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Tips & lotto",
+        [
+            "poker",
+            "klasselotteri",
+            "casino",
+            "odds",
+            "kasino",
+            "lotteri",
+            "banko",
+            "bingo",
+            "danske spil",
+            "bet365",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Babyudstyr",
+        [
+            "barnevogn",
+            "klapvogn",
+            "barneseng",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Kæledyr",
+        [
+            "hund",
+            "kat",
+            "edderkop",
+            "dyrlæge",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Gaver & velgørenhed",
+        [
+            "nødhjælp",
+            "donationer",
+            "røde kors",
+            "red barnet",
+            "folkekirkens nødhjælp",
+            "wwf verdensnaturfonden",
+            "wspa",
+            "børnefonde",
+            "læger uden grænser",
+            "amnesty international",
+            "unicef",
+            "gave",
+            "dansk flygtningehjælp",
+            "flygtningehjælp",
+            "oxfam",
+            "oxfam danmark",
+            "sos børnebyerne",
+            "den danske naturfond",
+            "foreningen sand",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Tobak & alkohol",
+        [
+            "spiritus",
+            "cigaretter",
+            "øl",
+            "vin",
+            "snus",
+            "vape",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Kontanthævning & check",
+        [
+            "hæveautomat",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Online services & software",
+        [
+            "webhotel",
+            "domæne",
+            "apps",
+            "apple",
+            "google play",
+            "10er dk",
+            "10er",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Andet privatforbrug",
+        [
+            "barnepige",
+            "frimærker",
+            "babysitter",
+            "fragt",
+            "posthus",
+            "pakker",
+            "lommepenge",
+            "kontorartikler",
+            "tøjrens",
+            "renseri",
+            "kreditkort",
+        ],
+    ),
+    (
+        "Privatforbrug",
+        "Serviceydelser & rådgivning",
+        [
+            "revisor",
+            "privatøkonomisk rådgiver",
+        ],
+    ),
     # === FERIE ===
-    ("Ferie", "Fly & Hotel", [
-        "charterferie", "rejser", "booking.com", "airbnb", "hotels.com",
-        "momondo", "sas", "norwegian", "ryanair", "easyjet",
-    ]),
-    ("Ferie", "Billeje", [
-        "hertz", "avis", "europcar", "sixt",
-    ]),
-    ("Ferie", "Ferieaktiviteter", [
-        "skileje", "liftkort", "skiskole", "thurø strand camp", "strand camp",
-    ]),
-
+    (
+        "Ferie",
+        "Fly & Hotel",
+        [
+            "charterferie",
+            "rejser",
+            "booking.com",
+            "airbnb",
+            "hotels.com",
+            "momondo",
+            "sas",
+            "norwegian",
+            "ryanair",
+            "easyjet",
+        ],
+    ),
+    (
+        "Ferie",
+        "Billeje",
+        [
+            "hertz",
+            "avis",
+            "europcar",
+            "sixt",
+        ],
+    ),
+    (
+        "Ferie",
+        "Ferieaktiviteter",
+        [
+            "skileje",
+            "liftkort",
+            "skiskole",
+            "thurø strand camp",
+            "strand camp",
+        ],
+    ),
     # === DIVERSE ===
-    ("Diverse", "Ukendt", [
-        "ved ikke",
-    ]),
-    ("Diverse", "Bøder & afgifter", [
-        "fartbøde", "parkeringsbøde",
-    ]),
-    ("Diverse", "Offentligt gebyr", [
-        "pas", "kørekort", "kommune", "told",
-    ]),
-
+    (
+        "Diverse",
+        "Ukendt",
+        [
+            "ved ikke",
+        ],
+    ),
+    (
+        "Diverse",
+        "Bøder & afgifter",
+        [
+            "fartbøde",
+            "parkeringsbøde",
+        ],
+    ),
+    (
+        "Diverse",
+        "Offentligt gebyr",
+        [
+            "pas",
+            "kørekort",
+            "kommune",
+            "told",
+        ],
+    ),
     # === PENSION & OPSPARING ===
-    ("Pension & Opsparing", "Pensionsopsparing", [
-        "ratepension", "kapitalpension",
-    ]),
-    ("Pension & Opsparing", "Anden opsparing", [
-        "ferieopsparing",
-    ]),
-    ("Pension & Opsparing", "Værdipapirshandel", [
-        "investering", "aktier", "nordnet", "saxo bank",
-    ]),
+    (
+        "Pension & Opsparing",
+        "Pensionsopsparing",
+        [
+            "ratepension",
+            "kapitalpension",
+        ],
+    ),
+    (
+        "Pension & Opsparing",
+        "Anden opsparing",
+        [
+            "ferieopsparing",
+        ],
+    ),
+    (
+        "Pension & Opsparing",
+        "Værdipapirshandel",
+        [
+            "investering",
+            "aktier",
+            "nordnet",
+            "saxo bank",
+        ],
+    ),
 ]
 
 
 # ---------------------------------------------------------------------------
 # Seeding — port ALL Spiir hints into CategorizationRule rows
 # ---------------------------------------------------------------------------
+
 
 def seed_spiir_rules() -> int:
     """Seed all Spiir categorization hints as system rules. Idempotent.
@@ -412,14 +1028,16 @@ def seed_spiir_rules() -> int:
                 ).first()
 
                 if existing is None:
-                    db.add(CategorizationRule(
-                        category_id=category_id,
-                        match_pattern=pattern_str,
-                        is_regex=is_regex,
-                        priority=1000,
-                        source="system",
-                        is_active=True,
-                    ))
+                    db.add(
+                        CategorizationRule(
+                            category_id=category_id,
+                            match_pattern=pattern_str,
+                            is_regex=is_regex,
+                            priority=1000,
+                            source="system",
+                            is_active=True,
+                        )
+                    )
                     created += 1
 
         db.commit()
@@ -440,7 +1058,12 @@ def clean_and_migrate_stored_rules() -> int:
         rules = db.exec(select(CategorizationRule)).all()
         for rule in rules:
             # 1. Delete invalid broad system rules matching standalone "nota" or "notanr"
-            if rule.source == "system" and rule.match_pattern in ("nota", "notanr", "dankort-nota", "dankort nota"):
+            if rule.source == "system" and rule.match_pattern in (
+                "nota",
+                "notanr",
+                "dankort-nota",
+                "dankort nota",
+            ):
                 db.delete(rule)
                 updated_count += 1
                 continue
@@ -490,8 +1113,7 @@ def cleanup_promoted_household_rules() -> int:
         ).all()
 
         user_rules = db.exec(
-            select(CategorizationRule)
-            .where(CategorizationRule.source == "user")
+            select(CategorizationRule).where(CategorizationRule.source == "user")
         ).all()
 
         # Explicitly promoted / remapped patterns that should be removed from user rules
@@ -527,6 +1149,7 @@ def cleanup_promoted_household_rules() -> int:
 # ---------------------------------------------------------------------------
 # Rule Evaluation Engine
 # ---------------------------------------------------------------------------
+
 
 @functools.lru_cache(maxsize=2048)
 def _compile_pattern_cached(pattern: str, is_regex: bool, partial_match: bool) -> re.Pattern | None:
@@ -599,16 +1222,22 @@ def evaluate_posting(
     rules: list[CategorizationRule] | None = None,
 ) -> str | None:
     """Evaluate a posting against all active rules and return the best match."""
-    extra_text = " ".join(filter(None, [
-        posting.creditor_name,
-        posting.remittance_information,
-    ]))
+    extra_text = " ".join(
+        filter(
+            None,
+            [
+                posting.creditor_name,
+                posting.remittance_information,
+            ],
+        )
+    )
     return evaluate_text(posting.original_description or "", extra_text, rules)
 
 
 # ---------------------------------------------------------------------------
 # CRUD Operations
 # ---------------------------------------------------------------------------
+
 
 def list_rules(
     source: str | None = None,
@@ -688,7 +1317,14 @@ def update_rule(rule_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
         if rule is None:
             return None
 
-        for key in ("category_id", "match_pattern", "is_regex", "partial_match", "priority", "is_active"):
+        for key in (
+            "category_id",
+            "match_pattern",
+            "is_regex",
+            "partial_match",
+            "priority",
+            "is_active",
+        ):
             if key in patch:
                 value = patch[key]
                 if key == "match_pattern":
@@ -725,6 +1361,7 @@ def delete_rule(rule_id: str) -> bool:
 # ---------------------------------------------------------------------------
 # Retroactive Application
 # ---------------------------------------------------------------------------
+
 
 def apply_rules_to_uncategorized() -> dict[str, Any]:
     """Apply rules to all postings that currently lack a categorized allocation.
@@ -779,7 +1416,9 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
                     allocs = allocs_by_posting.get(posting.id, [])
 
                     has_real_category = any(
-                        a.category_id and a.category_id not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                        a.category_id
+                        and a.category_id
+                        not in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
                         for a in allocs
                     )
                     if has_real_category:
@@ -789,7 +1428,9 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
                     # If splits exist with all un-categorized, categorize the splits
                     if len(allocs) > 1:
                         all_uncat = all(
-                            not a.category_id or a.category_id in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
+                            not a.category_id
+                            or a.category_id
+                            in ("diverse|ikke-kategoriseret", "diverse|ukategoriseret")
                             for a in allocs
                         )
                         if all_uncat:
@@ -816,13 +1457,15 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
                         alloc.updated_at = now
                         db.add(alloc)
                     else:
-                        db.add(PostingAllocation(
-                            posting_id=posting.id,
-                            category_id=matched_category,
-                            amount_minor=posting.amount_minor,
-                            created_at=now,
-                            updated_at=now,
-                        ))
+                        db.add(
+                            PostingAllocation(
+                                posting_id=posting.id,
+                                category_id=matched_category,
+                                amount_minor=posting.amount_minor,
+                                created_at=now,
+                                updated_at=now,
+                            )
+                        )
 
                     categorized += 1
 
@@ -832,6 +1475,7 @@ def apply_rules_to_uncategorized() -> dict[str, Any]:
 
     # Now detect and categorize internal transfers
     from app.services.transfer_service import detect_internal_transfers
+
     transfer_results = detect_internal_transfers()
 
     return {

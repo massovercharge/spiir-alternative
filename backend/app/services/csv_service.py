@@ -1,4 +1,5 @@
 """Service for parsing and importing Spiir CSV exports."""
+
 import csv
 import datetime
 import io
@@ -24,19 +25,21 @@ def _slugify(text: str) -> str:
     if not text:
         return ""
     s = text.lower()
-    s = re.sub(r'[^a-z0-9æøå/]', '-', s)
-    s = re.sub(r'-+', '-', s).strip('-')
+    s = re.sub(r"[^a-z0-9æøå/]", "-", s)
+    s = re.sub(r"-+", "-", s).strip("-")
     return s
+
 
 def _parse_amount(amount_str: str) -> int:
     """Parse Spiir amount ('-5231,28') to minor units (-523128)."""
     if not amount_str:
         return 0
-    clean = amount_str.replace('.', '').replace(',', '.')
+    clean = amount_str.replace(".", "").replace(",", ".")
     try:
         return to_minor(clean)
     except (ValueError, TypeError):
         return 0
+
 
 def _parse_date(date_str: str) -> str:
     """Parse Spiir date ('04-10-2019') to ISO ('2019-10-04')."""
@@ -46,9 +49,10 @@ def _parse_date(date_str: str) -> str:
     except ValueError:
         return date_str
 
+
 def import_spiir_csv(file_content: str) -> dict[str, Any]:
     """Parse and merge Spiir CSV into the database."""
-    reader = csv.DictReader(io.StringIO(file_content), delimiter=';')
+    reader = csv.DictReader(io.StringIO(file_content), delimiter=";")
 
     with Session(engine) as db:
         # Pre-fetch all categories for fast mapping
@@ -66,7 +70,7 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
             "imported_new": 0,
             "merged_existing": 0,
             "skipped": 0,
-            "accounts_created": 0
+            "accounts_created": 0,
         }
 
         # Cache accounts by Spiir AccountId
@@ -111,8 +115,7 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
                 # and if it doesn't already have a valid category
                 for ep in existing_postings:
                     alloc = db.exec(
-                        select(PostingAllocation)
-                        .where(PostingAllocation.posting_id == ep.id)
+                        select(PostingAllocation).where(PostingAllocation.posting_id == ep.id)
                     ).first()
 
                     if alloc:
@@ -151,7 +154,9 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
                                     .where(PostingAllocationTagLink.tag_id == tag.id)
                                 ).first()
                                 if not existing_link:
-                                    link = PostingAllocationTagLink(allocation_id=alloc.id, tag_id=tag.id)
+                                    link = PostingAllocationTagLink(
+                                        allocation_id=alloc.id, tag_id=tag.id
+                                    )
                                     db.add(link)
 
                 stats["merged_existing"] += 1
@@ -163,11 +168,7 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
                 acc_uid = f"csv:{spiir_acc_id}"
                 acc = db.exec(select(Account).where(Account.uid == acc_uid)).first()
                 if not acc:
-                    acc = Account(
-                        uid=acc_uid,
-                        name=f"{spiir_acc_name} (Spiir)",
-                        source="csv"
-                    )
+                    acc = Account(uid=acc_uid, name=f"{spiir_acc_name} (Spiir)", source="csv")
                     db.add(acc)
                     stats["accounts_created"] += 1
                 spiir_accounts[spiir_acc_id] = acc_uid
@@ -195,7 +196,7 @@ def import_spiir_csv(file_content: str) -> dict[str, Any]:
                 is_extraordinary=(row.get("Extraordinary", "No").lower() == "yes"),
             )
             db.add(alloc)
-            db.flush() # Need to flush to get alloc.id for tags
+            db.flush()  # Need to flush to get alloc.id for tags
 
             # Custom date
             custom_date_str = _parse_date(row.get("CustomDate", ""))

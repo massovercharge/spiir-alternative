@@ -3,6 +3,7 @@
 Extracts download links from forwarded emails, downloads ZIP archives,
 unpacks and parses receipts idempotently, and logs inbound email history.
 """
+
 from __future__ import annotations
 
 import email
@@ -70,7 +71,10 @@ def extract_storebox_link(text_body: str = "", html_body: str = "") -> str | Non
             score = 0
             low_url = clean_url.lower()
 
-            if any(k in anchor_text for k in ("download", "hent", "data", "kvittering", "eksport", "export")):
+            if any(
+                k in anchor_text
+                for k in ("download", "hent", "data", "kvittering", "eksport", "export")
+            ):
                 score += 50
             if "storebox" in low_url or "nexi" in low_url:
                 score += 40
@@ -141,9 +145,7 @@ def resolve_household_by_token_or_recipient(
         combined_text = f"{subject}\n{body_text}"
         for match in TOKEN_PATTERN.finditer(combined_text):
             token = match.group(1).lower()
-            hh = db.exec(
-                select(Household).where(Household.inbound_email_token == token)
-            ).first()
+            hh = db.exec(select(Household).where(Household.inbound_email_token == token)).first()
             if hh:
                 return hh
 
@@ -179,18 +181,24 @@ def _parse_mime_email(raw_bytes: bytes) -> dict[str, Any]:
             content_disposition = str(part.get("Content-Disposition", ""))
             filename = part.get_filename()
 
-            if filename and ("attachment" in content_disposition or filename.endswith((".zip", ".json"))):
+            if filename and (
+                "attachment" in content_disposition or filename.endswith((".zip", ".json"))
+            ):
                 payload = part.get_payload(decode=True)
                 if isinstance(payload, bytes):
                     attachments.append((filename, payload))
             elif content_type == "text/plain" and not text_body:
                 payload = part.get_payload(decode=True)
                 if isinstance(payload, bytes):
-                    text_body = payload.decode(part.get_content_charset() or "utf-8", errors="replace")
+                    text_body = payload.decode(
+                        part.get_content_charset() or "utf-8", errors="replace"
+                    )
             elif content_type == "text/html" and not html_body:
                 payload = part.get_payload(decode=True)
                 if isinstance(payload, bytes):
-                    html_body = payload.decode(part.get_content_charset() or "utf-8", errors="replace")
+                    html_body = payload.decode(
+                        part.get_content_charset() or "utf-8", errors="replace"
+                    )
     else:
         payload = msg.get_payload(decode=True)
         if isinstance(payload, bytes):
@@ -264,7 +272,9 @@ def process_inbound_email(
         if household_id:
             target_household = db.get(Household, household_id)
         if not target_household:
-            target_household = resolve_household_by_token_or_recipient(recipients, subject, text_body)
+            target_household = resolve_household_by_token_or_recipient(
+                recipients, subject, text_body
+            )
 
         if not target_household:
             raise ValueError(
@@ -310,12 +320,16 @@ def process_inbound_email(
                         found_links.append(u)
 
                 # Prioritize accept/confirm link if found
-                accept_links = [link for link in found_links if any(k in link.lower() for k in ("accept", "confirm", "verify"))]
+                accept_links = [
+                    link
+                    for link in found_links
+                    if any(k in link.lower() for k in ("accept", "confirm", "verify"))
+                ]
                 primary_link = accept_links[0] if accept_links else None
 
                 if text_body:
                     cleaned_snippet = " ".join(text_body.split())[:250]
-                    snippet = f" Indhold: \"{cleaned_snippet}\""
+                    snippet = f' Indhold: "{cleaned_snippet}"'
 
                 if primary_link:
                     err_msg = f"Bekræftelsesmail modtaget. Link: {primary_link}"
@@ -323,7 +337,13 @@ def process_inbound_email(
                     links_str = f" Links: {' '.join(found_links)}" if found_links else ""
                     err_msg = f"Ingen Storebox download-link fundet.{links_str}{snippet}"
 
-                is_confirmation = bool(primary_link or any(k in f"{subject} {text_body}".lower() for k in ("confirm", "forwarding", "bekræft", "verification", "verify")))
+                is_confirmation = bool(
+                    primary_link
+                    or any(
+                        k in f"{subject} {text_body}".lower()
+                        for k in ("confirm", "forwarding", "bekræft", "verification", "verify")
+                    )
+                )
                 status_val = "info" if is_confirmation else "no_link"
 
                 with Session(_get_engine()) as db:
@@ -353,7 +373,9 @@ def process_inbound_email(
                 log_item.status = "success"
                 log_item.download_url = download_url
                 log_item.raw_receipt_count = int(result.get("raw_receipt_count") or 0)
-                log_item.deduplicated_receipt_count = int(result.get("deduplicated_receipt_count") or 0)
+                log_item.deduplicated_receipt_count = int(
+                    result.get("deduplicated_receipt_count") or 0
+                )
                 log_item.auto_linked_count = auto_linked
                 log_item.error_message = None
                 db.add(log_item)
@@ -448,7 +470,9 @@ def retry_inbound_email(email_id: str, household_id: str) -> dict[str, Any]:
             if log_item:
                 log_item.status = "success"
                 log_item.raw_receipt_count = int(result.get("raw_receipt_count") or 0)
-                log_item.deduplicated_receipt_count = int(result.get("deduplicated_receipt_count") or 0)
+                log_item.deduplicated_receipt_count = int(
+                    result.get("deduplicated_receipt_count") or 0
+                )
                 log_item.auto_linked_count = auto_linked
                 log_item.error_message = None
                 db.add(log_item)
@@ -547,7 +571,9 @@ def clear_inbound_emails(household_id: str) -> dict[str, Any]:
     token = current_household_id.set(household_id)
     try:
         with Session(_get_engine()) as db:
-            items = db.exec(select(InboundEmail).where(InboundEmail.household_id == household_id)).all()
+            items = db.exec(
+                select(InboundEmail).where(InboundEmail.household_id == household_id)
+            ).all()
             count = len(items)
             for item in items:
                 db.delete(item)
@@ -555,4 +581,3 @@ def clear_inbound_emails(household_id: str) -> dict[str, Any]:
             return {"success": True, "deleted_count": count}
     finally:
         current_household_id.reset(token)
-
