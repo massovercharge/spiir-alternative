@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.8.1",
+    "date": "2026-08-31",
+    "changes": {
+      "en": [
+        "Significantly enhanced Coop & MobilePay receipt matching: Automatically link transactions masked as 'MobilePay køb NOTPROVIDED' and 'Coop App' to Coop sub-chain receipts (365discount, Kvickly, SuperBrugsen, Dagli'Brugsen, Brugsen)",
+        "Support multi-account receipt ingestion and seamless matching for shared household accounts"
+      ],
+      "da": [
+        "Væsentligt forbedret matching af Coop- og MobilePay-kvitteringer: Automatisk kobling af bankposteringer maskeret som 'MobilePay køb NOTPROVIDED' og 'Coop App' mod alle Coop-kæder (365discount, Kvickly, SuperBrugsen, Dagli'Brugsen, Brugsen)",
+        "Understøttelse af kvitteringsimport fra flere medlemskonti i husstanden med fuld automatisk matching"
+      ]
+    }
+  },
+  {
     "version": "v1.8.0",
     "date": "2026-08-29",
     "changes": {
