@@ -10,7 +10,14 @@ import { useQueryClient } from '@tanstack/react-query';
 export default function WidgetsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { data: widgets, isLoading, isRefetching, refetch } = useActiveWidgetsData();
+  const {
+    data: widgets,
+    isLoading,
+    isRefetching,
+    refetch,
+    isError,
+    error,
+  } = useActiveWidgetsData();
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const handleRefreshAll = () => {
@@ -64,6 +71,21 @@ export default function WidgetsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Skeleton className="h-96 w-full rounded-2xl" />
           <Skeleton className="h-96 w-full rounded-2xl" />
+        </div>
+      ) : isError ? (
+        <div className="p-6 rounded-2xl bg-[hsla(var(--brand-danger),0.1)] border border-[hsla(var(--brand-danger),0.2)] text-[hsl(var(--text-primary))] space-y-3">
+          <div className="font-semibold text-[hsl(var(--brand-danger))] text-base">
+            Kunne ikke hente analyser
+          </div>
+          <p className="text-sm text-[hsl(var(--text-secondary))]">
+            {error ? String((error as any)?.message || error) : 'Ukendt netværksfejl'}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-xl bg-[hsl(var(--brand-primary))] text-white text-xs font-medium"
+          >
+            Prøv igen
+          </button>
         </div>
       ) : !widgets || widgets.length === 0 ? (
         /* Empty State */

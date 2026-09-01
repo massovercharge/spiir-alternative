@@ -86,6 +86,18 @@ def reorder_widget_position(
     return {"order": new_order}
 
 
+@router.get("/active/data")
+def get_active_widgets(
+    request: Request,
+    force_refresh: bool = Query(False),
+    household_id: Optional[str] = Query(None),
+    auth: dict[str, Any] = Depends(get_auth_dependency()),
+) -> list[dict[str, Any]]:
+    """Execute and return data for all active widgets for the dashboard."""
+    effective_h_id = _resolve_household_id(request, household_id)
+    return get_active_widgets_data(effective_h_id, force_refresh=force_refresh)
+
+
 @router.get("/{widget_id}/data")
 def get_single_widget_data(
     widget_id: str,
@@ -110,18 +122,6 @@ def get_single_widget_data(
         raise HTTPException(
             status_code=500, detail=f"Fejl under eksekvering af widget: {e!s}"
         ) from e
-
-
-@router.get("/active/data")
-def get_active_widgets(
-    request: Request,
-    force_refresh: bool = Query(False),
-    household_id: Optional[str] = Query(None),
-    auth: dict[str, Any] = Depends(get_auth_dependency()),
-) -> list[dict[str, Any]]:
-    """Execute and return data for all active widgets for the dashboard."""
-    effective_h_id = _resolve_household_id(request, household_id)
-    return get_active_widgets_data(effective_h_id, force_refresh=force_refresh)
 
 
 @router.post("/reload")
