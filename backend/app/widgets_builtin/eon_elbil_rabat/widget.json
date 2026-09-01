@@ -1,0 +1,13 @@
+{
+  "id": "eon_elbil_rabat",
+  "name": "E.ON Elbil Rabat",
+  "description": "Beregner månedlig nettobesparelse ved 20% el-rabat i forhold til 99 kr./md. abonnementspris.",
+  "version": "1.0.0",
+  "author": "Bruger",
+  "category": "Abonnementer",
+  "icon": "Zap",
+  "type": "script",
+  "width": "full",
+  "refresh_interval_seconds": 3600,
+  "default_enabled": true
+}

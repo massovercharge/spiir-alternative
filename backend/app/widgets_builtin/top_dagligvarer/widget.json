@@ -1,0 +1,14 @@
+{
+  "id": "top_dagligvarer",
+  "name": "Supermarked Forbrug",
+  "description": "Deklarativ SQL-analyse af dit samlede forbrug fordelt på de største supermarkedskæder.",
+  "version": "1.0.0",
+  "author": "Peng",
+  "category": "Forbrug",
+  "icon": "ShoppingBag",
+  "type": "sql",
+  "width": "half",
+  "sql_query": "SELECT CASE WHEN lower(original_description) LIKE '%rema%' THEN 'Rema 1000' WHEN lower(original_description) LIKE '%netto%' THEN 'Netto' WHEN lower(original_description) LIKE '%føtex%' OR lower(original_description) LIKE '%foetex%' THEN 'Føtex' WHEN lower(original_description) LIKE '%coop%' OR lower(original_description) LIKE '%superbrugsen%' OR lower(original_description) LIKE '%kvickly%' THEN 'Coop' WHEN lower(original_description) LIKE '%lidl%' THEN 'Lidl' WHEN lower(original_description) LIKE '%bilka%' THEN 'Bilka' ELSE 'Andre' END as butik, round(sum(abs(amount_minor)) / 100.0, 0) as forbrug_kr FROM posting WHERE amount_minor < 0 AND (lower(original_description) LIKE '%rema%' OR lower(original_description) LIKE '%netto%' OR lower(original_description) LIKE '%føtex%' OR lower(original_description) LIKE '%coop%' OR lower(original_description) LIKE '%lidl%' OR lower(original_description) LIKE '%bilka%') GROUP BY butik ORDER BY forbrug_kr DESC;",
+  "refresh_interval_seconds": 3600,
+  "default_enabled": true
+}

@@ -26,6 +26,7 @@ from app.api.routers import (
     rules,
     sync,
     transactions,
+    widgets,
 )
 from app.core.auth import get_auth_dependency
 from app.models import create_db_and_tables
@@ -138,6 +139,7 @@ def create_app() -> FastAPI:
     app.include_router(recurring.router, dependencies=dependencies)
     app.include_router(sync.router, dependencies=dependencies)
     app.include_router(notifications.router, dependencies=dependencies)
+    app.include_router(widgets.router, dependencies=dependencies)
     app.include_router(inbound.router)
 
     # ----- Serve Frontend (Static) -----

@@ -11,6 +11,7 @@ import {
   LogIn,
   LogOut,
   Loader2,
+  LayoutGrid,
 } from 'lucide-react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +27,7 @@ const SettingsPage = lazy(() => import('../../pages/SettingsPage'));
 const InsightsPage = lazy(() => import('../../pages/InsightsPage'));
 const Callback = lazy(() => import('../../pages/Callback'));
 const ReleaseNotesPage = lazy(() => import('../../pages/ReleaseNotesPage'));
+const WidgetsPage = lazy(() => import('../../pages/WidgetsPage'));
 
 import { HouseholdProvider } from '../../context/HouseholdContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
@@ -65,6 +67,7 @@ export default function AppLayout() {
     { to: '/transactions', icon: <Receipt size={20} />, label: t('app.transactions') },
     { to: '/budgets', icon: <PieChart size={20} />, label: t('app.budgets') },
     { to: '/insights', icon: <PieChart size={20} />, label: t('app.insights', 'Indblik') },
+    { to: '/widgets', icon: <LayoutGrid size={20} />, label: t('app.widgets', 'Analyser') },
     { to: '/accounts', icon: <Wallet size={20} />, label: t('app.accounts') },
     { to: '/settings', icon: <Settings size={20} />, label: t('app.settings') },
   ];
@@ -251,6 +254,7 @@ export default function AppLayout() {
                 <Route path="/budgets" element={<BudgetsPage />} />
                 <Route path="/accounts" element={<AccountsPage />} />
                 <Route path="/insights" element={<InsightsPage />} />
+                <Route path="/widgets" element={<WidgetsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/release-notes" element={<ReleaseNotesPage />} />
                 <Route path="/callback" element={<Navigate to="/dashboard" replace />} />
