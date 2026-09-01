@@ -2,7 +2,6 @@ import json
 import os
 import sqlite3
 from collections import defaultdict
-from datetime import datetime
 
 db_path = os.environ.get("PENG_DB_PATH", "data/peng.sqlite")
 household_id = os.environ.get("PENG_HOUSEHOLD_ID")
@@ -25,7 +24,7 @@ sql = f"SELECT booking_date, amount_minor, original_description FROM posting WHE
 try:
     rows = cursor.execute(sql, params).fetchall()
 except Exception as e:
-    print(json.dumps({"success": False, "error": f"Database forespørgsel fejlede: {str(e)}"}))
+    print(json.dumps({"success": False, "error": f"Database forespørgsel fejlede: {e!s}"}))
     exit(0)
 
 # Group transactions by month (from August 2025 onwards, where subscription is active)
