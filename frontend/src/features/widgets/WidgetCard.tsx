@@ -57,6 +57,24 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
   const manifest = widget.manifest;
   const output = widget.output;
 
+  const renderCustomLegend = () => {
+    if (!output.chart?.custom_legend) return null;
+    return (
+      <div className="flex flex-wrap items-center justify-center gap-4 pt-2.5 text-xs">
+        {output.chart.custom_legend.map((item, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            {item.type === 'line' ? (
+              <span className="w-4 h-0.5" style={{ backgroundColor: item.color }} />
+            ) : (
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+            )}
+            <span className="text-[hsl(var(--text-secondary))] font-medium">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -232,7 +250,11 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                         color: 'hsl(var(--text-primary))',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                    {output.chart.custom_legend ? (
+                      <Legend content={renderCustomLegend} />
+                    ) : (
+                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                    )}
                     {output.chart.series.map((s, idx) => {
                       const color = s.color || (idx === 0 ? '#10b981' : '#3b82f6');
                       if (s.type === 'line') {
@@ -293,7 +315,11 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                         color: 'hsl(var(--text-primary))',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                    {output.chart.custom_legend ? (
+                      <Legend content={renderCustomLegend} />
+                    ) : (
+                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                    )}
                     {output.chart.series.map((s, idx) => (
                       <Line
                         key={s.key}

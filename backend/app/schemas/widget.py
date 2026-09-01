@@ -23,11 +23,18 @@ class WidgetSeries(BaseModel):
     type: Optional[Literal["bar", "line", "area"]] = "bar"
 
 
+class WidgetLegendItem(BaseModel):
+    label: str
+    color: str
+    type: Optional[Literal["line", "rect", "circle"]] = "rect"
+
+
 class WidgetChart(BaseModel):
     chart_type: ChartType = "bar"
     x_axis: str = "name"
     series: list[WidgetSeries] = []
     data: list[dict[str, Any]] = []
+    custom_legend: Optional[list[WidgetLegendItem]] = None
 
 
 class WidgetTable(BaseModel):

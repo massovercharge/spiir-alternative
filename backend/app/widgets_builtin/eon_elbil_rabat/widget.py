@@ -133,9 +133,14 @@ chart = {
     "x_axis": "month",
     "series": [
         {"key": "savings_kr", "label": "Opnået rabat (kr.)", "color": "#10b981", "type": "bar"},
-        {"key": "cost_kr", "label": "Abonnementspris (99 kr.)", "color": "#fbbf24", "type": "line"}
+        {"key": "cost_kr", "label": "Abonnementspris (99 kr.)", "color": "#fbbf24", "type": "line"},
     ],
-    "data": chart_data
+    "custom_legend": [
+        {"label": "Abonnementspris (99 kr.)", "color": "#fbbf24", "type": "line"},
+        {"label": "Rabat ≥ 99 kr. (overskud)", "color": "#10b981", "type": "rect"},
+        {"label": "Rabat < 99 kr. (underskud)", "color": "#ef4444", "type": "rect"},
+    ],
+    "data": chart_data,
 }
 
 table = {

@@ -18,11 +18,18 @@ export interface WidgetSeries {
   type?: 'bar' | 'line' | 'area';
 }
 
+export interface WidgetLegendItem {
+  label: string;
+  color: string;
+  type?: 'line' | 'rect' | 'circle';
+}
+
 export interface WidgetChart {
   chart_type: ChartType;
   x_axis: string;
   series: WidgetSeries[];
   data: Record<string, any>[];
+  custom_legend?: WidgetLegendItem[];
 }
 
 export interface WidgetTable {
