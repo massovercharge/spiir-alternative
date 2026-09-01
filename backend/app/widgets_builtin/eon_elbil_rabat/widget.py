@@ -72,12 +72,17 @@ for m in sorted(by_month.keys()):
     year_str, month_str = m.split("-")
     label = f"{month_names_da.get(month_str, month_str)} '{year_str[2:]}"
 
+    # Green if savings >= 99 kr (net profit), Red if savings < 99 kr (net loss)
+    bar_color = "#10b981" if net_m_minor >= 0 else "#ef4444"
+
     chart_data.append({
         "month": label,
         "savings_kr": round(savings_m_minor / 100.0, 1),
         "cost_kr": 99,
         "power_kr": round(power_m_minor / 100.0, 1),
-        "net_kr": round(net_m_minor / 100.0, 1)
+        "net_kr": round(net_m_minor / 100.0, 1),
+        "savings_kr_color": bar_color,
+        "color": bar_color,
     })
 
     table_rows.append([

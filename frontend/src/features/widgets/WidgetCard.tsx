@@ -19,6 +19,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
   LineChart,
   Line,
   ComposedChart,
@@ -254,7 +255,12 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                           name={s.label}
                           fill={color}
                           radius={[4, 4, 0, 0]}
-                        />
+                        >
+                          {output.chart?.data?.map((entry, entryIdx) => {
+                            const cellColor = entry[`${s.key}_color`] || entry.color || color;
+                            return <Cell key={`cell-${entryIdx}`} fill={cellColor} />;
+                          })}
+                        </Bar>
                       );
                     })}
                   </ComposedChart>
