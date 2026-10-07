@@ -14,6 +14,7 @@ import {
   PieChart,
   Wallet,
   Calendar,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -53,15 +54,27 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showTraceback, setShowTraceback] = useState(false);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
 
   const manifest = widget.manifest;
   const output = widget.output;
 
+  const activeScenario =
+    output.scenarios?.find(
+      (s) => s.id === (selectedScenarioId || output.default_scenario_id || output.scenarios?.[0]?.id)
+    ) || null;
+
+  const currentSummary = activeScenario?.summary ?? output.summary;
+  const currentKpis =
+    activeScenario?.kpis && activeScenario.kpis.length > 0 ? activeScenario.kpis : output.kpis;
+  const currentChart = activeScenario?.chart ?? output.chart;
+  const currentTable = activeScenario?.table ?? output.table;
+
   const renderCustomLegend = () => {
-    if (!output.chart?.custom_legend) return null;
+    if (!currentChart?.custom_legend) return null;
     return (
       <div className="flex flex-wrap items-center justify-center gap-4 pt-2.5 text-xs">
-        {output.chart.custom_legend.map((item, i) => (
+        {currentChart.custom_legend.map((item, i) => (
           <div key={i} className="flex items-center gap-1.5">
             {item.type === 'line' ? (
               <span className="w-4 h-0.5" style={{ backgroundColor: item.color }} />
@@ -133,6 +146,43 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
       </CardHeader>
 
       <CardContent className="flex-1 p-4 sm:p-5 space-y-5">
+        {/* Scenarievælger */}
+        {output.scenarios && output.scenarios.length > 0 && (
+          <div className="space-y-2 p-2.5 rounded-xl bg-[hsl(var(--bg-tertiary))] border border-[hsl(var(--border-color))]">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--text-secondary))] shrink-0 pl-1">
+                <SlidersHorizontal size={14} className="text-[hsl(var(--brand-primary))]" />
+                <span>{t('widgets.scenario', 'Vælg scenarie:')}</span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar flex-wrap">
+                {output.scenarios.map((sc) => {
+                  const activeId =
+                    selectedScenarioId || output.default_scenario_id || output.scenarios?.[0]?.id;
+                  const isActive = activeId === sc.id;
+                  return (
+                    <button
+                      key={sc.id}
+                      onClick={() => setSelectedScenarioId(sc.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-[hsl(var(--brand-primary))] text-white shadow-sm ring-1 ring-[hsl(var(--brand-primary))]'
+                          : 'bg-[hsl(var(--bg-secondary))] text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--bg-primary))] border border-[hsl(var(--border-color))]'
+                      }`}
+                    >
+                      {sc.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {activeScenario?.description && (
+              <p className="text-xs text-[hsl(var(--text-secondary))] pl-1 pt-0.5 border-t border-[hsl(var(--border-color))] opacity-90">
+                💡 <span className="font-medium">{activeScenario.label}:</span> {activeScenario.description}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Error State */}
         {(!output.success || output.error) && (
           <div className="p-4 rounded-xl bg-[hsla(var(--brand-danger),0.1)] border border-[hsla(var(--brand-danger),0.2)] text-[hsl(var(--text-primary))] space-y-2">
@@ -165,20 +215,20 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
         )}
 
         {/* Summary text */}
-        {output.summary && (
+        {currentSummary && (
           <div className="p-3.5 rounded-xl bg-[hsl(var(--bg-tertiary))] border border-[hsl(var(--border-color))]">
-            <p className="text-sm text-[hsl(var(--text-primary))] leading-relaxed">
-              {output.summary}
+            <p className="text-sm text-[hsl(var(--text-primary))] leading-relaxed whitespace-pre-line">
+              {currentSummary}
             </p>
           </div>
         )}
 
         {/* KPIs Grid */}
-        {output.kpis && output.kpis.length > 0 && (
+        {currentKpis && currentKpis.length > 0 && (
           <div
-            className={`grid gap-3 grid-cols-2 ${output.kpis.length >= 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}
+            className={`grid gap-3 grid-cols-2 ${currentKpis.length >= 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}
           >
-            {output.kpis.map((kpi, idx) => {
+            {currentKpis.map((kpi, idx) => {
               const displayVal =
                 kpi.value_minor !== undefined && kpi.value_minor !== null
                   ? formatCurrencyMinor(kpi.value_minor)
@@ -216,13 +266,13 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
         )}
 
         {/* Recharts Diagram */}
-        {output.chart && output.chart.data && output.chart.data.length > 0 && (
+        {currentChart && currentChart.data && currentChart.data.length > 0 && (
           <div className="pt-2">
             <div className="h-64 sm:h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                {output.chart.chart_type === 'composed' || output.chart.chart_type === 'bar' ? (
+                {currentChart.chart_type === 'composed' || currentChart.chart_type === 'bar' ? (
                   <ComposedChart
-                    data={output.chart.data}
+                    data={currentChart.data}
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
                     <CartesianGrid
@@ -231,7 +281,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                       vertical={false}
                     />
                     <XAxis
-                      dataKey={output.chart.x_axis}
+                      dataKey={currentChart.x_axis}
                       tick={{ fill: 'hsl(var(--text-secondary))', fontSize: 11 }}
                       axisLine={{ stroke: 'hsl(var(--border-color))' }}
                       tickLine={false}
@@ -250,12 +300,12 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                         color: 'hsl(var(--text-primary))',
                       }}
                     />
-                    {output.chart.custom_legend ? (
+                    {currentChart.custom_legend ? (
                       <Legend content={renderCustomLegend} />
                     ) : (
                       <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
                     )}
-                    {output.chart.series.map((s, idx) => {
+                    {currentChart.series.map((s, idx) => {
                       const color = s.color || (idx === 0 ? '#10b981' : '#3b82f6');
                       if (s.type === 'line') {
                         return (
@@ -278,7 +328,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                           fill={color}
                           radius={[4, 4, 0, 0]}
                         >
-                          {output.chart?.data?.map((entry, entryIdx) => {
+                          {currentChart?.data?.map((entry, entryIdx) => {
                             const cellColor = entry[`${s.key}_color`] || entry.color || color;
                             return <Cell key={`cell-${entryIdx}`} fill={cellColor} />;
                           })}
@@ -288,7 +338,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                   </ComposedChart>
                 ) : (
                   <LineChart
-                    data={output.chart.data}
+                    data={currentChart.data}
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
                     <CartesianGrid
@@ -297,7 +347,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                       vertical={false}
                     />
                     <XAxis
-                      dataKey={output.chart.x_axis}
+                      dataKey={currentChart.x_axis}
                       tick={{ fill: 'hsl(var(--text-secondary))', fontSize: 11 }}
                       axisLine={{ stroke: 'hsl(var(--border-color))' }}
                       tickLine={false}
@@ -315,12 +365,12 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                         color: 'hsl(var(--text-primary))',
                       }}
                     />
-                    {output.chart.custom_legend ? (
+                    {currentChart.custom_legend ? (
                       <Legend content={renderCustomLegend} />
                     ) : (
                       <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
                     )}
-                    {output.chart.series.map((s, idx) => (
+                    {currentChart.series.map((s, idx) => (
                       <Line
                         key={s.key}
                         type="monotone"
@@ -338,7 +388,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
         )}
 
         {/* Table representation */}
-        {output.table && output.table.rows && output.table.rows.length > 0 && (
+        {currentTable && currentTable.rows && currentTable.rows.length > 0 && (
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--text-secondary))]">
               <TableIcon size={14} />
@@ -348,7 +398,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-secondary))] font-medium border-b border-[hsl(var(--border-color))] sticky top-0">
                   <tr>
-                    {output.table.columns.map((col, idx) => (
+                    {currentTable.columns.map((col, idx) => (
                       <th key={idx} className="py-2.5 px-3 whitespace-nowrap">
                         {col}
                       </th>
@@ -356,7 +406,7 @@ export const WidgetCard: React.FC<WidgetCardProps> = ({ widget }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[hsl(var(--border-color))]">
-                  {output.table.rows.map((row, rIdx) => (
+                  {currentTable.rows.map((row, rIdx) => (
                     <tr key={rIdx} className="hover:bg-[hsl(var(--bg-tertiary))] transition-colors">
                       {row.map((cell, cIdx) => (
                         <td

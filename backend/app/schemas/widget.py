@@ -57,6 +57,16 @@ class WidgetManifest(BaseModel):
     default_enabled: bool = True
 
 
+class WidgetScenario(BaseModel):
+    id: str
+    label: str
+    description: Optional[str] = None
+    summary: Optional[str] = None
+    kpis: list[WidgetKPI] = Field(default_factory=list)
+    chart: Optional[WidgetChart] = None
+    table: Optional[WidgetTable] = None
+
+
 class WidgetOutput(BaseModel):
     success: bool = True
     summary: Optional[str] = None
@@ -67,6 +77,8 @@ class WidgetOutput(BaseModel):
     error: Optional[str] = None
     traceback: Optional[str] = None
     computed_at: Optional[str] = None
+    scenarios: Optional[list[WidgetScenario]] = None
+    default_scenario_id: Optional[str] = None
 
 
 class WidgetListItem(BaseModel):

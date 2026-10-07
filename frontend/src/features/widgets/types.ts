@@ -52,6 +52,16 @@ export interface WidgetManifest {
   default_enabled: boolean;
 }
 
+export interface WidgetScenario {
+  id: string;
+  label: string;
+  description?: string;
+  summary?: string;
+  kpis?: WidgetKPI[];
+  chart?: WidgetChart;
+  table?: WidgetTable;
+}
+
 export interface WidgetOutput {
   success: boolean;
   summary?: string;
@@ -62,6 +72,8 @@ export interface WidgetOutput {
   error?: string;
   traceback?: string;
   computed_at?: string;
+  scenarios?: WidgetScenario[];
+  default_scenario_id?: string;
 }
 
 export interface WidgetListItem {
