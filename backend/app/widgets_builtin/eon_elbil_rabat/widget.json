@@ -1,8 +1,8 @@
 {
   "id": "eon_elbil_rabat",
-  "name": "E.ON Elbil Rabat",
-  "description": "Beregner månedlig nettobesparelse ved 20% el-rabat i forhold til 99 kr./md. abonnementspris.",
-  "version": "1.0.0",
+  "name": "E.ON Ladeabonnementer (City Spot vs. Plus vs. Lite)",
+  "description": "Beregner og sammenligner månedlige omkostninger for City Spot (229 kr.), Plus (99 kr.) og Lite (Ad hoc) baseret på dit faktiske elforbrug.",
+  "version": "1.1.0",
   "author": "Bruger",
   "category": "Abonnementer",
   "icon": "Zap",
