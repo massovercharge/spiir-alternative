@@ -51,12 +51,12 @@ month_names_da = {
 
 # --- REALTIDS-HENTNING FRA ENERGI DATA SERVICE API (energidataservice.dk) ---
 # Faste takster og afgifter for offentlig ladning i DK2 (Cerius område, vintertariffer):
-# Elafgift: 0,761 kr. + moms = 0,951 kr./kWh
-# Cerius nettarif C vinter (lavlast kl. 00-06): 0,139 kr. + moms = 0,174 kr./kWh
-# Energinet TSO (system + net): 0,125 kr. + moms = 0,156 kr./kWh
-# E.ON tillæg: 0,25 kr. + moms = 0,3125 kr./kWh
-# Fast tillæg i alt før spotpris: ~1,5935 kr./kWh
-FIXED_TARIFFS_AND_TAXES = 1.5935
+# Elafgift: 0,761 kr. * 1,25 = 0,95125 kr./kWh
+# Cerius nettarif C vinter (lavlast kl. 00-06): 0,139 kr. * 1,25 = 0,17375 kr./kWh
+# Energinet TSO (system + net): 0,125 kr. * 1,25 = 0,15625 kr./kWh
+# E.ON tillæg: 0,25 kr./kWh (inkl. moms, som specificeret i appen: spotpris + 0,25 kr.)
+# Fast tillæg i alt før spotpris: ~1,53125 kr./kWh
+FIXED_TARIFFS_AND_TAXES = 1.53125
 
 def get_live_spot_price() -> tuple[float, str, bool]:
     """Henter de seneste natpriser fra Energi Data Service API med lokal caching."""
@@ -69,7 +69,7 @@ def get_live_spot_price() -> tuple[float, str, bool]:
             with open(cache_file, "r", encoding="utf-8") as f:
                 cached = json.load(f)
                 if now - cached.get("timestamp", 0) < 10800:
-                    return cached.get("price", 1.48), cached.get("source", "Live API (cache)"), True
+                    return cached.get("price", 1.42), cached.get("source", "Live API (cache)"), True
         except Exception:
             pass
 
@@ -88,7 +88,8 @@ def get_live_spot_price() -> tuple[float, str, bool]:
                     spot_mwh = r.get('SpotPriceDKK')
                     if spot_mwh is not None:
                         spot_kwh = spot_mwh / 1000.0
-                        total_kwh = (spot_kwh * 1.25) + FIXED_TARIFFS_AND_TAXES
+                        # Ladeprisen kan aldrig blive negativ jf. E.ONs vilkår
+                        total_kwh = max(0.0, (spot_kwh * 1.25) + FIXED_TARIFFS_AND_TAXES)
                         night_prices.append(total_kwh)
             
             if night_prices:
@@ -102,15 +103,15 @@ def get_live_spot_price() -> tuple[float, str, bool]:
     except Exception:
         pass
 
-    # 3. Fallback til estimeret aktuel efterårs-/vinterpris hvis API'et ikke svarer
-    return 1.48, "Estimat (inkl. Cerius vintertarif)", False
+    # 3. Fallback til E.ONs eget oplyste gennemsnit (1,42 kr./kWh)
+    return 1.42, "E.ON gns. (inkl. Cerius vintertarif)", False
 
 live_spot_price, spot_source, is_live_connected = get_live_spot_price()
 
 # E.ON Prisstrukturer:
-# Plus: 99 kr./md. abonnement, 2,25 kr./kWh for AC-ladning
-# Lite: 0 kr./md. abonnement, 2,95 kr./kWh for AC-ladning
-# City Spot: 229 kr./md. abonnement, spotpris + 25 øre/kWh (gns. natpris inkl. afgifter/tariffer)
+# Plus: 99 kr./md. abonnement, 2,25 kr./kWh for AC-ladning (3,25 kr. for DC)
+# Lite: 0 kr./md. abonnement, 2,95 kr./kWh for AC-ladning (3,75 kr. for DC)
+# City Spot: 229 kr./md. abonnement, spotpris + 25 øre/kWh (samme pris for BÅDE AC og DC)
 PRICE_PLUS_KWH = 2.25
 PRICE_LITE_KWH = 2.95
 SUB_PLUS_MINOR = 9900
@@ -152,6 +153,9 @@ critical_spot_price_winter = round(PRICE_PLUS_KWH - (130.0 / avg_winter_kwh), 2)
 
 
 def generate_scenario(sc_id: str, label: str, description: str, spot_price: float, is_live: bool = False) -> dict:
+    # Ladepris kan aldrig blive negativ jf. aftalevilkår
+    spot_price = max(0.0, spot_price)
+
     total_lite_minor = 0
     total_plus_minor = 0
     total_spot_minor = 0
@@ -226,16 +230,23 @@ def generate_scenario(sc_id: str, label: str, description: str, spot_price: floa
         winter_kpi_sub = f"Sparer ca. {diff_winter_monthly_kr} kr./md."
         winter_text = (
             f"Ved en gennemsnitlig samlet pris på **{spot_price:.2f} kr./kWh** overstiger elprisen smertegrænsen på {critical_spot_price_winter:.2f} kr./kWh. "
-            f"**Jeres nuværende Plus-abonnement fungerer som en optimal forsikring (2,25 kr. fast)** og sparer jer ca. **{diff_winter_monthly_kr} kr./md.** mod høje vinterpriser!"
+            f"**Plus beskytter jer som en fastprisaftale (2,25 kr.)** og sparer jer ca. **{diff_winter_monthly_kr} kr./md.** mod høje vinterpriser!"
         )
+
+    dc_and_rules_note = (
+        "\n\n🚗 **Vigtige fordele fra E.ON-appen:**\n"
+        "• **Lynladning (DC):** Koster spotpris + 25 øre (samme som AC!). På Plus koster DC 3,25 kr./kWh (+1 kr. ekstra).\n"
+        "• **Spærregebyr:** 24 timers gebyrfri parkering efter endt AC-opladning (derefter 10 øre/min)."
+    )
 
     summary = (
         f"**Scenarie: {label}**\n\n"
         f"🎯 **Smertegrænse for vinteren:** **{critical_spot_price_winter:.2f} kr./kWh** (ved {round(avg_winter_kwh)} kWh/md. vinterforbrug).\n"
-        f"💡 **Forudsat samlet kWh-pris:** **{spot_price:.2f} kr./kWh** (inkl. Cerius vintertarif C, elafgift og E.ON-tillæg).\n\n"
+        f"💡 **Forudsat samlet kWh-pris:** **{spot_price:.2f} kr./kWh** (inkl. Cerius vintertarif C, elafgift og E.ON-tillæg på 25 øre).\n\n"
         f"**Konklusion for vinteren:** {winter_text}\n\n"
         f"**Historisk sammenligning ({total_months} mdr.):** Med dette prisniveau ville City Spot have givet et samlet resultat på **{total_spot_savings_vs_plus / 100.0:+,.2f} kr.** vs. Plus "
         f"(bedst i {spot_wins} ud af {total_months} måneder)."
+        f"{dc_and_rules_note}"
     )
 
     kpis = [
@@ -297,7 +308,7 @@ def generate_scenario(sc_id: str, label: str, description: str, spot_price: floa
     }
 
 
-# Opret de 6 scenarier
+# Opret de 6 scenarier (inkl. E.ONs officielle referencepris på 1,42 kr.)
 scenarios = [
     generate_scenario(
         "live",
@@ -307,16 +318,16 @@ scenarios = [
         is_live=True
     ),
     generate_scenario(
-        "mild",
-        "☀️ Mild vinter (1,25 kr.)",
-        "Mildt og blæsende vejr med lav spotpris. City Spot er markant billigst.",
-        1.25
+        "eon_official",
+        "📊 E.ON gns. (1,42 kr.)",
+        "E.ONs officielt oplyste gennemsnitlige natpris i appen (Spot + 25 øre) for både AC og DC.",
+        1.42
     ),
     generate_scenario(
-        "normal",
-        "❄️ Normal vinter (1,60 kr.)",
-        "Gennemsnitlig dansk vinter med moderate elpriser under smertegrænsen.",
-        1.60
+        "mild",
+        "☀️ Mild vinter (1,20 kr.)",
+        "Ekstra blæsende efterår/vinter med lave spotpriser. City Spot sparer jer over 200 kr./md.",
+        1.20
     ),
     generate_scenario(
         "breakeven",
