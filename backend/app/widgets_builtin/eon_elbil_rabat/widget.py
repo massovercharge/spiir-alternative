@@ -234,9 +234,9 @@ def generate_scenario(sc_id: str, label: str, description: str, spot_price: floa
         )
 
     dc_and_rules_note = (
-        "\n\n🚗 **Vigtige fordele fra E.ON-appen:**\n"
-        "• **Lynladning (DC):** Koster spotpris + 25 øre (samme som AC!). På Plus koster DC 3,25 kr./kWh (+1 kr. ekstra).\n"
-        "• **Spærregebyr:** 24 timers gebyrfri parkering efter endt AC-opladning (derefter 10 øre/min)."
+        "\n\n🚗 **Bemærkninger til vilkår:**\n"
+        "• **Lynladning (DC):** City Spot koster spotpris + 25 øre (samme som AC!). På Plus koster DC 3,25 kr./kWh (+1,00 kr. tillæg).\n"
+        "• **Spærregebyr:** Reglerne er ens på begge abonnementer (24 timers gebyrfri parkering efter endt AC-opladning, så I bevarer samme fleksibilitet)."
     )
 
     summary = (
