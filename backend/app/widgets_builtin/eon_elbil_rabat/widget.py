@@ -79,18 +79,8 @@ HISTORICAL_NIGHT_SPOT_DKK = {
 FIXED_WINTER_TARIFFS = 1.53125
 FIXED_SUMMER_TARIFFS = 1.43750
 
-def get_historical_month_price(month_key: str) -> float:
-    """Beregner den faktiske historiske kWh-pris for en given måned baseret på reel rå spotpris for DK2 og Cerius sæsontarif."""
-    month_num = int(month_key.split("-")[1])
-    is_winter = month_num in [10, 11, 12, 1, 2, 3]
-    fixed_tariffs = FIXED_WINTER_TARIFFS if is_winter else FIXED_SUMMER_TARIFFS
-    raw_spot = HISTORICAL_NIGHT_SPOT_DKK.get(month_key, 0.600)
-    # Ladeprisen kan aldrig blive negativ jf. E.ONs vilkår
-    return round(max(0.0, (raw_spot * 1.25) + fixed_tariffs), 2)
-
-# --- REALTIDS-HENTNING FRA ENERGI DATA SERVICE API (energidataservice.dk) TIL PROGNOSE ---
+# --- REALTIDS-HENTNING FRA ENERGI DATA SERVICE API TIL TREND-SCENARIE ---
 def get_live_spot_price() -> tuple[float, str, bool]:
-    """Henter den seneste natpris fra Energi Data Service API med lokal caching."""
     cache_file = "/tmp/peng_eon_live_spot.json"
     now = time.time()
     
@@ -136,9 +126,6 @@ def get_live_spot_price() -> tuple[float, str, bool]:
 live_spot_price, spot_source, is_live_connected = get_live_spot_price()
 
 # E.ON Prisstrukturer:
-# Plus: 99 kr./md. abonnement, 2,25 kr./kWh for AC-ladning (3,25 kr. for DC)
-# Lite: 0 kr./md. abonnement, 2,95 kr./kWh for AC-ladning (3,75 kr. for DC)
-# City Spot: 229 kr./md. abonnement, spotpris + 25 øre/kWh (samme pris for BÅDE AC og DC)
 PRICE_PLUS_KWH = 2.25
 PRICE_LITE_KWH = 2.95
 SUB_PLUS_MINOR = 9900
@@ -171,132 +158,138 @@ for m in sorted(by_month.keys()):
 total_months = len(month_data_list)
 total_kwh_all = sum(x["kwh"] for x in month_data_list)
 avg_winter_kwh = sum(winter_months_kwh) / len(winter_months_kwh) if winter_months_kwh else 330.0
+avg_monthly_kwh = total_kwh_all / total_months if total_months > 0 else 238.0
 
-# Break-even beregning ved vinterforbrug:
-# Merpris = 130 kr./md. (229 kr. - 99 kr.)
-# Ved jeres gennemsnitlige vinterforbrug på ~330 kWh:
-# Kritisk smertegrænse for kWh-pris = 2,25 - (130 / avg_winter_kwh) = 1,86 kr./kWh
-critical_spot_price_winter = round(PRICE_PLUS_KWH - (130.0 / avg_winter_kwh), 2)
-
-# --- BEREGN FAKTISKE HISTORISKE TAL MÅNED FOR MÅNED ---
-# For fortiden gælder fakta: Hver måned har sin egen faktiske spotpris og sæsontarif
-hist_chart_data = []
-hist_table_rows = []
-total_hist_lite_minor = 0
-total_hist_plus_minor = 0
-total_hist_spot_minor = 0
-hist_spot_wins_count = 0
+# --- BEREGNING AF MATEMATISK BREAK-EVEN FAKTOR ---
+# Finder præcis den faktor på spotpriserne, hvor Total Plus == Total City Spot over hele perioden
+tot_plus_all = 0
+tot_spot_sub_fee = total_months * SUB_SPOT_MINOR
+tot_spot_fixed_energy_minor = 0
+tot_spot_variable_weight = 0
 
 for item in month_data_list:
     kwh = item["kwh"]
-    power_m_minor = item["power_m_minor"]
-    label_m = item["label"]
-    m_key = item["month_key"]
+    pwr_m = item["power_m_minor"]
+    m_k = item["month_key"]
+    tot_plus_all += (SUB_PLUS_MINOR + pwr_m)
 
-    actual_spot_price = get_historical_month_price(m_key)
+    m_num = int(m_k.split("-")[1])
+    is_w = m_num in [10, 11, 12, 1, 2, 3]
+    fixed_t = FIXED_WINTER_TARIFFS if is_w else FIXED_SUMMER_TARIFFS
+    raw_s = HISTORICAL_NIGHT_SPOT_DKK.get(m_k, 0.600)
 
-    cost_lite = round(kwh * PRICE_LITE_KWH * 100)
-    cost_plus = SUB_PLUS_MINOR + power_m_minor
-    cost_spot = SUB_SPOT_MINOR + round(kwh * actual_spot_price * 100)
+    tot_spot_fixed_energy_minor += round(kwh * fixed_t * 100)
+    tot_spot_variable_weight += (kwh * raw_s * 125.0)
 
-    total_hist_lite_minor += cost_lite
-    total_hist_plus_minor += cost_plus
-    total_hist_spot_minor += cost_spot
+if tot_spot_variable_weight > 0:
+    breakeven_factor = round((tot_plus_all - tot_spot_sub_fee - tot_spot_fixed_energy_minor) / tot_spot_variable_weight, 2)
+else:
+    breakeven_factor = 1.0
 
-    diff_vs_plus = (cost_plus - cost_spot) / 100.0
+breakeven_pct = round((breakeven_factor - 1.0) * 100)
 
-    if cost_spot <= cost_plus and cost_spot <= cost_lite:
-        hist_spot_wins_count += 1
-        best_badge = f"City Spot (+{diff_vs_plus:,.0f} kr.)"
-    elif cost_plus <= cost_lite:
-        best_badge = f"Plus (+{-diff_vs_plus:,.0f} kr.)"
-    else:
-        best_badge = "Lite (ad hoc)"
-
-    hist_chart_data.append({
-        "month": label_m,
-        "kwh": round(kwh, 1),
-        "cost_spot_kr": round(cost_spot / 100.0, 1),
-        "cost_plus_kr": round(cost_plus / 100.0, 1),
-        "cost_lite_kr": round(cost_lite / 100.0, 1),
-        "savings_vs_plus_kr": round(diff_vs_plus, 1),
-    })
-
-    hist_table_rows.append([
-        label_m,
-        f"{kwh:,.1f} kWh",
-        f"{cost_lite / 100.0:,.2f} kr.",
-        f"{cost_plus / 100.0:,.2f} kr.",
-        f"{cost_spot / 100.0:,.2f} kr. ({actual_spot_price:.2f} kr.)",
-        best_badge
-    ])
-
-total_hist_spot_savings_vs_plus = total_hist_plus_minor - total_hist_spot_minor
+# Beregn Live API faktor
+hist_raw_spots = [HISTORICAL_NIGHT_SPOT_DKK.get(x["month_key"], 0.600) for x in month_data_list]
+avg_hist_raw_spot = sum(hist_raw_spots) / len(hist_raw_spots) if hist_raw_spots else 0.627
+live_raw_spot = max(0.0, (live_spot_price - FIXED_WINTER_TARIFFS) / 1.25)
+live_factor = round(live_raw_spot / avg_hist_raw_spot, 2) if avg_hist_raw_spot > 0 else 1.0
+# Begræns live faktor til fornuftigt spænd
+live_factor = max(0.5, min(2.5, live_factor))
+live_pct = round((live_factor - 1.0) * 100)
 
 
-def generate_scenario(sc_id: str, label: str, description: str, scenario_winter_price: float, is_live: bool = False) -> dict:
-    scenario_winter_price = max(0.0, scenario_winter_price)
-    winter_kwh = round(avg_winter_kwh, 1)
+def generate_factor_scenario(sc_id: str, label: str, description: str, factor: float) -> dict:
+    pct_change = round((factor - 1.0) * 100)
 
-    winter_cost_lite = round(winter_kwh * PRICE_LITE_KWH * 100)
-    winter_cost_plus = SUB_PLUS_MINOR + round(winter_kwh * PRICE_PLUS_KWH * 100)
-    winter_cost_spot = SUB_SPOT_MINOR + round(winter_kwh * scenario_winter_price * 100)
+    total_lite_minor = 0
+    total_plus_minor = 0
+    total_spot_minor = 0
+    spot_wins = 0
 
-    winter_diff_vs_plus = (winter_cost_plus - winter_cost_spot) / 100.0
+    winter_cost_plus_minor = 0
+    winter_cost_spot_minor = 0
 
-    if winter_cost_spot <= winter_cost_plus and winter_cost_spot <= winter_cost_lite:
-        winter_badge = f"City Spot (+{winter_diff_vs_plus:,.0f} kr.)"
-    elif winter_cost_plus <= winter_cost_lite:
-        winter_badge = f"Plus (+{-winter_diff_vs_plus:,.0f} kr.)"
-    else:
-        winter_badge = "Lite (ad hoc)"
+    chart_data = []
+    table_rows = []
+    scenario_kwh_prices = []
 
-    chart_data = list(hist_chart_data)
-    chart_data.append({
-        "month": "🔮 Vinterprognose",
-        "kwh": winter_kwh,
-        "cost_spot_kr": round(winter_cost_spot / 100.0, 1),
-        "cost_plus_kr": round(winter_cost_plus / 100.0, 1),
-        "cost_lite_kr": round(winter_cost_lite / 100.0, 1),
-        "savings_vs_plus_kr": round(winter_diff_vs_plus, 1),
-    })
+    for item in month_data_list:
+        kwh = item["kwh"]
+        power_m_minor = item["power_m_minor"]
+        label_m = item["label"]
+        m_key = item["month_key"]
 
-    table_rows = list(hist_table_rows)
-    table_rows.append([
-        "🔮 Vinter (prognose/md.)",
-        f"{winter_kwh:,.1f} kWh",
-        f"{winter_cost_lite / 100.0:,.2f} kr.",
-        f"{winter_cost_plus / 100.0:,.2f} kr.",
-        f"{winter_cost_spot / 100.0:,.2f} kr. ({scenario_winter_price:.2f} kr.)",
-        winter_badge
-    ])
+        month_num = int(m_key.split("-")[1])
+        is_winter = month_num in [10, 11, 12, 1, 2, 3]
+        fixed_tariffs = FIXED_WINTER_TARIFFS if is_winter else FIXED_SUMMER_TARIFFS
 
-    diff_winter_monthly_kr = round(abs(winter_diff_vs_plus))
+        base_raw_spot = HISTORICAL_NIGHT_SPOT_DKK.get(m_key, 0.600)
+        # Forskyd spotprisen med scenariets faktor
+        scenario_raw_spot = base_raw_spot * factor
+        # Samlet kWh-pris (kan aldrig blive negativ jf. E.ON regler)
+        month_kwh_price = round(max(0.0, (scenario_raw_spot * 1.25) + fixed_tariffs), 2)
+        scenario_kwh_prices.append(month_kwh_price)
 
-    if scenario_winter_price < critical_spot_price_winter:
-        winter_rec = "City Spot"
-        winter_trend = "positive"
-        winter_kpi_sub = f"Sparer ca. {diff_winter_monthly_kr} kr./md."
-        winter_text = (
-            f"Ved en samlet vinterpris på **{scenario_winter_price:.2f} kr./kWh** ligger elprisen **under jeres smertegrænse på {critical_spot_price_winter:.2f} kr./kWh**. "
-            f"City Spot giver den laveste samlede udgift og sparer jer ca. **{diff_winter_monthly_kr} kr./md.** ved jeres typiske vinterforbrug ({round(avg_winter_kwh)} kWh/md.)."
+        cost_lite = round(kwh * PRICE_LITE_KWH * 100)
+        cost_plus = SUB_PLUS_MINOR + power_m_minor
+        cost_spot = SUB_SPOT_MINOR + round(kwh * month_kwh_price * 100)
+
+        total_lite_minor += cost_lite
+        total_plus_minor += cost_plus
+        total_spot_minor += cost_spot
+
+        if month_num in [11, 12, 1, 2]:
+            winter_cost_plus_minor += cost_plus
+            winter_cost_spot_minor += cost_spot
+
+        diff_vs_plus = (cost_plus - cost_spot) / 100.0
+
+        if cost_spot <= cost_plus and cost_spot <= cost_lite:
+            spot_wins += 1
+            best_badge = f"City Spot (+{diff_vs_plus:,.0f} kr.)"
+        elif cost_plus <= cost_lite:
+            best_badge = f"Plus (+{-diff_vs_plus:,.0f} kr.)"
+        else:
+            best_badge = "Lite (ad hoc)"
+
+        chart_data.append({
+            "month": label_m,
+            "kwh": round(kwh, 1),
+            "cost_spot_kr": round(cost_spot / 100.0, 1),
+            "cost_plus_kr": round(cost_plus / 100.0, 1),
+            "cost_lite_kr": round(cost_lite / 100.0, 1),
+            "savings_vs_plus_kr": round(diff_vs_plus, 1),
+        })
+
+        table_rows.append([
+            label_m,
+            f"{kwh:,.1f} kWh",
+            f"{cost_lite / 100.0:,.2f} kr.",
+            f"{cost_plus / 100.0:,.2f} kr.",
+            f"{cost_spot / 100.0:,.2f} kr. ({month_kwh_price:.2f} kr.)",
+            best_badge
+        ])
+
+    avg_sc_price = sum(scenario_kwh_prices) / len(scenario_kwh_prices) if scenario_kwh_prices else 0.0
+    total_savings_vs_plus = (total_plus_minor - total_spot_minor) / 100.0
+    winter_savings_vs_plus = (winter_cost_plus_minor - winter_cost_spot_minor) / 100.0
+
+    if total_savings_vs_plus >= 0:
+        overall_text = (
+            f"Ved dette prisniveau ({pct_change:+.0f} % forskydning, gns. {avg_sc_price:.2f} kr./kWh) "
+            f"ville City Spot give et samlet overskud på **+{total_savings_vs_plus:,.2f} kr.** i forhold til Plus "
+            f"(billigst i {spot_wins} ud af {total_months} måneder)."
         )
-    elif abs(scenario_winter_price - critical_spot_price_winter) < 0.02:
-        winter_rec = "Uafgjort (Break-even)"
-        winter_trend = "neutral"
-        winter_kpi_sub = "Plus og City Spot koster det samme"
-        winter_text = (
-            f"Ved en pris på **{scenario_winter_price:.2f} kr./kWh** rammer I præcis jeres smertegrænse for vinterforbruget ({round(avg_winter_kwh)} kWh/md.). "
-            f"City Spot (229 kr.) og Plus (99 kr.) vil koste **præcis det samme**. Stiger elprisen det mindste herover, er Plus bedst."
-        )
     else:
-        winter_rec = "Plus (Fastpris)"
-        winter_trend = "positive"
-        winter_kpi_sub = f"Sparer ca. {diff_winter_monthly_kr} kr./md."
-        winter_text = (
-            f"Ved en samlet vinterpris på **{scenario_winter_price:.2f} kr./kWh** overstiger elprisen smertegrænsen på {critical_spot_price_winter:.2f} kr./kWh. "
-            f"**Plus beskytter jer som en fastprisaftale (2,25 kr.)** og sparer jer ca. **{diff_winter_monthly_kr} kr./md.** mod høje vinterpriser!"
+        overall_text = (
+            f"Ved dette prisniveau ({pct_change:+.0f} % forskydning, gns. {avg_sc_price:.2f} kr./kWh) "
+            f"er Plus billigst samlet set og sparer jer for **+{-total_savings_vs_plus:,.2f} kr.** i forhold til City Spot."
         )
+
+    if winter_savings_vs_plus >= 0:
+        winter_text = f"I de 4 koldeste vintermåneder (nov–feb) sparer City Spot jer **+{winter_savings_vs_plus:,.0f} kr.** samlet."
+    else:
+        winter_text = f"I de 4 koldeste vintermåneder (nov–feb) beskytter Plus jer og sparer jer **+{-winter_savings_vs_plus:,.0f} kr.** samlet mod vinterkulde."
 
     dc_and_rules_note = (
         "\n\n🚗 **Bemærkninger til vilkår:**\n"
@@ -306,40 +299,38 @@ def generate_scenario(sc_id: str, label: str, description: str, scenario_winter_
 
     summary = (
         f"**Scenarie: {label}**\n\n"
-        f"🎯 **Smertegrænse for vinteren:** **{critical_spot_price_winter:.2f} kr./kWh** (ved {round(avg_winter_kwh)} kWh/md. vinterforbrug).\n"
-        f"💡 **Forudsat samlet vinterpris:** **{scenario_winter_price:.2f} kr./kWh** (inkl. Cerius vintertarif C, elafgift og E.ON-tillæg på 25 øre).\n\n"
-        f"**Vinterprognose:** {winter_text}\n\n"
-        f"📊 **Faktisk historisk facit ({total_months} forgangne mdr.):**\n"
-        f"Hver historisk måned i tabellen og grafen herunder er beregnet med dens faktiske historiske natspotpris i DK2 og korrekte sommer-/vintertariffer. "
-        f"Samlet set ville City Spot historisk have givet et resultat på **{total_hist_spot_savings_vs_plus / 100.0:+,.2f} kr.** vs. Plus "
-        f"(bedst i {hist_spot_wins_count} ud af {total_months} måneder)."
+        f"📈 **Model:** Beregningen tager udgangspunkt i jeres **faktiske månedlige kørselsmønster og historiske natspotpriser for DK2**, "
+        f"men forskyder spotprisen med **{pct_change:+.0f} %** (faktor {factor:.2f}) svarende til en gns. natpris på **{avg_sc_price:.2f} kr./kWh**.\n\n"
+        f"**Samlet konklusion:** {overall_text}\n\n"
+        f"❄️ **Vintermånederne (Nov–Feb):** {winter_text}\n\n"
+        f"🎯 **Smertegrænse:** Hvis spotpriserne stiger over {breakeven_pct:+.0f} % (faktor {breakeven_factor:.2f}), tipper balancen til Plus' fordel."
         f"{dc_and_rules_note}"
     )
 
     kpis = [
         {
-            "label": "Vinterpris i scenariet",
-            "formatted_value": f"{scenario_winter_price:.2f} kr./kWh",
-            "trend": "positive" if scenario_winter_price < critical_spot_price_winter else "negative",
-            "subtitle": "Inkl. Cerius vintertarif & afgift"
+            "label": "Prisforskydning",
+            "formatted_value": f"{pct_change:+.0f} %",
+            "trend": "positive" if factor <= 1.0 else "negative",
+            "subtitle": f"Gns. natpris: {avg_sc_price:.2f} kr./kWh"
         },
         {
             "label": "Kritisk smertegrænse",
-            "formatted_value": f"{critical_spot_price_winter:.2f} kr./kWh",
+            "formatted_value": f"{breakeven_pct:+.0f} %",
             "trend": "neutral",
-            "subtitle": f"Ved {round(avg_winter_kwh)} kWh vinterforbrug"
+            "subtitle": f"Break-even ved faktor {breakeven_factor:.2f}"
         },
         {
-            "label": "Vinterbesparelse / md.",
-            "formatted_value": f"{'+' if scenario_winter_price < critical_spot_price_winter else '-'}{diff_winter_monthly_kr} kr./md.",
-            "trend": "positive",
-            "subtitle": f"I favør af {winter_rec.split()[0]}"
+            "label": "Samlet resultat (City Spot)",
+            "value_minor": round(total_savings_vs_plus * 100),
+            "trend": "positive" if total_savings_vs_plus >= 0 else "negative",
+            "subtitle": f"Bedst i {spot_wins}/{total_months} måneder"
         },
         {
-            "label": "Faktisk historisk facit",
-            "value_minor": total_hist_spot_savings_vs_plus,
-            "trend": "positive" if total_hist_spot_savings_vs_plus >= 0 else "negative",
-            "subtitle": f"City Spot vandt {hist_spot_wins_count}/{total_months} mdr."
+            "label": "Vinterresultat (Nov-Feb)",
+            "value_minor": round(winter_savings_vs_plus * 100),
+            "trend": "positive" if winter_savings_vs_plus >= 0 else "negative",
+            "subtitle": f"I de 4 vintermåneder"
         }
     ]
 
@@ -352,7 +343,7 @@ def generate_scenario(sc_id: str, label: str, description: str, scenario_winter_
             {"key": "cost_lite_kr", "label": "Lite / Ad hoc (0 kr.)", "color": "#f59e0b", "type": "line"},
         ],
         "custom_legend": [
-            {"label": "City Spot (229 kr. + reel månedlig spot / vinterprognose)", "color": "#10b981", "type": "rect"},
+            {"label": f"City Spot (229 kr. + forskudt månedlig spot {pct_change:+.0f} %)", "color": "#10b981", "type": "rect"},
             {"label": "Plus (99 kr. + 2,25 kr. fast)", "color": "#3b82f6", "type": "rect"},
             {"label": "Lite (0 kr. + 2,95 kr. ad hoc)", "color": "#f59e0b", "type": "line"},
         ],
@@ -375,44 +366,43 @@ def generate_scenario(sc_id: str, label: str, description: str, scenario_winter_
     }
 
 
-# Opret de 6 scenarier (inkl. E.ONs officielle referencepris på 1,42 kr.)
+# Opret de 6 faktor-scenarier
 scenarios = [
-    generate_scenario(
-        "live",
-        f"⚡ Live API ({live_spot_price:.2f} kr.)",
-        f"Realtids gns. natpris hentet direkte fra Energi Data Service for DK2 ({spot_source}).",
-        live_spot_price,
-        is_live=True
+    generate_factor_scenario(
+        "baseline",
+        "📊 Historisk baseline (0 %)",
+        "Faktiske månedlige natspotpriser for DK2 og sæsontariffer (ingen forskydning).",
+        1.0
     ),
-    generate_scenario(
-        "eon_official",
-        "📊 E.ON gns. (1,42 kr.)",
-        "E.ONs officielt oplyste gennemsnitlige natpris i appen (Spot + 25 øre) for både AC og DC.",
-        1.42
-    ),
-    generate_scenario(
+    generate_factor_scenario(
         "mild",
-        "☀️ Mild vinter (1,20 kr.)",
-        "Ekstra blæsende efterår/vinter med lave spotpriser. City Spot sparer jer over 200 kr./md.",
-        1.20
+        "☀️ Mild vinter (-20 %)",
+        "Simulerer et ekstra mildt og blæsende år med 20 % lavere spotpriser.",
+        0.80
     ),
-    generate_scenario(
+    generate_factor_scenario(
+        "live",
+        f"⚡ Live trend ({live_pct:+.0f} %)",
+        f"Forskyder priserne med {live_pct:+.0f} % baseret på den seneste realtids natpris ({live_spot_price:.2f} kr./kWh).",
+        live_factor
+    ),
+    generate_factor_scenario(
         "breakeven",
-        f"🎯 Smertegrænse ({critical_spot_price_winter:.2f} kr.)",
-        f"Break-even niveau ved {round(avg_winter_kwh)} kWh/md. vinterforbrug, hvor Plus og City Spot koster nøjagtig det samme.",
-        critical_spot_price_winter
+        f"🎯 Smertegrænse ({breakeven_pct:+.0f} %)",
+        f"Det præcise stigningsniveau ({breakeven_pct:+.0f} % på spotprisen), hvor City Spot og Plus koster nøjagtig det samme.",
+        breakeven_factor
     ),
-    generate_scenario(
+    generate_factor_scenario(
         "cold",
-        "🥶 Dyr vinter (2,40 kr.)",
-        "Kold vinter med høje gas- og spotpriser. Plus beskytter med garanteret 2,25 kr. fastpris.",
-        2.40
+        "🥶 Kold vinter (+25 %)",
+        "Simulerer en kold vinter med højere efterspørgsel og 25 % højere elpriser.",
+        1.25
     ),
-    generate_scenario(
+    generate_factor_scenario(
         "crisis",
-        "🔥 Energikrise (3,00 kr.)",
-        "Ekstrem priskrise med høje spidser. Plus sparer jer markante beløb hver måned.",
-        3.00
+        "🔥 Energikrise (+60 %)",
+        "Simulerer et kraftigt prischok (+60 % på spotprisen). Plus beskytter markant.",
+        1.60
     ),
 ]
 
@@ -425,7 +415,7 @@ output = {
     "chart": default_sc["chart"],
     "table": default_sc["table"],
     "scenarios": scenarios,
-    "default_scenario_id": "live"
+    "default_scenario_id": "baseline"
 }
 
 print(json.dumps(output, ensure_ascii=False))
