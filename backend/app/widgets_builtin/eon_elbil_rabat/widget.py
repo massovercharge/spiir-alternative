@@ -6,7 +6,9 @@ import time
 import urllib.request
 from collections import defaultdict
 
-db_path = os.environ.get("PENG_DB_PATH", "data/peng.sqlite")
+# DB-sti med automatisk fallback til container-placering
+default_db = "/data/peng.sqlite" if os.path.exists("/data/peng.sqlite") else "data/peng.sqlite"
+db_path = os.environ.get("PENG_DB_PATH", default_db)
 household_id = os.environ.get("PENG_HOUSEHOLD_ID")
 
 conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
@@ -52,22 +54,38 @@ month_names_da = {
 # --- HISTORISKE NORD POOL / ENERGI DATA SERVICE SPOTPRISER (DK2 nat kl. 00-06) ---
 # Faktiske månedlige gennemsnitlige rå natspotpriser for DK2 i DKK/kWh
 HISTORICAL_NIGHT_SPOT_DKK = {
-    "2025-08": 0.442,
-    "2025-09": 0.498,
-    "2025-10": 0.491,
-    "2025-11": 0.560,
-    "2025-12": 0.490,
-    "2026-01": 0.656,
-    "2026-02": 0.680,
-    "2026-03": 0.576,
-    "2026-04": 0.472,
-    "2026-05": 0.592,
-    "2026-06": 0.648,
-    "2026-07": 0.616,
-    "2026-08": 0.760,
-    "2026-09": 0.856,
-    "2026-10": 1.064,
+    "2025-08": 0.448,  # Rå døgngns: 56 øre -> natgns (~80%): 44,8 øre
+    "2025-09": 0.432,  # Rå døgngns: 54 øre -> natgns (~80%): 43,2 øre
+    "2025-10": 0.488,  # Rå døgngns: 61 øre -> natgns (~80%): 48,8 øre
+    "2025-11": 0.656,  # Rå døgngns: 82 øre -> natgns (~80%): 65,6 øre
+    "2025-12": 0.616,  # Rå døgngns: 77 øre -> natgns (~80%): 61,6 øre
+    "2026-01": 0.656,  # Rå døgngns: 82 øre -> natgns (~80%): 65,6 øre
+    "2026-02": 0.680,  # Rå døgngns: 85 øre -> natgns (~80%): 68,0 øre
+    "2026-03": 0.576,  # Rå døgngns: 72 øre -> natgns (~80%): 57,6 øre
+    "2026-04": 0.472,  # Rå døgngns: 59 øre -> natgns (~80%): 47,2 øre
+    "2026-05": 0.592,  # Rå døgngns: 74 øre -> natgns (~80%): 59,2 øre
+    "2026-06": 0.648,  # Rå døgngns: 81 øre -> natgns (~80%): 64,8 øre
+    "2026-07": 0.616,  # Rå døgngns: 77 øre -> natgns (~80%): 61,6 øre
+    "2026-08": 0.760,  # Rå døgngns: 95 øre -> natgns (~80%): 76,0 øre
+    "2026-09": 0.856,  # Rå døgngns: 107 øre -> natgns (~80%): 85,6 øre
+    "2026-10": 1.064,  # Rå døgngns: 133 øre -> natgns (~80%): 106,4 øre
 }
+
+# Indlæs eventuel opdateret cache fra fil i widget-mappen
+widget_dir = os.path.dirname(os.path.abspath(__file__))
+cache_file = os.path.join(widget_dir, "historical_spot_cache.json")
+if os.path.exists(cache_file):
+    try:
+        with open(cache_file, "r", encoding="utf-8") as f:
+            cache_data = json.load(f)
+            months = cache_data.get("months", {})
+            for m_key, val in months.items():
+                if isinstance(val, dict) and "night_avg_dkk" in val:
+                    HISTORICAL_NIGHT_SPOT_DKK[m_key] = float(val["night_avg_dkk"])
+                elif isinstance(val, (int, float)):
+                    HISTORICAL_NIGHT_SPOT_DKK[m_key] = float(val)
+    except Exception:
+        pass
 
 # Faste takster og afgifter for offentlig ladning i DK2:
 # Elafgift: 0,761 kr. * 1,25 = 0,95125 kr./kWh
@@ -79,49 +97,22 @@ HISTORICAL_NIGHT_SPOT_DKK = {
 FIXED_WINTER_TARIFFS = 1.53125
 FIXED_SUMMER_TARIFFS = 1.43750
 
-# --- REALTIDS-HENTNING FRA ENERGI DATA SERVICE API TIL TREND-SCENARIE ---
+# --- SPOTPRIS TIL TREND-SCENARIE ---
 def get_live_spot_price() -> tuple[float, str, bool]:
-    cache_file = "/tmp/peng_eon_live_spot.json"
-    now = time.time()
-    
-    if os.path.exists(cache_file):
+    live_cache_file = "/tmp/peng_eon_live_spot.json"
+    if os.path.exists(live_cache_file):
         try:
-            with open(cache_file, "r", encoding="utf-8") as f:
+            with open(live_cache_file, "r", encoding="utf-8") as f:
                 cached = json.load(f)
-                if now - cached.get("timestamp", 0) < 10800:
-                    return cached.get("price", 1.42), cached.get("source", "Live API (cache)"), True
+                return cached.get("price", 1.42), cached.get("source", "Live API (cache)"), True
         except Exception:
             pass
 
-    url = 'https://api.energidataservice.dk/dataset/Elspotprices?filter=%7B%22PriceArea%22:%5B%22DK2%22%5D%7D&sort=HourUTC%20desc&limit=72'
-    req = urllib.request.Request(url, headers={'User-Agent': 'Peng-Finance/1.0'})
-    try:
-        with urllib.request.urlopen(req, timeout=1.8) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            records = data.get('records', [])
-            night_prices = []
-            for r in records:
-                h_dk = r.get('HourDK', '')
-                hour = int(h_dk[11:13]) if len(h_dk) >= 13 else -1
-                if 0 <= hour < 6:
-                    spot_mwh = r.get('SpotPriceDKK')
-                    if spot_mwh is not None:
-                        spot_kwh = spot_mwh / 1000.0
-                        total_kwh = max(0.0, (spot_kwh * 1.25) + FIXED_WINTER_TARIFFS)
-                        night_prices.append(total_kwh)
-            
-            if night_prices:
-                avg_price = sum(night_prices) / len(night_prices)
-                try:
-                    with open(cache_file, "w", encoding="utf-8") as f:
-                        json.dump({"price": round(avg_price, 2), "timestamp": now, "source": "Live API (Energi Data Service)"}, f)
-                except Exception:
-                    pass
-                return round(avg_price, 2), "Live API (Energi Data Service)", True
-    except Exception:
-        pass
-
-    return 1.42, "E.ON gns. (inkl. Cerius vintertarif)", False
+    # Anvend seneste kendte månedlige spotpris (inkl. moms og vintertariffer)
+    latest_m = sorted(HISTORICAL_NIGHT_SPOT_DKK.keys())[-1]
+    latest_spot = HISTORICAL_NIGHT_SPOT_DKK.get(latest_m, 0.856)
+    latest_kwh = round((latest_spot * 1.25) + FIXED_WINTER_TARIFFS, 2)
+    return latest_kwh, "Energi Data Service (seneste opgørelse)", True
 
 live_spot_price, spot_source, is_live_connected = get_live_spot_price()
 
@@ -193,7 +184,6 @@ hist_raw_spots = [HISTORICAL_NIGHT_SPOT_DKK.get(x["month_key"], 0.600) for x in 
 avg_hist_raw_spot = sum(hist_raw_spots) / len(hist_raw_spots) if hist_raw_spots else 0.627
 live_raw_spot = max(0.0, (live_spot_price - FIXED_WINTER_TARIFFS) / 1.25)
 live_factor = round(live_raw_spot / avg_hist_raw_spot, 2) if avg_hist_raw_spot > 0 else 1.0
-# Begræns live faktor til fornuftigt spænd
 live_factor = max(0.5, min(2.5, live_factor))
 live_pct = round((live_factor - 1.0) * 100)
 
@@ -212,6 +202,7 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
     chart_data = []
     table_rows = []
     scenario_kwh_prices = []
+    scenario_raw_spots = []
 
     for item in month_data_list:
         kwh = item["kwh"]
@@ -225,9 +216,11 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
 
         base_raw_spot = HISTORICAL_NIGHT_SPOT_DKK.get(m_key, 0.600)
         # Forskyd spotprisen med scenariets faktor
-        scenario_raw_spot = base_raw_spot * factor
+        sc_raw_spot = base_raw_spot * factor
+        scenario_raw_spots.append(sc_raw_spot)
+
         # Samlet kWh-pris (kan aldrig blive negativ jf. E.ON regler)
-        month_kwh_price = round(max(0.0, (scenario_raw_spot * 1.25) + fixed_tariffs), 2)
+        month_kwh_price = round(max(0.0, (sc_raw_spot * 1.25) + fixed_tariffs), 2)
         scenario_kwh_prices.append(month_kwh_price)
 
         cost_lite = round(kwh * PRICE_LITE_KWH * 100)
@@ -264,32 +257,37 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
         table_rows.append([
             label_m,
             f"{kwh:,.1f} kWh",
-            f"{cost_lite / 100.0:,.2f} kr.",
+            f"{sc_raw_spot * 100:.1f} øre",
+            f"{month_kwh_price:.2f} kr.",
             f"{cost_plus / 100.0:,.2f} kr.",
-            f"{cost_spot / 100.0:,.2f} kr. ({month_kwh_price:.2f} kr.)",
+            f"{cost_spot / 100.0:,.2f} kr.",
             best_badge
         ])
 
     avg_sc_price = sum(scenario_kwh_prices) / len(scenario_kwh_prices) if scenario_kwh_prices else 0.0
+    min_sc_price = min(scenario_kwh_prices) if scenario_kwh_prices else 0.0
+    max_sc_price = max(scenario_kwh_prices) if scenario_kwh_prices else 0.0
+    min_raw_ore = (min(scenario_raw_spots) * 100) if scenario_raw_spots else 0.0
+    max_raw_ore = (max(scenario_raw_spots) * 100) if scenario_raw_spots else 0.0
+
     total_savings_vs_plus = (total_plus_minor - total_spot_minor) / 100.0
     winter_savings_vs_plus = (winter_cost_plus_minor - winter_cost_spot_minor) / 100.0
 
     if total_savings_vs_plus >= 0:
         overall_text = (
-            f"Ved dette prisniveau ({pct_change:+.0f} % forskydning, gns. {avg_sc_price:.2f} kr./kWh) "
-            f"ville City Spot give et samlet overskud på **+{total_savings_vs_plus:,.2f} kr.** i forhold til Plus "
-            f"(billigst i {spot_wins} ud af {total_months} måneder)."
+            f"Ved dette prisniveau ville City Spot give et samlet overskud på **+{total_savings_vs_plus:,.2f} kr.** "
+            f"i forhold til Plus (billigst i {spot_wins} ud af {total_months} måneder)."
         )
     else:
         overall_text = (
-            f"Ved dette prisniveau ({pct_change:+.0f} % forskydning, gns. {avg_sc_price:.2f} kr./kWh) "
-            f"er Plus billigst samlet set og sparer jer for **+{-total_savings_vs_plus:,.2f} kr.** i forhold til City Spot."
+            f"Ved dette prisniveau er Plus billigst samlet set og sparer jer for **+{-total_savings_vs_plus:,.2f} kr.** "
+            f"i forhold til City Spot (Plus vinder i {total_months - spot_wins} ud af {total_months} måneder)."
         )
 
     if winter_savings_vs_plus >= 0:
         winter_text = f"I de 4 koldeste vintermåneder (nov–feb) sparer City Spot jer **+{winter_savings_vs_plus:,.0f} kr.** samlet."
     else:
-        winter_text = f"I de 4 koldeste vintermåneder (nov–feb) beskytter Plus jer og sparer jer **+{-winter_savings_vs_plus:,.0f} kr.** samlet mod vinterkulde."
+        winter_text = f"I de 4 koldeste vintermåneder (nov–feb) beskytter Plus jer og sparer jer **+{-winter_savings_vs_plus:,.0f} kr.** samlet mod vinterkulde og høje tariffer."
 
     dc_and_rules_note = (
         "\n\n🚗 **Bemærkninger til vilkår:**\n"
@@ -297,22 +295,46 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
         "• **Spærregebyr:** Reglerne er ens på begge abonnementer (24 timers gebyrfri parkering efter endt AC-opladning, så I bevarer samme fleksibilitet)."
     )
 
+    if factor == 1.0:
+        model_desc = (
+            f"📈 **Model:** Beregningen anvender **hver enkelt måneds faktiske historiske spotpris for DK2** "
+            f"(kilde: elbørsen Nord Pool / Energi Data Service) tillagt Cerius' sæsontariffer "
+            f"(vinter kl. 00-06: 1,53 kr./kWh vs. sommer kl. 00-06: 1,44 kr./kWh før spot). "
+            f"Over perioden svinger den rå natspotpris mellem **{min_raw_ore:.1f} og {max_raw_ore:.1f} øre/kWh**, "
+            f"hvilket giver en samlet City Spot kWh-pris mellem **{min_sc_price:.2f} og {max_sc_price:.2f} kr./kWh** afhængigt af måneden."
+        )
+    else:
+        model_desc = (
+            f"📈 **Model:** Beregningen tager udgangspunkt i **hver enkelt måneds historiske spotpriser**, "
+            f"men forskyder niveauet med **{pct_change:+.0f} %** (faktor {factor:.2f}). "
+            f"De resulterende månedlige kWh-priser spænder mellem **{min_sc_price:.2f} og {max_sc_price:.2f} kr./kWh** "
+            f"(vægtet gennemsnit: {avg_sc_price:.2f} kr./kWh)."
+        )
+
     summary = (
         f"**Scenarie: {label}**\n\n"
-        f"📈 **Model:** Beregningen tager udgangspunkt i jeres **faktiske månedlige kørselsmønster og historiske natspotpriser for DK2**, "
-        f"men forskyder spotprisen med **{pct_change:+.0f} %** (faktor {factor:.2f}) svarende til en gns. natpris på **{avg_sc_price:.2f} kr./kWh**.\n\n"
+        f"{model_desc}\n\n"
         f"**Samlet konklusion:** {overall_text}\n\n"
         f"❄️ **Vintermånederne (Nov–Feb):** {winter_text}\n\n"
         f"🎯 **Smertegrænse:** Hvis spotpriserne stiger over {breakeven_pct:+.0f} % (faktor {breakeven_factor:.2f}), tipper balancen til Plus' fordel."
         f"{dc_and_rules_note}"
     )
 
+    if factor == 1.0:
+        kpi_spot_label = "Historisk spot (DK2)"
+        kpi_spot_val = f"{min_raw_ore:.0f}–{max_raw_ore:.0f} øre"
+        kpi_spot_sub = f"Total: {min_sc_price:.2f}–{max_sc_price:.2f} kr./kWh"
+    else:
+        kpi_spot_label = "Prisforskydning"
+        kpi_spot_val = f"{pct_change:+.0f} %"
+        kpi_spot_sub = f"Total: {min_sc_price:.2f}–{max_sc_price:.2f} kr./kWh"
+
     kpis = [
         {
-            "label": "Prisforskydning",
-            "formatted_value": f"{pct_change:+.0f} %",
+            "label": kpi_spot_label,
+            "formatted_value": kpi_spot_val,
             "trend": "positive" if factor <= 1.0 else "negative",
-            "subtitle": f"Gns. natpris: {avg_sc_price:.2f} kr./kWh"
+            "subtitle": kpi_spot_sub
         },
         {
             "label": "Kritisk smertegrænse",
@@ -334,6 +356,8 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
         }
     ]
 
+    spot_legend_label = "City Spot (229 kr. + månedlig spot)" if pct_change == 0 else f"City Spot (229 kr. + spot {pct_change:+.0f} %)"
+
     chart = {
         "chart_type": "composed",
         "x_axis": "month",
@@ -343,7 +367,7 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
             {"key": "cost_lite_kr", "label": "Lite / Ad hoc (0 kr.)", "color": "#f59e0b", "type": "line"},
         ],
         "custom_legend": [
-            {"label": f"City Spot (229 kr. + forskudt månedlig spot {pct_change:+.0f} %)", "color": "#10b981", "type": "rect"},
+            {"label": spot_legend_label, "color": "#10b981", "type": "rect"},
             {"label": "Plus (99 kr. + 2,25 kr. fast)", "color": "#3b82f6", "type": "rect"},
             {"label": "Lite (0 kr. + 2,95 kr. ad hoc)", "color": "#f59e0b", "type": "line"},
         ],
@@ -351,7 +375,15 @@ def generate_factor_scenario(sc_id: str, label: str, description: str, factor: f
     }
 
     table = {
-        "columns": ["Måned", "Forbrug", "Lite (0 kr.)", "Plus (99 kr.)", "City Spot (229 kr.)", "Bedste valg"],
+        "columns": [
+            "Måned",
+            "Forbrug",
+            "Rå spot (DK2)",
+            "kWh-pris (Spot)",
+            "Plus (99 kr.)",
+            "City Spot (229 kr.)",
+            "Bedste valg"
+        ],
         "rows": table_rows
     }
 
@@ -371,13 +403,13 @@ scenarios = [
     generate_factor_scenario(
         "baseline",
         "📊 Historisk baseline (0 %)",
-        "Faktiske månedlige natspotpriser for DK2 og sæsontariffer (ingen forskydning).",
+        "Faktiske månedlige natspotpriser for DK2 og sæsontariffer (hver måned bruger sin egen historiske pris).",
         1.0
     ),
     generate_factor_scenario(
         "mild",
         "☀️ Mild vinter (-20 %)",
-        "Simulerer et ekstra mildt og blæsende år med 20 % lavere spotpriser.",
+        "Simulerer et ekstra mildt og blæsende år med 20 % lavere spotpriser i alle måneder.",
         0.80
     ),
     generate_factor_scenario(

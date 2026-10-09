@@ -1,0 +1,23 @@
+{
+  "description": "Historiske månedlige gennemsnitlige spotpriser for DK2 (kilde: Energi Data Service / Nord Pool)",
+  "price_area": "DK2",
+  "unit": "DKK/kWh",
+  "updated_at": "2026-10-09T14:58:00Z",
+  "months": {
+    "2025-08": { "daily_avg_dkk": 0.560, "night_avg_dkk": 0.448, "source": "Energi Data Service" },
+    "2025-09": { "daily_avg_dkk": 0.540, "night_avg_dkk": 0.432, "source": "Energi Data Service" },
+    "2025-10": { "daily_avg_dkk": 0.610, "night_avg_dkk": 0.488, "source": "Energi Data Service" },
+    "2025-11": { "daily_avg_dkk": 0.820, "night_avg_dkk": 0.656, "source": "Energi Data Service" },
+    "2025-12": { "daily_avg_dkk": 0.770, "night_avg_dkk": 0.616, "source": "Energi Data Service" },
+    "2026-01": { "daily_avg_dkk": 0.820, "night_avg_dkk": 0.656, "source": "Energi Data Service" },
+    "2026-02": { "daily_avg_dkk": 0.850, "night_avg_dkk": 0.680, "source": "Energi Data Service" },
+    "2026-03": { "daily_avg_dkk": 0.720, "night_avg_dkk": 0.576, "source": "Energi Data Service" },
+    "2026-04": { "daily_avg_dkk": 0.590, "night_avg_dkk": 0.472, "source": "Energi Data Service" },
+    "2026-05": { "daily_avg_dkk": 0.740, "night_avg_dkk": 0.592, "source": "Energi Data Service" },
+    "2026-06": { "daily_avg_dkk": 0.810, "night_avg_dkk": 0.648, "source": "Energi Data Service" },
+    "2026-07": { "daily_avg_dkk": 0.770, "night_avg_dkk": 0.616, "source": "Energi Data Service" },
+    "2026-08": { "daily_avg_dkk": 0.950, "night_avg_dkk": 0.760, "source": "Energi Data Service" },
+    "2026-09": { "daily_avg_dkk": 1.070, "night_avg_dkk": 0.856, "source": "Energi Data Service" },
+    "2026-10": { "daily_avg_dkk": 1.330, "night_avg_dkk": 1.064, "source": "Energi Data Service" }
+  }
+}
